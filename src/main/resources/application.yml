@@ -1,0 +1,71 @@
+spring:
+  servlet:
+    multipart:
+      max-file-size: 5MB # 한 개의 파일 업로드 크기 제한
+      max-request-size: 5MB
+  jwt:
+    secret: ${JWT_SECRET}
+  profiles:
+    # develop : develop 환경에서 application run 을 실행
+    # production : 실 사용자가 사용하는 환경에서 application run 을 실행
+    # staging : 실 사용자는 없지만, 마지막 테스트 환경에서 application run 을 실행
+    active: none # <develop, production, staging, none> 옵션
+    # application-oauth2.yml 파일을 별도로 관리
+    include: oauth2
+  datasource:
+    # MySQL
+    url: jdbc:mysql://localhost:3306/shop?serverTimezone=UTC&characterEncoding=UTF-8
+    username: root
+    password: 1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # H2
+#    url: jdbc:h2:tcp://localhost/~/shop
+#    username: root
+#    password: 1234
+#    driver-class-name: org.h2.Driver
+  mail:
+    username: hddong728@naver.com
+    password: ${NAVER_PASSWORD}
+    host: smtp.naver.com
+    port: 465 # ssl 사용 시,
+    auth-code-expiration-millis: 1800000  # 30분
+  #  main:
+  #    allow-bean-definition-overriding: true
+
+  #  create	기존테이블을 삭제하고 다시 생성
+  #  create-drop 기존테이블을 삭제하고 다시생성. 종료 시점에 테이블삭제
+  #  update	변경된 스키마 적용 (운영 DB 에서 사용X)
+  #  validate Entity 와 테이블이 정상 매핑 되었는지 확인
+  #  none 기존테이블을 더 이상 건드리지 않음.
+  jpa:
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        #        show_sql: true
+        format_sql: true
+        default_batch_fetch_size: 1000 #최적화 옵션
+
+  redis:
+    host: redis
+    port: 6379
+
+  #    show_sql: true
+  cache:
+    type: redis
+    cache-names: profileImages
+  data:
+    redis:
+      host: redis
+      port: 6379
+      time-to-live: 600000 # 캐시 TTL 설정 (60분). 이미지 캐싱을 위한 설정 [24.05.30 ksw]
+  web:
+    resources:
+      static-locations: classpath:/static/,file:/static/
+
+  backend:
+    url: ${BACKEND_URL}
+  frontend:
+    url: ${FRONTEND_URL}
