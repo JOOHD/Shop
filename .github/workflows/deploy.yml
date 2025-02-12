@@ -1,0 +1,183 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
+
+name: Java CI with Gradle and Docker Deployment
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+#env:
+#  RESOURCE_PATH: ./src/main/resources/application.yml
+#  S3_BUCKET_NAME: pjundmds3
+#  CODE_DEPLOY_APPLICATION_NAME: pjundmd-code-deploy
+#  CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: undmd-grp
+#  DOCKER_IMAGE_NAME: pjundmd
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    # [1]
+    - name: Set yaml file
+      uses: microsoft/variable-substitution@v1
+      with:
+        files: ${{ env.RESOURCE_PATH }}
+      env:
+        spring.jwt.secret: ${{ secrets.JWT_SECRET }}
+        spring.datasource.url: jdbc:mysql://${{ secrets.MYSQL_HOST }}:3306/pushop?&serverTimezone=Asia/Seoul
+        spring.datasource.username: ${{ secrets.MYSQL_USERNAME }}
+        spring.datasource.password: ${{ secrets.MYSQL_PASSWORD }}
+        spring.mail.password: ${{ secrets.NAVER_PASSWORD }}
+        spring.backend.url: ${{ secrets.BACKEND_URL }}
+        spring.frontend.url: ${{ secrets.FRONTEND_URL }}
+        spring.imp.api.key: ${{ secrets.IMP_API_KEY }}
+        spring.imp.secretkey: ${{ secrets.IMP_SECRET_KEY }}
+        spring.security.oauth2.client.registration.naver.client-id: ${{ secrets.NAVER_CLIENT_ID }}
+        spring.security.oauth2.client.registration.naver.client-secret: ${{ secrets.NAVER_CLIENT_SECRET }}
+        spring.security.oauth2.client.registration.naver.redirect-uri: ${{ secrets.NAVER_REDIRECT_URI }}
+        spring.security.oauth2.client.registration.kakao.client-id: ${{ secrets.KAKAO_CLIENT_ID }}
+        spring.security.oauth2.client.registration.kakao.client-secret: ${{ secrets.KAKAO_SECRET }}
+        spring.security.oauth2.client.registration.kakao.client-authentication-method: ${{ secrets.KAKAO_AUTHENTICATION_METHOD }}
+        spring.security.oauth2.client.registration.kakao.redirect-uri: ${{ secrets.KAKAO_REDIRECT_URI }}
+        spring.security.oauth2.client.registration.google.client-id: ${{ secrets.GOOGLE_CLIENT_ID }}
+        spring.security.oauth2.client.registration.google.client-secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+        spring.security.oauth2.client.registration.google.redirect-uri: ${{ secrets.GOOGLE_REDIRECT_URI }}
+
+    # [2]
+    - name: environment variable setting
+      run: |
+        echo "NGINX_SERVER=${{ secrets.NGINX_SERVER }}" >> .env
+        echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+        echo "MYSQL_HOST=${{ secrets.MYSQL_HOST }}" >> .env
+        echo "MYSQL_USERNAME=${{ secrets.MYSQL_USERNAME }}" >> .env
+        echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
+        echo "NAVER_PASSWORD=${{ secrets.NAVER_PASSWORD }}" >> .env
+        echo "IMP_API_KEY=${{ secrets.IMP_API_KEY }}" >> .env
+        echo "IMP_SECRET_KEY=${{ secrets.IMP_SECRET_KEY }}" >> .env
+        echo "FRONTEND_URL=${{ secrets.FRONTEND_URL }}" >> .env
+        echo "BACKEND_URL=${{ secrets.BACKEND_URL }}" >> .env
+        echo "NAVER_CLIENT_ID=${{ secrets.NAVER_CLIENT_ID }}" >> .env
+        echo "NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }}" >> .env
+        echo "KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}" >> .env
+        echo "KAKAO_SECRET=${{ secrets.KAKAO_SECRET }}" >> .env
+        echo "KAKAO_AUTHENTICATION_METHOD=${{ secrets.KAKAO_AUTHENTICATION_METHOD }}" >> .env
+        echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
+        echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
+        echo "SPRING_DATASOURCE_URL=jdbc:mysql://${{ secrets.MYSQL_HOST }}:3306/pushop?&serverTimezone=Asia/Seoul" >> .env
+        echo "KAKAO_REDIRECT_URI=${{ secrets.KAKAO_REDIRECT_URI }}" >> .env
+        echo "GOOGLE_REDIRECT_URI=${{ secrets.GOOGLE_REDIRECT_URI }}" >> .env
+        echo "NAVER_REDIRECT_URI=${{ secrets.NAVER_REDIRECT_URI }}" >> .env
+        
+    # [3]
+    - name: Grant execute permission for gradlew
+      run: |
+        chmod +x ./gradlew
+      
+    # Configure Gradle for optimal use in GiHub Actions, including caching of downloaded dependencies.
+    # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
+    
+    # [4]
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
+
+    # [5]
+    - name: Build with Gradle Wrapper
+      run: ./gradlew build
+
+    # [6]
+    - name: Make zip file
+      run: zip -r ./$GITHUB_SHA.zip .
+      shell: bash
+
+    # [7]
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4.0.2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    # [8]
+    - name: Upload to S3
+      run: |
+        echo "CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: $CODE_DEPLOY_DEPLOYMENT_GROUP_NAME"
+        aws s3 cp --region ap-northeast-2 ./$GITHUB_SHA.zip s3://$S3_BUCKET_NAME/$GITHUB_SHA.zip
+
+    # [9]
+    - name: Code Deploy
+      run: | 
+        aws deploy create-deployment \
+        --deployment-config-name CodeDeployDefault.AllAtOnce \
+        --application-name ${{ env.CODE_DEPLOY_APPLICATION_NAME }} \
+        --deployment-group-name ${{ env.CODE_DEPLOY_DEPLOYMENT_GROUP_NAME }} \
+        --s3-location bucket=$S3_BUCKET_NAME,bundleType=zip,key=$GITHUB_SHA.zip
+
+    # # [10]
+    # - name: Build Docker image
+    #   run: docker build -t ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }} .
+
+    # # []
+    # - name: Check Docker credentials
+    #   run: echo "${{ secrets.DOCKER_USERNAME }}, ${{ secrets.DOCKER_PASSWORD }}"
+      
+    # # [9]
+    # - name: Login to Docker Hub
+    #   run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+    # # [10]
+    # - name: Docker Push
+    #   run: docker push ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
+
+
+    # # [12]
+    # - name: Deploy with Docker Compose
+    #   run: |
+    #     docker-compose up -d --build
+        
+    # NOTE: The Gradle Wrapper is the default and recommended way to run Gradle (https://docs.gradle.org/current/userguide/gradle_wrapper.html).
+    # If your project does not have the Gradle Wrapper configured, you can use the following configuration to run Gradle with a specified version.
+    #
+    # - name: Setup Gradle
+    #   uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
+    #   with:
+    #     gradle-version: '8.5'
+    #
+    # - name: Build with Gradle 8.5
+    #   run: gradle build
+
+  dependency-submission:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    # Generates and submits a dependency graph, enabling Dependabot Alerts for all project dependencies.
+    # See: https://github.com/gradle/actions/blob/main/dependency-submission/README.md
+    - name: Generate and submit dependency graph
+      uses: gradle/actions/dependency-submission@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0

@@ -36,6 +36,8 @@ public class JWTFilterV2 extends OncePerRequestFilter {
           - 로그아웃 상황
           [결론] JWTFilterV1 필터 단에서는,
           쿠키에 refreshAuthorization 존재한다 = 로그인, 쿠키에 refreshAuthorization 존재하지 않는다 = 로그아웃
+       4. refreshToken 이 만료되지 않았을 때 - 로그인 상황
+       5. 로그인 되어 있는 상황에 대한 검증이 끝난 상황, 다음 필터로 request와 response를 넘겨줍니다.
          @param request
          @param response
          @param filterChain
