@@ -26,8 +26,18 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class JWTFilterV3 extends OncePerRequestFilter {
 
+    /*
+        ※ 사용자 인증 전체 흐름
+        1. 사용자 로그인 요청 : (id(email), password)
+        2. CustomUserDetailsService : 사용자 정보 조회 (loadUserByUsername method)
+        3. CustomUserDetails : 사용자 세부 정보 (UserDetails interface implements)
+        4. JWTFilter : JWT 토큰 인증 (parse(추출), validation(검증), authentication(인증))
+        5. SecurityContextHolder : 인증 정보 보관
+     */
+
     private final JWTUtil jwtUtil;
     private final CookieService cookieService;
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
