@@ -34,6 +34,14 @@ import static JOO.jooshop.global.ResponseMessageConstants.REFRESH_NOT_FOUND;
 @RequiredArgsConstructor
 public class TokenController {
 
+    /*
+    ※ TokenController class
+        - 토큰 관련된 요청 처리 목적
+        1. AccessToken 만료 -> 재발급 -> reissueAccessToken() 호출
+        2. 최초 로그인 -> 토큰 발급 (로그인 성공 시, access/refresh 토큰을 header/cookie 에 실어줌)
+        3. 로그아웃 -> refreshToken 삭제 (DB에 저장된 refreshToken 삭제 요청)
+     */
+
     private final JWTUtil jwtUtil;
     private final RefreshRepository refreshRepository;
     private final MemberRepositoryV1 memberRepositoryV1;
@@ -41,19 +49,23 @@ public class TokenController {
     private Long refreshTokenExpirationPeriod = 3600L * 24 * 7; // 7일
 
     /*
-        - 클라이언트 쿠키에 리프레쉬토큰을 받아와, 유효한 리프레쉬토큰의 경우 엑세스토큰을 재발급해주는 로직.
-          토큰 유효성 검증 및 쿠키에서 가져오지 못하는 경우에 대한 예외처리와 Response 업데이트.
+        ※ 전체 흐름
+            1. 요청, 클라이언트 -> refershToken cookie 포함해서 재발급 요청
+            2. 쿠키 검사, refreshToken == null 유효성 검사
+            3. JWT 검증, refreshToken 
+            4. 토큰 발급, 유효하면 accessToken 새로 발급
+            5. 응답, 새 accessToken -> Authorization Header 에 실어서 응답
 
-        ※ 핵심 포인트
-            1. refreshToken 을 cookie 로 관리
-            2. JWT 토큰 자체 유효성 검사 + DB 저장 여부 확인 -> 로그인 상태 보장
-            3. refreshToken 유효하면, new accessToken 발급
-            4. 에러 시, 적절한 JSON 응답 처리
+        ※ 한 줄 정리:
+            1. accessToken 만료 → 재발급 절차 진입
+            2. refreshToken 확인 → 쿠키에서 가져와 검증 (위조, 만료 여부 체크)
+            3. refreshToken 유효 → 새 accessToken + 새 refreshToken 발급 및 응답 (헤더 + 쿠키 설정)
+            4. refreshToken도 만료 or 위조 → 재로그인 필요 (401 Unauthorized)
      */
+    @ResponseBody
     @PostMapping("/api/v1/reissue/access")
-    public @ResponseBody void reissueAccessToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void reissueAccessToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
-            // 1. request 요청에는 리프레쉬 토큰이 쿠키에 포함되어 있어야 한다.
             // 2. 쿠키에서 리프레쉬 토큰 꺼내기
             String refreshAuthorization = CookieUtil.getCookieValue(request, "refreshAuthorization");
 
@@ -76,11 +88,6 @@ public class TokenController {
                   로그아웃 시 DB 에 저장된 리프레쉬 토큰을 삭제하게 된다.
                   DB에 있는 리프레쉬 토큰을 조회한다는 것은 로그인을 진행 했는가?
                   로그아웃을 한 유저는 아닌가? 프로세스의 최종 관문이다.
-
-                5. DB에 저장된 리프레쉬 토큰 조회 (로그인 상태 확인)
-                - 로그인 성공 시 -> DB 저장,
-                - 로그아웃 시 -> DB refreshToken 삭제,
-                - DB 에 없으면 로그아웃된 상태 -> 로그인 요청 반환
              */
             // 5. DB에 저장된 리프레쉬 토큰 조회 (로그인 상태 확인)
             Refresh refreshTokenEntity = refreshRepository.findByRefreshToken(refreshToken).orElseThrow(
@@ -164,10 +171,10 @@ public class TokenController {
         if (refreshTokenInCookie == null || refreshTokenInCookie.isEmpty()) {
             throw new BadRequestException("Refresh token is missing or empty");
         }
-
         try { // 2. 토큰 유효성 검사
             jwtUtil.isExpired(refreshTokenInCookie);
         } catch (ExpiredJwtException e) {
+
             return ResponseEntity.badRequest().body("refresh token expired");
         }
 
