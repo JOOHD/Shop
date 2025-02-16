@@ -5,8 +5,9 @@ import lombok.Data;
 
 public class KakaoProfile {
     /*
-        카카오 API에서 반환되는 사용자 프로필 정보를 저장하는 DTO 클래스
-        카카오 OAuth2 로그인 이후에 응답받은 사용자 정보를 객체 형태로 매핑을 위한 클래스
+        카카오 OAuth2 로그인 이후에 응답받은 사용자 정보를 객체 형태로 매핑을 위한 클래스,
+        이후 OAuthToken과 SocialResponse로 변환되어 응답으로 제공됩니다.
+
         @JsonProperty : 카카오에서 제공하는 JSON 필드명과 매핑
 
         KakaoProfile: 최상위 클래스, 카카오 사용자 프로필을 대표하는 클래스입니다.

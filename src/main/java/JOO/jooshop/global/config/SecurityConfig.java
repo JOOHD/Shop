@@ -1,5 +1,8 @@
 package JOO.jooshop.global.config;
 
+import JOO.jooshop.global.jwts.service.CookieService;
+import JOO.jooshop.global.jwts.utils.JWTUtil;
+import JOO.jooshop.global.oauth2.custom.service.CustomOAuth2UserServiceV1;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
