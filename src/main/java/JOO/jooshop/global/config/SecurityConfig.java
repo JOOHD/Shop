@@ -3,6 +3,8 @@ package JOO.jooshop.global.config;
 import JOO.jooshop.global.jwts.service.CookieService;
 import JOO.jooshop.global.jwts.utils.JWTUtil;
 import JOO.jooshop.global.oauth2.custom.service.CustomOAuth2UserServiceV1;
+import JOO.jooshop.members.repository.MemberRepositoryV1;
+import JOO.jooshop.members.repository.RefreshRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
@@ -24,10 +26,10 @@ public class SecurityConfig {
     private final RefreshRepository refreshRepository;
     // [MemberService] Bean 등록
 
-    private final MemberRepositoryV1 memberRepositoryV1;
+    private final MemberRepositoryV1 memberRepository;
     // [Social 로그인] 을 위한 생성자 주입
 
-    private final CustomOAuth2UserServiceV1 customOAuth2UserServiceV1;
+    private final CustomOAuth2UserServiceV1 customOAuth2UserService;
 
     private final CustomLoginSuccessHandlerV1 customLoginSuccessHandler;
 

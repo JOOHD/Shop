@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
 
 @Getter
 @Entity
-@Table(name = "product_thumbnails")
 @NoArgsConstructor // 디폴트 생성자
+@Table(name = "product_thumbnails")
 public class ProductThumbnail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

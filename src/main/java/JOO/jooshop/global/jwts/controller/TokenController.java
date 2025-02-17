@@ -3,9 +3,12 @@ package JOO.jooshop.global.jwts.controller;
 
 import JOO.jooshop.global.jwts.utils.CookieUtil;
 import JOO.jooshop.global.jwts.utils.JWTUtil;
+import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.entity.Refresh;
 import JOO.jooshop.members.entity.enums.MemberRole;
 import JOO.jooshop.members.model.RefreshDto;
+import JOO.jooshop.members.repository.MemberRepositoryV1;
+import JOO.jooshop.members.repository.RefreshRepository;
 import com.google.gson.JsonObject;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.persistence.EntityNotFoundException;
@@ -42,9 +45,9 @@ public class TokenController {
         3. 로그아웃 -> refreshToken 삭제 (DB에 저장된 refreshToken 삭제 요청)
      */
 
-    private final JWTUtil jwtUtil;
+    private JWTUtil jwtUtil;
     private final RefreshRepository refreshRepository;
-    private final MemberRepositoryV1 memberRepositoryV1;
+    private final MemberRepositoryV1 memberRepository;
     private Long accessTokenExpirationPeriod = 60L * 30; // 30 분
     private Long refreshTokenExpirationPeriod = 3600L * 24 * 7; // 7일
 
@@ -52,7 +55,7 @@ public class TokenController {
         ※ 전체 흐름
             1. 요청, 클라이언트 -> refershToken cookie 포함해서 재발급 요청
             2. 쿠키 검사, refreshToken == null 유효성 검사
-            3. JWT 검증, refreshToken 
+            3. JWT 검증, refreshToken
             4. 토큰 발급, 유효하면 accessToken 새로 발급
             5. 응답, 새 accessToken -> Authorization Header 에 실어서 응답
 
@@ -166,7 +169,7 @@ public class TokenController {
                     - 리프레쉬 토큰: 긴 만료기간(예: 7일), 쿠키에 저장.
          */
 
-        // 1. 쿠키로부터 RefreshToken 가져온다. 
+        // 1. 쿠키로부터 RefreshToken 가져온다.
         String refreshTokenInCookie = getRefreshCookieValue(request); // 현재 사용 중인 리프레쉬 토큰
         if (refreshTokenInCookie == null || refreshTokenInCookie.isEmpty()) {
             throw new BadRequestException("Refresh token is missing or empty");
@@ -194,19 +197,17 @@ public class TokenController {
         return ResponseEntity.ok().build();
     }
 
-    // 리프레쉬 토큰(Refresh Token)의 유효성 검사
     private void handleRefreshExists(HttpServletResponse response, String memberId, MemberRole role, Refresh refresh) throws IOException {
         LocalDateTime expiration = refresh.getExpiration();
 
-        if (expiration.isAfter(LocalDateTime.now())) { // 만료 전이라면 새로운 액세스 토큰 발급
+        if (expiration.isAfter(LocalDateTime.now())) {
             createAndSendNewAccessToken(response, memberId, role);
-        } else { // 만료됐다면 재로그인 요구 응답
+        } else {
             sendLoginRequiredResponse(response, memberId);
         }
     }
 
-    // 새로운 액세스 토큰, 생성해 응답에 담아 보냄
-    private createAndSendNewAccessToken(HttpServletResponse response, String memberId, MemberRole role) throws IOException {
+    private void createAndSendNewAccessToken(HttpServletResponse response, String memberId, MemberRole role) throws IOException {
         String newAccessToken = jwtUtil.createAccessToken("access", memberId, role.toString());
 
         sendJsonResponseWithAccessToken(response, newAccessToken);
@@ -223,7 +224,7 @@ public class TokenController {
         String newRefresh = jwtUtil.createRefreshToken("refresh", memberId, role.toString());
 
         refreshRepository.deleteByRefreshToken(refreshTokenInCookie);
-        Member findMember = memberRepositoryV1.findById(Long.valueOf(memberId)).orElseThrow(
+        Member findMember = memberRepository.findById(Long.valueOf(memberId)).orElseThrow(
                 () -> new EntityNotFoundException("토큰 memberId에 해당하는 회원이 존재하지 않습니다."));
 
         // 새롭게 생성한 리프레쉬 토큰을 DB에 저장

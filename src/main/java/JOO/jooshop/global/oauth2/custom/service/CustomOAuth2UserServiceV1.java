@@ -6,6 +6,9 @@ import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.entity.enums.MemberRole;
 import JOO.jooshop.members.entity.enums.SocialType;
 import JOO.jooshop.members.model.OAuthUserDTO;
+import JOO.jooshop.members.repository.MemberRepositoryV1;
+import JOO.jooshop.profiile.entity.Profiles;
+import JOO.jooshop.profiile.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -17,13 +20,14 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class CustomOAuth2UserServiceV1 extends DefaultOAuth2UserService {
 
-    private final MemberRepositoryV1 memberRepositoryV1;
+    private final MemberRepositoryV1 memberRepository;
     private final ProfileRepository profileRepository;
 
     @Override
@@ -80,7 +84,7 @@ public class CustomOAuth2UserServiceV1 extends DefaultOAuth2UserService {
         String email = oAuth2Response.getEamil();
         String username = oAuth2Response.getName();
         // 식별자 socialId 값으로 멤버를 가져온다. 있으면 덮어씌우고, 없으면 새로 생성한다.
-        Optional<Member> OptionalMember = memberRepositoryV1.findBySocialId(SocialId);
+        Optional<Member> OptionalMember = memberRepository.findBySocialId(SocialId);
         // registrationType 을 SocialType 으로 변환
         if (OptionalMember.isPresent()) {
             Member joinMember = OptionalMember.get();
@@ -95,7 +99,7 @@ public class CustomOAuth2UserServiceV1 extends DefaultOAuth2UserService {
             }
         } else {
             Member newOAuth2Member = Member.createSocialMember(email, username, MemberRole.USER, SocialType, SocialId);
-            memberRepositoryV1.save(newOAuth2Member);
+            memberRepository.save(newOAuth2Member);
             // 멤버 데이터로, 마이 프로필 생성
             Profiles profile = Profiles.createMemberProfile(newOAuth2Member);
             profileRepository.save(profile);

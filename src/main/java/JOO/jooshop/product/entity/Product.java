@@ -27,15 +27,11 @@ import java.util.List;
 //@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "products_table")
 public class Product {
-//    @SequenceGenerator(
-//            name = "product_sequence",
-//            sequenceName = "product_sequence",
-//            allocationSize = 1
-//    )
-//    @GeneratedValue(
-//            strategy = GenerationType.SEQUENCE,
-//            generator = "product_sequence"
-//    )
+    /*
+        1. 사진을 저장할 엔티티(테이블)을 만든다.
+        2. MultipartFile 인터페이스로 구현한다.
+        3. 상품과 썸네일은 일대다 (1:N) 관계
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "product_id")
@@ -86,6 +82,7 @@ public class Product {
     @OneToMany(mappedBy = "product")
     private List<PaymentHistory> paymentHistories = new ArrayList<>();
 
+    // CascadeType.ALL 상품 삭제 시, 사진도 삭제 (영속성 전이), orphanRemoval = true (고아 객체 관리)
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ProductThumbnail> productThumbnails = new ArrayList<>();
 
