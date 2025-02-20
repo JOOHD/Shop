@@ -17,21 +17,21 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class ProductDto {
 
-    private Long productId;
-    ProductType productType;
-    private String productName;
-    private Integer price;
-    private String productInfo;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private String manufacturer;
+    private Long productId;                 // 상품 PK
+    ProductType productType;                // 성별
+    private String productName;             // 상품명
+    private Integer price;                  // 상품 가격
+    private String productInfo;             // 상품 정보
+    private LocalDateTime createdAt;        // 생성일
+    private LocalDateTime updatedAt;        // 수정일
+    private String manufacturer;            // 제조자
 
-    private boolean isDiscount;
-    private Integer discountRate;
-    private boolean isRecommend;
+    private boolean isDiscount;             // 할인여부 (true: 할인 중, false: 할인 아님)
+    private Integer discountRate;           // 할인율
+    private boolean isRecommend;            // 추천 여부 (true: 추천 상품, false: 일반 상품)
 
-    private List<WishListDto> wishLists;
-    private Long wishListCount;
+    private List<WishListDto> wishLists;    // 찜한 사용자 목록 (DTO LIST)
+    private Long wishListCount;             // 찜한 수
 
 
     public ProductDto(Product product) {

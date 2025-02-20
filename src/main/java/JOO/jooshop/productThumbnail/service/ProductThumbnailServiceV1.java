@@ -29,7 +29,7 @@ public class ProductThumbnailServiceV1 {
      */
     private final ProductThumbnailRepositoryV1 productThumbnailRepository;
 
-    /* 썸네일 등록 */
+    /* 썸네일 등록(저장) */
     public void uploadThumbnail(Product product, List<MultipartFile> images) {
         try {
             // 이미지 파일 저장을 위한 경로 설정
@@ -53,18 +53,20 @@ public class ProductThumbnailServiceV1 {
 
     /* 이미지 파일을 저장하는 메서드 */
     private String saveImage(MultipartFile image, String uploadsDir) throws IOException {
-        // 파일 이름 생성
+        // 같은 이름의 파일을 업로드 하게 되면 덮어쓰게 된다. 따라서 랜덤 값을 생성해 기존 파일 이름과 합쳐 새 파일 이름 생성.
         String fileName = UUID.randomUUID().toString().replace("-", "") + "_" + image.getOriginalFilename();
         // 실제 파일이 저장될 경로
         String filePath = uploadsDir + fileName;
         // DB에 저장할 경로 문자열
         String dbFilePath = "/uploads/thumbnails/" + fileName;
 
+        // Path 는 Java NIO 패키지에서 제공하는 클래스, get() 으로 객체 생성, 문자열 경로를 Path로 변환.
         Path path = Paths.get(filePath); // Path 객체 생성
         Files.createDirectories(path.getParent()); // 디렉토리 생성
         Files.write(path, image.getBytes()); // 디렉토리에 파일 저장
 
-        return dbFilePath;
+        // DB 저장을 위해 반환.
+        return dbFilePath; 
     }
 
     /* 썸네일 삭제 */
@@ -83,7 +85,7 @@ public class ProductThumbnailServiceV1 {
         // 파일 삭제
         deleteImageFile(imagePath);
     }
-
+*
     /* 파일 삭제 메서드 */
     private void deleteImageFile(String imagePath) {
         try {
@@ -95,7 +97,7 @@ public class ProductThumbnailServiceV1 {
         }
     }
 
-    /* 썸네일 조회 */
+    /* 썸네일 조회(리스트 반환) */
     public List<ProductThumbnail> getProductThumbnails(Long productId) {
         return productThumbnailRepository.findByProduct_ProductId(productId);
     }
