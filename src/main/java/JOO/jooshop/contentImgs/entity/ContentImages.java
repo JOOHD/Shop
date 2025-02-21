@@ -36,14 +36,14 @@ public class ContentImages {
     }
     @Override
     public String toString() {
-        return this.getImagePath(); // imagePath를 반환
+        return this.getImagePath(); // imagePath를 반환 (객체 -> 문자열 반환)
     }
 
-    public void setProduct(Product product) {
+    public void setProduct(Product product) { // contentImage.setProduct(newProduct); 상품 변경
         this.product = product;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) { // 날짜 수동 변경
         this.createdAt = createdAt;
     }
 }

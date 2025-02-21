@@ -1,11 +1,13 @@
 package JOO.jooshop.product.service;
 
+import JOO.jooshop.contentImgs.service.ContentImgService;
 import JOO.jooshop.members.entity.enums.MemberRole;
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.entity.ProductColor;
 import JOO.jooshop.product.model.ProductColorDto;
 import JOO.jooshop.product.model.ProductCreateDto;
 import JOO.jooshop.product.model.ProductDetailDto;
+import JOO.jooshop.product.repository.ProductColorRepositoryV1;
 import JOO.jooshop.product.repository.ProductRepositoryV1;
 import JOO.jooshop.productThumbnail.service.ProductThumbnailServiceV1;
 import kotlin.RequiresOptIn;
@@ -29,7 +31,7 @@ import static JOO.jooshop.global.ResponseMessageConstants.PRODUCT_NOT_FOUND;
 @Slf4j
 public class ProductServiceV1 {
     public final ProductRepositoryV1 productRepository;
-    public final ProductColorRepository productColorRepository;
+    public final ProductColorRepositoryV1 productColorRepository;
     public final ModelMapper modelMapper;
     private final ProductThumbnailServiceV1 productThumbnailService;
     private final ContentImgService contentImgService;

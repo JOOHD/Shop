@@ -49,7 +49,7 @@ public class ProductQueryHelper {
         BooleanBuilder filterBuilder = new BooleanBuilder();
 
         // 조건 필터링
-        addConditionFilters(condition, product, filterBuidler);
+        addConditionFilters(condition, product, filterBuilder);
         // 카테고리 필터링
         addCategoryFilter(category, product, filterBuilder);
         // 검색
