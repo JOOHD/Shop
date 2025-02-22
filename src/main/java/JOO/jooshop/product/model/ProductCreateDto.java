@@ -43,13 +43,12 @@ public class ProductCreateDto {
         );
     }
 
-    // isDiscount가 false 라면 할인율 null
+    // isDiscount가 false 이라면 할인율 null
     public void setIsDiscount(Boolean isDiscount) {
         this.isDiscount = isDiscount;
         if (Boolean.FALSE.equals(isDiscount)) {
             this.discountRate = null;
         }
     }
-
 
 }

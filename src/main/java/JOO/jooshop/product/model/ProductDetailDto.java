@@ -24,6 +24,9 @@ public class ProductDetailDto {
     private Boolean isRecommend;
     private List<String> contentImages; // 썸네일 리스트 추가
 
+    // ProductService 클래스에서 modelMapper 를 사용하여 entity -> dto 변환을 구현 가능,
+    // 그러나 Product 클래스의 필드와 완전히 일치해야되는 조건을 가진다.
+    // 그래서 ProductDetailDto 메서드 주석을 살려 놓은 것 이다.
     public ProductDetailDto(Product product) {
         this(
                 product.getProductId(),

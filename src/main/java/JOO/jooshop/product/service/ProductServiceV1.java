@@ -76,6 +76,7 @@ public class ProductServiceV1 {
         log.info("View Increment");
         productRankingService.increaseProductViews(productId);
 
+        // modelMapper, entity -> dto 변환 대상 클래스 타입
         return modelMapper.map(product, ProductDetailDto.class);
     }
 
