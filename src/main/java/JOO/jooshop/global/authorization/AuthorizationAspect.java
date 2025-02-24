@@ -1,7 +1,8 @@
 package JOO.jooshop.global.authorization;
 
 import JOO.jooshop.members.entity.enums.MemberRole;
-import lombok.Value;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.stereotype.Component;

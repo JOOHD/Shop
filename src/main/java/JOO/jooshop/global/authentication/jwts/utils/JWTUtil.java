@@ -16,13 +16,13 @@ import java.time.ZoneId;
 import java.util.Base64;
 import java.util.Date;
 
-@Component
+ @Component
 @Slf4j
 public class JWTUtil {
     /*
         ※ 전체 흐름
         1. Spring 이 JWTUtil 을 빈으로 등록하면서 @PostConstruct 실행 → SecretKey 초기화
-        2. 로그인 성공 시, createAccessToken & createRefreshToken 으로 JWT 발급
+        2. 로그인 성공 시, createAccessToken &  으로 JWT 발급
         3. API 호출 시 validateToken()을 통해 JWT 유효성 검사
         4. JWT 에서 memberId, category, role 을 추출하여 사용자 정보 확인
         5. isExpired()로 AccessToken 만료 여부 확인

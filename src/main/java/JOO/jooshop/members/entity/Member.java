@@ -68,7 +68,7 @@ public class Member {
 
     @Column(name = "email_token")
     @JsonProperty("email_token")
-    private String token;
+    private String token; // email 인증 시, 사용될 토큰
 
     @Column(name = "is_certified_email")
     private boolean isCertifyByMail = false;
