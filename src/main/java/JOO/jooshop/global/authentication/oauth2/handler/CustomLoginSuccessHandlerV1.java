@@ -7,6 +7,7 @@ import JOO.jooshop.members.entity.Refresh;
 import JOO.jooshop.members.model.RefreshDto;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
 import JOO.jooshop.members.repository.RefreshRepository;
+import com.google.gson.JsonObject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -33,6 +34,13 @@ import static JOO.jooshop.global.authentication.jwts.utils.CookieUtil.createCook
 @Slf4j
 public class CustomLoginSuccessHandlerV1 extends SimpleUrlAuthenticationSuccessHandler {
 
+    /*
+        클래스 역할
+        - OAuth2(social login) 성공 후, 실행
+        - 사용자 정보 확인, access/refresh 발급
+        - refresh DB(보안), Cookie(클라이언트-서버 간 자동 인증) 쿠키 기반 인증 방식
+        - 로그인 성공 후, frontend 로 redirect
+     */
     private JWTUtil jwtUtil;
     private final MemberRepositoryV1 memberRepository;
     private final RefreshRepository refreshRepository;
@@ -51,7 +59,7 @@ public class CustomLoginSuccessHandlerV1 extends SimpleUrlAuthenticationSuccessH
         String role = extractOAuthRole(authentication);
         String socialId = oAuth2User.getSocialId();
 
-        log.info("소셜 로긍니 유저 = " + email);
+        log.info("소셜 로그인 유저 = " + email);
         // ============= RefreshToken 생성 시, memberId 가 필요 ==============
         Member requestMember = memberRepository.findBySocialId(socialId)
                 .orElseThrow(() -> new UsernameNotFoundException("해당 socialId 을 가진 멤버가 존재하지 않습니다."));
@@ -69,6 +77,7 @@ public class CustomLoginSuccessHandlerV1 extends SimpleUrlAuthenticationSuccessH
         response.sendRedirect(frontendUrl + "?redirectedFromSocialLogin=true");
     }
 
+    /* 사용자 ROLE 추출 */
     private static String extractOAuthRole(Authentication authentication) {
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
@@ -96,5 +105,19 @@ public class CustomLoginSuccessHandlerV1 extends SimpleUrlAuthenticationSuccessH
             Refresh newRefreshEntity = new Refresh(member, newRefreshToken, expirationDateTime);
             refreshRepository.save(newRefreshEntity);
         }
+    }
+
+    private void addResponseDataV2(HttpServletResponse response, String accessToken, String refreshToken) throws IOException {
+        // 엑세스 토큰을 JSON 형식으로 응답 데이터에 포함하여 클라이언트에게 반환
+        JsonObject responseData = new JsonObject();
+        responseData.addProperty("accessToken", accessToken);
+        responseData.addProperty("refreshToken", refreshToken);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(responseData.toString());
+        // HttpStatus 200 Ok
+        response.setStatus(HttpStatus.OK.value());
+        // 클라이언트 콘솔에 응답 로그 출력
+        log.info("Response sent to client: " + responseData.toString());
     }
 }

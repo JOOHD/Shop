@@ -38,7 +38,7 @@ public class CustomOAuth2User implements OAuth2User, Serializable {
 
     /*
         OAuth2 로그인은 여러 소셜 서비스(구글, 네이버, 카카오 등)와 연동될 수 있다.
-        Spring Security는 OAuth2User 인터페이스로 통일해서 다루려 한다.
+        Spring Security 는 OAuth2User 인터페이스로 통일해서 다루려 한다.
         로그인한 사용자의 'OAuth 제공자'가 넘겨준 정보들(프로필 데이터)을 Map<String, Object> 형태로 반환
         {
             "email": "user@example.com",
