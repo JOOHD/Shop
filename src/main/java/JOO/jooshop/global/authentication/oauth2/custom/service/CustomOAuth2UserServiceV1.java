@@ -2,6 +2,10 @@ package JOO.jooshop.global.authentication.oauth2.custom.service;
 
 
 import JOO.jooshop.global.authentication.oauth2.custom.entity.CustomOAuth2User;
+import JOO.jooshop.global.authentication.oauth2.responsedto.GoogleResponse;
+import JOO.jooshop.global.authentication.oauth2.responsedto.KakaoResponse;
+import JOO.jooshop.global.authentication.oauth2.responsedto.NaverResponse;
+import JOO.jooshop.global.authentication.oauth2.responsedto.OAuth2Response;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.entity.enums.MemberRole;
 import JOO.jooshop.members.entity.enums.SocialType;
@@ -77,11 +81,11 @@ public class CustomOAuth2UserServiceV1 extends DefaultOAuth2UserService {
     private Member saveMemberAndProfile(OAuth2Response oAuth2Response) {
         String ProviderId = oAuth2Response.getProviderId();
         // 소셜로그인 - 식별자 socialId
-        String SocialId = oAuth2Response.getProvider() +  "_" + Provider;
+        String SocialId = oAuth2Response.getProvider() +  "_" + ProviderId;
         // 소셜로그인 - 타입을 가져온다.
         SocialType socialType = mapRegistrationTypeToSocialType(oAuth2Response.getProvider());
         // getEmail 과 getName 을 통해서 이메일과 실제 사용자명을 받아온다.
-        String email = oAuth2Response.getEamil();
+        String email = oAuth2Response.getEmail();
         String username = oAuth2Response.getName();
         // 식별자 socialId 값으로 멤버를 가져온다. 있으면 덮어씌우고, 없으면 새로 생성한다.
         Optional<Member> OptionalMember = memberRepository.findBySocialId(SocialId);
@@ -98,7 +102,7 @@ public class CustomOAuth2UserServiceV1 extends DefaultOAuth2UserService {
                 return joinMember;
             }
         } else {
-            Member newOAuth2Member = Member.createSocialMember(email, username, MemberRole.USER, SocialType, SocialId);
+            Member newOAuth2Member = Member.createSocialMember(email, username, MemberRole.USER, socialType, SocialId);
             memberRepository.save(newOAuth2Member);
             // 멤버 데이터로, 마이 프로필 생성
             Profiles profile = Profiles.createMemberProfile(newOAuth2Member);
@@ -109,13 +113,14 @@ public class CustomOAuth2UserServiceV1 extends DefaultOAuth2UserService {
 
     private CustomOAuth2User createOAuth2User(Member member) {
 
-        OAuthUserDTO userDTO = OAuthUserDTO.createOAuthUserDTO(member.getId(),
-                                                               member.getEmail(),
-                                                               member.getUsername(),
-                                                               member.getMemberRole(),
-                                                               member.getSocialType(),
-                                                               member.getSocialId(),
-                                                              true);
+        OAuthUserDTO userDTO = OAuthUserDTO.createOAuthUserDTO(
+                                           member.getId(),
+                                           member.getEmail(),
+                                           member.getUsername(),
+                                           member.getMemberRole(),
+                                           member.getSocialType(),
+                                           member.getSocialId(),
+                                          true);
         return new CustomOAuth2User(userDTO);
     }
 

@@ -4,8 +4,10 @@ import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.authentication.oauth2.custom.entity.CustomOAuth2User;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.entity.Refresh;
+import JOO.jooshop.members.model.RefreshDto;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
 import JOO.jooshop.members.repository.RefreshRepository;
+import com.google.gson.JsonObject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -37,13 +40,22 @@ public class CustomLoginSuccessHandlerV2 extends SimpleUrlAuthenticationSuccessH
 
     private final RefreshRepository refreshRepository;
 
-    private Long refershTokenExpirationPeriod = 1209600L;
+    private Long refreshTokenExpirationPeriod = 1209600L; // Refresh 만료 14일
 
-    @Value("${frontend.url}")
+    @Value("${frontend.url}") // 로그인 성공 시, 리다이렉트 url
     private String frontendUrl;
 
-    @Override
+    @Override // 로그인 성공 시, 자동으로 실행
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+        
+        /*
+            1. Refresh 토큰 업데이트 후 기존 토큰은 어떻게 처리 되나?
+            - Refresh 토큰은 DB 에서 단 하나의 토큰만 유지된다.
+            - 덮어쓰기 방식으로 기존의 Refresh 토큰은 자동으로 대체되므로 별도의 삭제 처리 x
+            
+            2. 만료된 Refresh 토큰 삭제 여부
+            - 1) @Sheduled 사용 or 로그인 재인증 시, 토큰 확인 후, 삭제
+         */
 
         // 커스텀 클래스이기 때문에 캐스팅
         CustomOAuth2User oAuth2User = (CustomOAuth2User) authentication.getPrincipal();
@@ -98,11 +110,45 @@ public class CustomLoginSuccessHandlerV2 extends SimpleUrlAuthenticationSuccessH
     private void saveOrUpdateRefreshEntity(Member member, String newRefreshToken) {
         // 멤버의 PK 식별자로, refresh 토큰을 가져온다.
         Optional<Refresh> existedRefresh = refreshRepository.findByMemberId(member.getId());
-        LocalDateTime expirationDateTime = LocalDateTime.now().plusSeconds(refreshTokenExpirationPeriod);
-        if (existedRefresh.isPresent()) {
-            // 로그인 이메일과 같은 이메일을 가지고 있는 Refresh 앤티티에 대해서, refresh 값을 새롭게 업데이트해줌
+        LocalDateTime expiration = LocalDateTime.now().plusSeconds(refreshTokenExpirationPeriod);
+        existedRefresh.ifPresentOrElse(refreshEntity -> {
+            if (refreshEntity.getExpiration().isBefore(LocalDateTime.now())) {
+                refreshRepository.delete(refreshEntity);
+                log.info("만료된 Refresh 토큰 삭제 완료: {}", refreshEntity.getRefreshToken());
+                Refresh newRefreshEntity = new Refresh(member, newRefreshToken, expiration);
+                refreshRepository.save(newRefreshEntity);
+            } else {
+                RefreshDto refreshDto = RefreshDto.createRefreshDto(newRefreshToken, expiration);
+                refreshEntity.updateRefreshToken(refreshDto);
+                refreshRepository.save(refreshEntity);
+            }
+        }, () -> {
+            Refresh newRefreshEntity = new Refresh(member, newRefreshToken, expiration);
+            refreshRepository.save(newRefreshEntity);
+        });
 
-        }
+    }
 
+    private void setTokenResponseV1(HttpServletResponse response, String accessToken, String refreshToken) {
+        // [reponse Header] : Access Token 추가
+        response.addHeader("Authorization", "Bearer " + accessToken);
+        // [reponse Cookie] : Refresh Token 추가
+        response.addCookie(createCookie("refreshToken", refreshToken));
+        // HttpStatus 200 OK
+        response.setStatus(HttpStatus.OK.value());
+    }
+
+    private void setTokenResponseV2(HttpServletResponse response, String accessToken, String refreshToken) throws IOException {
+        // 엑세스 토큰을 JSON 형식으로 응답 데이터에 포함하여 클라이언트에게 반환
+        JsonObject responseData = new JsonObject();
+        responseData.addProperty("accessToken", accessToken);
+        responseData.addProperty("refreshToken", refreshToken);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(responseData.toString());
+        // HttpStatus 200 OK
+        response.setStatus(HttpStatus.OK.value());
+        // 클라이언트 콘솔에 응답 로그 출력
+        log.info("Response sent to client: " + responseData.toString());
     }
 }
