@@ -33,14 +33,16 @@ public class KakaoResponse implements OAuth2Response {
 
     @Override
     public String getEmail() {
-        return Optional.ofNullable(attribute)
-                .map(attrs -> attrs.get("kakao_account"))
-                .filter(kakaoAccountObj -> kakaoAccountObj instanceof Map)
-                .map(kakaoAccountObj -> (Map<?, ?>) kakaoAccountObj)
+        return Optional.ofNullable(attribute) // Null 여부 검사 
+                // .map(new Function<Map<String, Object>, Object>()
+                // Function<T, R> interface, T = Map<String, Object> 입력타입, R = Object 반환타입
+                .map(attrs -> attrs.get("kakao_account")) // 추출
+                .filter(kakaoAccountObj -> kakaoAccountObj instanceof Map) // 타입 검사
+                .map(kakaoAccountObj -> (Map<?, ?>) kakaoAccountObj) // 제네릭 와일드카드 ?(모든 타입 수용)
                 .map(kakaoAccount -> kakaoAccount.get("email"))
                 .filter(emailObj -> emailObj instanceof String)
-                .map(Object::toString)
-                .orElse(null);
+                .map(Object::toString) // 문자열 반환 obj -> obj.toString()
+                .orElse(null); // 최종 결과 반환
     }
 
     @Override

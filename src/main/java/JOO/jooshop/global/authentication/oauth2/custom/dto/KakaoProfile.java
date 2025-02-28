@@ -3,6 +3,7 @@ package JOO.jooshop.global.authentication.oauth2.custom.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+@Data
 public class KakaoProfile {
     /*
         카카오 OAuth2 로그인 이후에 응답받은 사용자 정보를 객체 형태로 매핑을 위한 클래스,
