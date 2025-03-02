@@ -1,5 +1,6 @@
 package JOO.jooshop.productThumbnail.service;
 
+import JOO.jooshop.global.authorization.RequiresRole;
 import JOO.jooshop.members.entity.enums.MemberRole;
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.productThumbnail.entity.ProductThumbnail;
@@ -85,7 +86,7 @@ public class ProductThumbnailServiceV1 {
         // 파일 삭제
         deleteImageFile(imagePath);
     }
-*
+
     /* 파일 삭제 메서드 */
     private void deleteImageFile(String imagePath) {
         try {

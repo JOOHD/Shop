@@ -37,7 +37,7 @@ public class Refresh {
     }
 
     public void updateRefreshToken(RefreshDto refreshDto) {
-        this.refreshToken = refreshDto.getRefreshToken();
+        this.refreshToken = refreshDto.getRefreshToken(); // this.~ -> entity 필드
         this.expiration = refreshDto.getExpirationDate();
     }
 }
