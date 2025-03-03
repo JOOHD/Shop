@@ -11,7 +11,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CartRequestDto {
+
     private Long memberId;
+
     @NotNull(message = "수량은 필수로 입력해야 합니다.")
     @Min(value = 1L, message = "수량은 1 이상이어야 합니다.")
     private Long quantity;

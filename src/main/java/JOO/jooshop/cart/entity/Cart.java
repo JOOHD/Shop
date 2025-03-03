@@ -24,22 +24,22 @@ public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "cart_id")
-    private Long cartId;
+    private Long cartId; // PK
 
     @ManyToOne
     @JoinColumn(name = "member_id", nullable = false)
-    private Member member;
+    private Member member; // 회원
 
     @ManyToOne
     @JoinColumn(name = "Product_Mgt_id", nullable = false)
-    private ProductManagement productManagement;
+    private ProductManagement productManagement; // 상품
 
     @Column(name = "quantity", nullable = false)
     @Min(value = 0L)
-    private Long quantity;
+    private Long quantity; // 수량
 
     @Column(name = "price", nullable = false)
-    private Long price;
+    private Long price; // 가격
 
     public Cart(Member member, ProductManagement productManagement, Long quantity, Long price) {
         this.member = member;
