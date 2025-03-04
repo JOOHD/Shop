@@ -19,16 +19,20 @@ import java.util.List;
 @Entity
 @Table(name = "orders")
 public class Orders {
-    /*@Id
-    @SequenceGenerator(
-            name = "order_sequence",
-            sequenceName = "order_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "order_sequence"
-    )*/
+
+    /*
+        Product (PK)
+        ProductMgt (FK, Product 참조, 연결점)
+        Orders (JoinColumns)
+        Orders_ProductManagement (InverseJoinColumns, 양방향 연결점)
+
+        Member (1) <-> Orders (N) <-> ProductManagement (N) <-> Product (1)
+        - 회원(1명)은 여러 주문(N개) 가능
+        - 하나의 주문에는 여러 개의 상품 옵션이 있을 수 있고,
+            여러 주문이 동일한 상품 옵션을 가질 수 있다. (다대다)
+        - 상품 관리 항목은 하나의 상품을 참조 (1:N)
+     */
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "order_id")
@@ -38,11 +42,11 @@ public class Orders {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @ManyToMany
+    @ManyToMany // 다대다 연결을 표현하기 위해 중간 테이블이 자동 생성된다.
     @JoinTable(
-            name = "orders_product_management",
-            joinColumns = @JoinColumn(name = "orders_id"),
-            inverseJoinColumns = @JoinColumn(name = "product_management_id")
+            name = "orders_product_management", // JoinTable : 현재 어떤 엔티티와 연결이 되었는지 명시적 설정, DB에 정확하게 저장 위해
+            joinColumns = @JoinColumn(name = "orders_id"),  // JoinColumn : FK 를 사용하기 위해
+            inverseJoinColumns = @JoinColumn(name = "product_management_id") // InverseJoinColumn : 상대 엔티티의 외래 키 설정
     )
     private List<ProductManagement> productManagements = new ArrayList<>();
 
