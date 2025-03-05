@@ -31,7 +31,7 @@ import static JOO.jooshop.global.authorization.MemberAuthorizationUtil.verifyUse
 public class OrderService {
 
     /*
-        포트원 과정은 클라이언트에서 결제 -> 완료 -> 결제 정보를 서버로 전송 -> 서버API 결제 완료
+        포트원 과정은 클라이언트에서 결제 -> 완료 -> 결제 정보를 서버로 전송 -> 서버 API 결제 완료
         1. 사용자가 장바구니에서 주문 클릭 -> 장바구니 정보 중 주문 테이블에 필요한 값을 세션에 저장 (주문 준비)
         2. 나머지 필요한 정보를 사용자에게 입력 받음
         3. (주문 완료) 결제 클릭 -> 세션+입력값 주문 테이블에 저장 -> 프론트에서 결제 API 실행
@@ -50,6 +50,7 @@ public class OrderService {
     public Orders createOrder(List<Long> cartIds) {
         List<Cart> carts = cartRepository.findByCartIdIn(cartIds);
 
+        // 장바구니 첫 번째 항목에서 회원 ID 가져오기
         Long memberId = carts.get(0).getMember().getId();
         verifyUserIdMatch(memberId); // 로그인 된 사용자와 요청 사용자 비교
 
@@ -63,7 +64,7 @@ public class OrderService {
             productMgts.add(productMgt);
         }
 
-        // 모든 장바구니의 memberId가 동일한지 확인
+        // 모든 장바구니의 memberId가 동일한지 확인 (내가 로그인한 사용자니까 memberId(나) 가 선택한 장바구니가 맞는지 확인)
         boolean sameMember = carts.stream()
                 .allMatch(cart -> cart.getMember().getId().equals(memberId));
         if (!sameMember || member == null) {
@@ -116,6 +117,13 @@ public class OrderService {
      * @param temporaryOrder 세션에 저장된 주문서
      * @param orders 사용자에게 입력받은 주문 정보
      * @return 주문 테이블 저장
+     * 
+     * (createOrder) temporaryOrder = 상품 정보/총 금액 같은 자동으로 가져오는 정보만 담아둠
+     * merchantUid = 사용자 직접 입력 정보(이름, 주소, 전화번호 등등)
+     *
+     * temporaryOrder 사용 이유 : 가격/수량을 클라이언트가 직접 수정하지 못 하도록
+       ㄴ html, disable 사용하면 되는거 아님?
+           ㄴ 브라우저 개발자 도구(F12)에서 disabled 속성을 제거하면 사용자가 필드를 수정할 수 있다.
      */
     public Orders orderConfirm(Orders temporaryOrder, OrderDto orders) {
         verifyUserIdMatch(temporaryOrder.getMember().getId()); // 로그인 된 사용자와 요청 사용자 비교
