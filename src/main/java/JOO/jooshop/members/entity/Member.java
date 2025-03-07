@@ -152,7 +152,7 @@ public class Member {
         this.memberRole = MemberRole.USER;
     }
 
-    // 유저 권한 설정 메소드
+    // 관리자 권한 설정 메소드
     public void authorizeAdmin() {
         this.memberRole = MemberRole.ADMIN;
     }
@@ -161,10 +161,7 @@ public class Member {
     public void passwordEncode(PasswordEncoder passwordEncoder) {
         this.password = passwordEncoder.encode(this.password);
     }
-
-    /**
-     * [2024.05.05] 회원 데이터 업데이트 기본 메서드
-     */
+    
     // 이메일 인증 여부를 업데이트하는 메서드
     public void certifyByEmail() {
         this.isCertifyByMail = true;
@@ -173,11 +170,11 @@ public class Member {
     public void updateMemberByToken(String token) {
         this.token = token;
     }
-    // 어드민 활성화
+    // 관리자 활성화
     public void verifyAdminUser() {
         this.isAdmin = true;
     }
-    // 회원 비홠성화
+    // 회원 비활성화
     public void deActivateMember() {
         this.isActive = false;
     }
@@ -185,12 +182,12 @@ public class Member {
     public boolean getIsActive() {
         return isActive;
     }
-    // 회원 비홠성화
+    // 회원 비활성화
     public void activateMember() {
         this.isActive = true;
     }
     // 비밀번호 재설정
-    public void reSetPassword(String newPassword) {
+    public void resetPassword(String newPassword) {
         this.password = newPassword;
     }
 

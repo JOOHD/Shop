@@ -4,17 +4,12 @@ import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.order.entity.Orders;
 import JOO.jooshop.product.entity.Product;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
-//@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "payment_history")
 public class PaymentHistory {
 
@@ -81,7 +76,6 @@ public class PaymentHistory {
     @Column(name = "quantity")
     private Long quantity;
 
-
     public PaymentHistory() {
         this.paidAt =  LocalDateTime.now();
     }
@@ -104,7 +98,6 @@ public class PaymentHistory {
         this.buyerAddr = buyerAddr;
         this.buyerEmail = buyerEmail;
     }
-
 
     public void setReview(Boolean review) {
         this.review = review;

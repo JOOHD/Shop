@@ -15,8 +15,10 @@ public interface MemberRepositoryV1 extends JpaRepository<Member, Long> {
     // username 을 받아 DB 테이블에서 회원을 조회하는 메소드 작성
     Optional<Member> findByUsername(String username);
 
-    Boolean existsByEmail(String email);
     // 식별자를 Email 에서 Social Id 로 변경함으로써, email 은 2개이상의 계정
+    Boolean existsByEmail(String email);
+
+    Boolean existsByNickname(String nickname);
 
     Optional<Member> findByEmail(String email);
 

@@ -1,5 +1,7 @@
 package JOO.jooshop.profiile.service;
 
+import JOO.jooshop.global.authorization.MemberAuthorizationUtil;
+import JOO.jooshop.global.image.ImageUtil;
 import JOO.jooshop.profiile.entity.Profiles;
 import JOO.jooshop.profiile.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
@@ -7,16 +9,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
+import org.springframework.http.ResponseEntity;;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -89,10 +86,7 @@ public class ProfileService {
             }
         } catch (IOException e) {
             log.error("Error while processing the image", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while processing the image")
-        } catch (IOException e) {
-            log.error("Unexpected error occurred", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while processing the image");
         }
     }
 
@@ -107,7 +101,7 @@ public class ProfileService {
             profileRepository.save(memberProfile);
             deleteImageFile(imagePath);
         } else {
-            throw new NoSuchElementException("Profile not found")
+            throw new NoSuchElementException("Profile not found");
         }
     }
 
