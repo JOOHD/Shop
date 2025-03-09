@@ -1,5 +1,6 @@
 package JOO.jooshop.global.authentication.jwts.entity;
 
+import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.entity.enums.MemberRole;
 import lombok.Data;
 
@@ -26,11 +27,11 @@ public class CustomMemberDto {
 
     private boolean isActive;           // 계정 활성화 여부
 
-    private boolean isBanned;           // 계정 정지 여부
+    private boolean isBanned;           // 계정 정지 여부, 25/03/09
     
-    private boolean isPasswordExpired;  // 비밀번호 만료 여부
+    private boolean isPasswordExpired;  // 비밀번호 만료 여부, 25/03/09
     
-    private boolean isAccountExpired;   // 계정 만료 여부
+    private boolean isAccountExpired;   // 계정 만료 여부, 25/03/09
 
     public CustomMemberDto(Long memberId,
                            String email,

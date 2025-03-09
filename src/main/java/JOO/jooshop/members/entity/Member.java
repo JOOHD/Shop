@@ -65,6 +65,15 @@ public class Member {
     @Column(name = "is_active")
     private boolean isActive = true;
 
+    @Column(name = "is_banned")
+    private boolean isBanned = false;
+
+    @Column(name = "is_accountExpired")
+    private boolean isAccountExpired = false;
+
+    @Column(name = "is_passwordExpired")
+    private boolean isPasswordExpired = false;
+
     @Column(name = "is_admin")
     private boolean isAdmin = false;
 
@@ -182,6 +191,19 @@ public class Member {
     public boolean getIsActive() {
         return isActive;
     }
+    // 회원 계정 정지 여부 가져오기
+    public boolean getIsBanned() {
+        return isBanned;
+    }
+    // 회원 계정 만료 여부 가져오기
+    public boolean getIsAccountExpired() {
+        return getIsAccountExpired();
+    }
+    // 회원 비밀번호 만료 여부 가져오기
+    public boolean getIsPasswordExpired() {
+        return getIsPasswordExpired();
+    }
+
     // 회원 비활성화
     public void activateMember() {
         this.isActive = true;
@@ -190,10 +212,9 @@ public class Member {
     public void resetPassword(String newPassword) {
         this.password = newPassword;
     }
-
+    // 닉네임 수정
     public void updateNickname(String newNickname) {
         this.nickname = newNickname;
     }
-
 
 }

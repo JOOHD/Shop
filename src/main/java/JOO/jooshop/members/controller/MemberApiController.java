@@ -25,8 +25,11 @@ import java.util.Optional;
 public class MemberApiController {
 
     /*
+        1. 회원목록 조회, 비활성화/재활성화/비밀번호 재설정
+        2. JWT 를 사용하여 토큰 기반 인증, ADMIN 권한 특정 작업
+
         getMemberList() : 회원 목록 조회, ADMIN
-        deactiveMember() : 회원 비활성화, USER
+        deActiveMember() : 회원 비활성화, USER
         reActivateMember() : 회원 재활성화, USER
         rePasswordMember() : 회원 비밀번호 재설정, USER
      */
@@ -37,10 +40,9 @@ public class MemberApiController {
     @GetMapping("/") // 회원 목록 조회
     public ResponseEntity<?> getMemberList(HttpServletRequest request) {
         // 1. 헤더의 Authorization에서 JWT 토큰을 꺼냄.
-        String accessToken = extracAccessToken(request);
+        String accessToken = extractAccessToken(request);
         // 2. 토큰에서 MemberRole을 추출.
         MemberRole userRole = jwtUtil.getRole(accessToken);
-
         // 3. 권한 = ADMIN 확인
         if (userRole == MemberRole.ADMIN) {
             // 4. 전체 회원 목록 반환.
@@ -51,13 +53,8 @@ public class MemberApiController {
         }
     }
 
-    private String extracAccessToken(HttpServletRequest request) {
-        String authorization = request.getHeader("Authorization");
-        return authorization.substring(7);
-    }
-
     @PostMapping("/deactivate/{memberId}") // 회원 비활성화
-    public ResponseEntity<?> deactivateMember(@PathVariable Long memberId, HttpServletRequest request) {
+    public ResponseEntity<?> deActivateMember(@PathVariable Long memberId, HttpServletRequest request) {
         return handleMemberActivationDeactivation(memberId, false, "이미 비활성화 된 계정입니다!", "계정이 비활성화 되었습니다.");
     }
 
@@ -82,6 +79,11 @@ public class MemberApiController {
 
         resetMemberPassword(passwordRequest, existingMember);
         return responseStatusAndMessage(HttpStatus.OK, "계정의 비밀번호가 재설정되었습니다.");
+    }
+
+    private String extractAccessToken(HttpServletRequest request) {
+        String authorization = request.getHeader("Authorization");
+        return authorization.substring(7);
     }
 
     private ResponseEntity<?> handleMemberActivationDeactivation(Long memberId, boolean shouldActivate, String alreadyStatusMessage, String successMessage) {
@@ -126,8 +128,13 @@ public class MemberApiController {
         return ResponseEntity.status(status).body(message);
     }
 
+    private ResponseEntity<?> unauthorizedResponse(String message) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(message);
+    }
+
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<String> handleUsernameNotFoundException(UsernameNotFoundException e) {
+        // 회원을 찾지 못한 경우 404 Not Found 응답과 함께 예외 메시지를 반환
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
 
@@ -136,9 +143,5 @@ public class MemberApiController {
         private String password;
         private String new_password;
         private String new_password_confirmation;
-    }
-
-    private ResponseEntity<?> unauthorizedResponse(String message) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(message);
     }
 }

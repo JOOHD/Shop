@@ -4,7 +4,9 @@ import JOO.jooshop.global.authentication.jwts.entity.CustomMemberDto;
 import JOO.jooshop.global.authentication.jwts.entity.CustomUserDetails;
 import JOO.jooshop.global.authentication.jwts.service.CookieService;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
+import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.entity.enums.MemberRole;
+import JOO.jooshop.members.repository.MemberRepositoryV1;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,11 +34,13 @@ public class JWTFilterV3 extends OncePerRequestFilter {
         2. CustomUserDetailsService : 사용자 정보 조회 (loadUserByUsername method)
         3. CustomUserDetails : 사용자 세부 정보 (UserDetails interface implements)
         4. JWTFilter : JWT 토큰 인증 (parse(추출), validation(검증), authentication(인증))
+                        사용자 정보 SecurityContextHolder 에 저장
         5. SecurityContextHolder : 인증 정보 보관
      */
 
     private final JWTUtil jwtUtil;
     private final CookieService cookieService;
+    private final MemberRepositoryV1 memberRepository;
 
 
     @Override
@@ -44,7 +48,7 @@ public class JWTFilterV3 extends OncePerRequestFilter {
         // request 에서 Authentication(accessToken) 헤더 찾음
         String authorization = request.getHeader("Authorization");
         // 쿠키에서 "refreshAuthorization(refreshToken)" 값을 가져 옴
-        String refreshAuthorization = cookieService.getRefreshAuthrization(request);
+        String refreshAuthorization = cookieService.getRefreshAuthorization(request);
         if (refreshAuthorization == null) {
             filterChain.doFilter(request, response);
             return;
@@ -90,7 +94,7 @@ public class JWTFilterV3 extends OncePerRequestFilter {
         }
     }
 
-    private Authentication getAuthentication (String token, Member member){
+    private Authentication getAuthentication (String token){
         if (!jwtUtil.validateToken(token)) {
             // 토큰이 유효하지 않을 경우 예외 처리
             throw new BadCredentialsException("유효하지 않은 토큰입니다.");
@@ -99,8 +103,14 @@ public class JWTFilterV3 extends OncePerRequestFilter {
         String memberId = jwtUtil.getMemberId(token);
         MemberRole role = jwtUtil.getRole(token);
 
+        // JWT 토큰에서 memberId 추출, DB 에서 해당 사용자 찾기
+        Member member = memberRepository.findById(Long.valueOf(memberId))
+                .orElseThrow(() -> new BadCredentialsException("사용자를 찾을 수 없습니다."));
+
+        // 인증 처리 위한 사용자 정보를 담은 객체 생성
         CustomMemberDto customMemberDto = CustomMemberDto.createCustomMember(member);
 
+        // CustomUserDetails 객체로 감싸고, Spring Security 에서 사용할 수 있도록 한다.
         CustomUserDetails customOAuth2User = new CustomUserDetails(customMemberDto);
         return new UsernamePasswordAuthenticationToken(customOAuth2User, null, customOAuth2User.getAuthorities());
     }

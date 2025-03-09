@@ -16,10 +16,8 @@ import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -155,7 +153,7 @@ public class JoinApiController {
         Optional<Refresh> optionalRefresh = refreshRepository.findByRefreshToken(refreshToken);
 
         if (!optionalRefresh.isPresent()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh token이 존재하지 않습니다.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh token 이 존재하지 않습니다.");
         }
 
         Refresh refreshEntity = optionalRefresh.get();
