@@ -10,6 +10,7 @@ import JOO.jooshop.payment.model.PaymentCancelDto;
 import JOO.jooshop.payment.model.PaymentHistoryDto;
 import JOO.jooshop.payment.model.PaymentRequestDto;
 import JOO.jooshop.payment.repository.PaymentRepository;
+import JOO.jooshop.payment.service.PaymentService;
 import com.siot.IamportRestClient.IamportClient;
 import com.siot.IamportRestClient.exception.IamportResponseException;
 import com.siot.IamportRestClient.request.CancelData;

@@ -112,6 +112,7 @@ public class PaymentHistory {
     }
 
     // 첫 번째 썸네일 경로를 가져오는 헬퍼 메서드 추가
+    // 썸네일 > 상품 이미지 (성능, UX 이유)
     public String getFirstThumbnailImagePath() {
         if (product != null && !product.getProductThumbnails().isEmpty()) {
             return product.getProductThumbnails().get(0).getImagePath();
