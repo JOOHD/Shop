@@ -1,5 +1,7 @@
 package JOO.jooshop.global.Exception;
 
+import JOO.jooshop.global.ResponseMessageConstants;
+import JOO.jooshop.payment.entity.PaymentHistory;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import okhttp3.Response;
@@ -75,6 +77,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handlePaymentCancelFailureException(PaymentCancelFailureException ex) {
         String errorMessage = ex.getMessage();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
+    }
+
+    /* 결제 내역을 찾을 수 없는 경우 */
+    @ExceptionHandler(PaymentHistoryNotFoundException.class)
+    public ResponseEntity<String> handlePaymentHistoryNotFoundException(PaymentHistoryNotFoundException ex) {
+        String errorMessage = ResponseMessageConstants.PAYMENT_HISTORY_NOT_FOUND;
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage);
     }
 
     /* 유효성 검사(@Validated @RequestParam, @PathVariable 단일) 예외 */

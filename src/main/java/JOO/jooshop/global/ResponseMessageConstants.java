@@ -11,4 +11,8 @@ public class ResponseMessageConstants {
     public static final String ACCESS_DENIED_NO_AUTHENTICATION = "접근 권한이 없습니다. : 로그인 정보 찾을 수 없음";
     public static final String ADDRESS_NOT_FOUND = "해당 주소를 찾을 수 없습니다.";
     public static final String ADDRESS_DELETE_SUCCESS = "해당 주소가 삭제되었습니다";
+    public static final String PAYMENT_HISTORY_NOT_FOUND = "결제 내역을 찾을 수 없습니다.";  // 25.03.12
+    public static final String PAYMENT_HISTORY_NOT_FOUND_BY_MEMBER = "회원 ID에 해당하는 결제 내역을 찾을 수 없습니다."; // 25.03.12
+    public static final String PAYMENT_HISTORY_NOT_FOUND_BY_IMPUID = "결제 고유 ID에 해당하는 결제 내역을 찾을 수 없습니다."; // 25.03.12
+    public static final String PAYMENT_CANCEL_FAILURE = "결제 취소 실패 하였습니다."; // 25.03.12
 }

@@ -1,0 +1,402 @@
+not yet   :  address, category, inquiry, review, wishList
+working  : payment blog 복기, next step 03/12
+
+우선 순위 
+1. order(결제 아임포트), 
+2. category, inquery
+3. queryDsl 이용한 search, filter
+
+
++ 장바구니가 order 에 엮이지 않음
++ 서버(AWS, CLOUD) 해봐야 된다.
+
+★★★ throwable(checked exception) vs RuntimeException 
+	public class PaymentHistoryNotFoundException extends (throwable -> RuntimeException)  {
+
+    		public PaymentHistoryNotFoundException(String message) {
+        		super(message);
+    		}
+	}
+	-> Throwable을 직접 상속하면 체크 예외로 처리되므로 예외를 던지기 전에 반드시 throws 선언이나 try-catch 처리가 필요
+
+	- >RuntimeException을 상속하면 언체크 예외가 되어 예외를 던질 때 throws 선언이 필요하지 않습니다. 이 때문에 커스텀 예외를 만들 때 RuntimeException을 상속하는 것이 일반적으로 더 용이합니다.
+
+★★★ Add ★★★
+
+	// 예외 메시지 상수들을 저장하는 클래스, 일관성을 유지
+	public class ResponseMessageConstants {
+		public static final String PAYMENT_HISTORY_NOT_FOUND = "결제 내역을 찾을 수 없습니다.";  	
+	}
+
+	// 전역 예외 처리 클래스, 
+	@ExceptionHandler(PaymentHistoryNotFoundException.class)
+    	public ResponseEntity<String> handlePaymentHistoryNotFoundException(PaymentHistoryNotFoundException ex) {
+        	String errorMessage = ResponseMessageConstants.PAYMENT_HISTORY_NOT_FOUND;
+        	return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage);
+    	}
+	
+★★★ 관계 요약 ★★★
+
+PaymentHistoryNotFoundException
+          |
+          | 예외 발생 (예: 결제 내역 없음)
+          |
+ResponseMessageConstants
+          | (상수 메시지 사용)
+          v
+GlobalExceptionHandler
+          |
+          | 예외 처리 (@ExceptionHandler)
+          |
+     사용자에게 응답
+		
+
+
+★ 리팩토링할 때 고려할 주요 포인트는 코드의 중복 제거, 클래스 간의 책임 분리, 명확한 함수 이름을 통해
+	 코드의 가독성을 높이고 유지보수를 용이하게 만드는 것
+
+★ import com.google.gson.annotations.SerializedName;
+	- SON 필드 이름과 Java 필드 이름이 다를 경우에 사용됩니다. 
+		JSON 데이터를 자바 객체로 변환할 때, 필드명이 다를 경우 매핑을 도와주는 역할을 합니다.
+
+★ 자바에서 boolean 타입 필드의 경우, getter 메서드 이름을 자동 생성할 때 get 대신 is를 붙입니다.
+	- Lombok의 @Getter를 사용하면 자동으로 이 규칙이 적용됩니다.
+
+	ex
+		is는 메서드에서만 사용하고, 필드명에서는 is를 빼는 게 가독성이 좋다.
+			public boolean isSoldOut() { // OK! 직관적임
+			    return soldOut;
+			}
+
+★ 너가 진행하는 프로젝트 특징
+	- 백엔드 스프링 부트 기반
+	- jar 파일로 배포
+	- 톰캣을 내장해서 jar 실행으로 동작
+	- application.yml 설정으로 환경 관리
+	- MySQL, Redis, Spring Security 등 최신 기술 사용
+	- CI/CD GitHub Actions 사용 (업로드 자동화 중)
+	- 클라우드 배포 가능성도 있어 보임
+
+	항목			설명
+	아키텍처		모놀리식 or 마이크로서비스 구조도 가능하지만, 깔끔하게 나뉘어 있음
+	빌드 & 배포	Gradle or Maven으로 빌드 후 Executable JAR 배포
+	서버 방식		내장 톰캣 기반으로 독립 실행 (java -jar)
+	환경 구성		application.yml에서 profile 관리 (dev, staging, prod 등)
+	인프라 관리	GitHub Actions 통한 CI/CD 파이프라인 구성
+	데이터베이스	MySQL, Redis 같은 최신 스택
+	보안			JWT, OAuth2 등 사용 가능성 존재
+	프론트/백 분리	프론트엔드와 REST API, 또는 클라이언트-서버가 분리되어 있음
+
+	Level Up
+	- Docker / Kubernetes 클러스터 환경 배포
+	- 클라우드 (AWS, GCP) 환경 자동화
+	- **마이크로서비스 아키텍처(MSA)**로 점진적 전환
+	- CQRS / 이벤트 소싱 등 확장 가능!
+
+★ if (request.getNickname() == null || request.getNickname().isEmpty()
+	null : 객체가 할당되지 않았다.
+	empty : 객체가 존재하지만, 비어 있다.
+
+★ libs folder
+	- Gradle build 결과물이 저장되는 기본 폴더 (./gradlew build or bootJar 명령어 실행 시,build/libs/ 폴더에 jar 파일이 만들어진다.
+
+★ 중복은 Optional<>그리고 Optional 은 orElseThrow() 와 같이 사용된다.
+	그러나 ptional을 리턴하는 메서드에서만 orElseThrow() 호출 가능하지,
+	List 타입에서는 아예 제공되지 않는 메서드이다.
+
+	ex)
+		List<PaymentHistory> paymentHistoriesWithSameUid = paymentRepository.findByImpUid(impUid);
+		- 여기서 값이 없으면 null이 아니라 **빈 리스트 (size == 0)** , 그래서 Optional이 필요가 없다.
+			-> List는 비어있든 뭐든 null이 아니라 객체가 리턴되니까 Optional로 감싸지 않는 거야.
+	
+	
+★ 소프트 딜리트(Soft Delete)
+	- 회원 데이터를 아예 삭제하지 않고, 데이터 무결성을 유지하면서도 계정을 복구할 수 있도록 하기 위해
+
+	1. 데이터 복구 가능 : 실수로 삭제된 데이터를 유지하면서 삭제 처리 가능
+	2. 무결성 보장 : 다른 엔티티와의 관계를 유지하면서 삭제 가능
+	
+	- Boolean 플래그 : isActive, isDeleted 같은 컬럼을 두고 true/false 값으로 상태를 관리
+	- 타임스탬프 방식 : deletedAt 컬럼에 삭제 시간을 기록하고, null 이면 활성, 값이 존재하면 삭제된 상태	
+
+★ 변환 메서드(entity -> dto) 
+	● Response 가 아닌, Request 클래스에서 왜? 변환 메서드가 필요하지?
+
+        1. 클라이언트가 상품 등록 요청을 보냄
+            → ProductCreateDto에 상품 데이터가 담김
+
+        2. 서버에서 유효성 검사를 진행
+            - 만약 실패하면 → 에러 메시지와 함께 입력했던 데이터가 그대로 다시 클라이언트에 반환되어야 합니다.
+            - 그래야 사용자가 다시 입력하지 않고 수정만 해서 재시도할 수 있습니다.
+
+	● 만약 이 변환 메서드가 없으면?
+	    - 클라이언트가 작성했던 모든 값이 사라지고, 다시 처음부터 입력해야 하는 불편함이 생깁니다.
+
+	+ "그러면 Builder 패턴하고 생성자 방식은 어떤 차이가 있을까?"
+	생성자 방식	필드가 적고 모든 값이 필수	코드가 간결하고 빠름
+	Builder 패턴	필드가 많고 선택적 파라미터가 존재	가독성이 좋고, 실수 방지
+
+	회원가입(SignupFormDto) 같은 경우는 필드가 몇 개 없으니까 생성자 방식이 더 적합할 것 같고,
+	상품 등록(ProductCreateDto) 처럼 필드가 많고 선택적인 필드가 있는 경우, Builder 패턴이 더 가독성 있다.
+
+	● 정리하면:
+		SET 메서드
+		 - 주로 수정(update) 로직에서 사용
+		 - 값이 변경될 필요가 있는 경우에만 최소한으로 사용
+		 - 너무 많이 사용하면 객체의 일관성(Consistency) 이 깨질 수 있어서 지양
+
+	생성자 방식
+		 - 객체 생성 시 최초 값 고정
+		 - 코드의 불변성(Immutable) 과 가독성을 높이기 위해 사용
+		 - 필수 필드가 많고, 모든 값을 한 번에 설정하는 경우 적합
+
+	Builder 패턴
+		 - 필드가 많고, 선택적 파라미터가 존재하는 경우 적합
+		 - 가독성과 코드 유지보수가 뛰어나지만 성능에서는 조금 손해
+
+	● 최근에는 불변성을 선호하는 트렌드
+	    등록(Create), 조회(Read) → 생성자나 Builder 패턴
+	    수정(Update) → 필요한 필드에만 set() 메서드 사용
+
+★ 리플렉션(Reflection)
+	- 자바에서 클래스, 메서드, 필드 등을 런타임에서 동적으로 분석하고 조작할 수 있는 기능을 말합니다.
+            ModelMapper는 내부적으로 리플렉션을 사용하여 다음과 같은 작업을 합니다:
+
+★ 무결성
+	1. 개체 무결성 (Entity Integrity)
+		- row 는 고유해야 한다.
+		- PK 를 사용해 특정 레코드를 식별
+		ex) 회원 테이블에서 member_id 가 중복되면 안 됨
+	2. 참조 무결성 (Referential Integrity) 
+		- FK 가 참조하는 데이터가 항상 존재해야 된다.
+		- 부모 데이터가 삭제되면 자식 데이터도 삭제되거나 제한되어야 한다. (CASCADE)
+			- orphanRemoval = true, 부모 엔티티와의 관계가 끊어지면 자동으로 자식 엔티티를 삭제.
+		ex) 주문 테이블에서 member_Id 가 회원 테이블에 존재하지 않으면 안 됨
+	3. 도메인 무결성 (Domail Integrity)
+		- 특정 컬럼의 값이 정의된 범위 내에 있어야 한다.
+		ex) quantity 은 음수가 될 수 없다.
+	4. 업무 무결성 (Business Integrity)
+		- 비즈니스 로직에 맞는 규칙 적용
+		ex) 상품 재고보다 더 많은 수량을 주문할 수 없다.
+
+	- 개발에서 무결성 보장 방법
+	   ex)            방법		                  설명                                         예시
+		제약조건(CONSTRAINT)	  DB에서 자동으로 무결성을 검사	NOT NULL, UNIQUE, FOREIGN KEY
+		트랜잭션			  작업 단위를 묶어서 처리	        주문 결제와 재고 차감 동시 처리
+		어플리케이션 로직	  비즈니스 로직으로 무결성 검사	주문 수량이 재고보다 많으면 에러
+
+★ Transaction & 무결성 관계
+	Transaction : DB에서 여러 작업을 하나의 단위로 묶어서 처리
+		- All or Nothing : 모든 작업 성공 (commit) & 하나라도 실패 (rollback)
+
+	종류					설명								트랜잭션 역할
+참조 무결성	외래 키가 참조하는 데이터가 항상 존재해야 함	        롤백을 통해 참조 관계를 보호
+개체 무결성	기본 키가 NULL이거나 중복될 수 없음	                트랜잭션 중 실패 시 중복 데이터 저장 방지
+도메인 무결성	필드에 저장될 수 있는 데이터 타입과 값, 범위 제한	비정상 데이터 삽입 시 롤백
+일관성 무결성	비즈니스 규칙에 맞는 데이터만 저장되어야 함	        트랜잭션 내에서 모든 작업이 완료되야
+		
+   - 트랜잭션과 무결성 관계 흐름 예시
+   1. 사용자가 상품을 주문 -> Orders 테이블에 데이터 삽입 
+   2. 재고 감소 -> ProductManagement 테이블 업데이트 
+   3. 결제 성공 -> PaymentHistory 테이블 데이터 삽입
+
+   - 트랜잭션과 무결성이 가장 중요한 순간
+   1. 은행 계좌 이체
+   2. 재고 관리 시스템
+   3. 주문 및 결제 시스템
+
+   -> 트랜잭션이 성공하면 무결성 유지
+   -> 트랜잭션이 실패하면 롤백되어 무결성 위반 방지
+
+★ Optional & Stream/Collectors & ramda
+
+★ secretKey 는 유출되면 JWT 미래가 없다. -> kEY Rolling 기술을 사용
+
+★ Optional + Stream 조합은 "Null-safe + 가독성 + 간결함"
+	Optional.ofNullable
+	.map = 요소를 다른 타입으로 변환하거나 가공할 때 사용
+
+★ Iterator
+	**컬렉션(Collection)**에 (배열, 리스트, 맵, 셋) 포함된 요소들을 순차적으로 접근하기 위한 인터페이스
+		또한 장점으로는 remove() 와 같은 메서드를 제공하여 요소를 삭제하는 데 유용하다.
+		비슷한 기능으로는, for-each 는 요소 삭제가 필요한 경우 적합하지 않다.
+
+★ @Component(자동 등록, @Service, @Repository) vs @Configuration(수동 등록, Bean 사용) 
+	- @Bean 수동 등록은 외부 라이브러리 클래스 (ex: JavaMailSender, ObjectMapper 등등)
+	- 여러 구현체 중 특정 구현을 선택해야 할 때
+
+★ 생성자 체이닝 사용
+	-> DTO 에서는 사용하고, Entity 에서 주로 사용하지 않는다.
+		ㄴEntity에서는 비즈니스 로직과 관련된 복잡한 상태 관리가 필요하기 때문에, 체이닝 없이 간단한 생성자와 필드 설정 방식을 더 선호하는 경향
+
+	기존 : CartDto(Cart cart) {
+			this.cartId = cart.getCartId(); // entity - > dto 변환
+		 }
+
+	체이닝 : 같은 클래스 내에서 하나의 생성자가 다른 생성자를 호출하는 방식
+		    CartDto(Cart 
+				Long cartId,
+		    	) {
+				this.cartId = cartId; // dto 변환 축약
+		    }			 
+	-> CartDto 에서 필드 값을 직접 설정하지 않고, 다른 생성자로 위임하여 관리
+		초기화 로직을 하나의 생성자에서만 관리할 수 있다.
+			
+★ ResponseDto 목적
+	-> 클라이언트가 직접 설정할 필요 없는 값을 제외 ex) memberId, cartId... @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+★ extends(단일상속) vs implements(다중상속)
+	-> CustomMemberDto 의 overloading 은 다양한 상황에서 DTO를 생성 가능하게 위함
+	-> extends 부모 클래스를 상속, 기능을 확장할 때 사용, implements 인터페이스의 기능을 강제하기 위해 사용
+	-> Spring Security에서는 UserDetails가 인터페이스이므로 반드시 implements를 사용해야 함
+		ㄴ인터페이스를 구현하는 클래스는 인터페이스의 메서드를 반드시 오버라이딩해야 함.
+
+★ 왜 isActive, isBanned를 파라미터로 받지 않았을까?
+	public CustomMemberDto(Long memberId, String email, String username, String password, MemberRole 	memberRole, *******  이 부분에 isActive, isBanned 같은 필드를 넣지 않는 이유? *******) {
+	    this(memberId, email, username, password, memberRole, true, false, false, false);
+	}
+
+	- 생성자는 memberRole과 같은 핵심 파라미터만 필요하고, 나머지 필드들은 기본값으로 처리하는 방식입니다.
+
+★ refreshToken Cookie & redis 
+
+	- refreshToken 은 보통 cookie & authorization header 를 통해 전달 된다. (refreshToken session 저장은 x)	
+	
+	- 스테이트리스(stateless) 방식: REST API는 보통 스테이트리스 방식으로 동작하기 때문에, 서버는 상태를 저장하지 않고 클라이언트가 보내는 토큰을 통해 인증을 처리합니다.
+
+	- 쿠키: 클라이언트가 보낸 쿠키를 서버에서 자동으로 받기 때문에, 리프레시 토큰을 쿠키에 저장하고, 요청 시 이를 서버가 확인하는 방식이 일반적입니다.
+	
+	- 로그아웃 시, refreshToken 은 찾아서 삭제 해야 된다. (악의적 사용자가 이를 재사용 가능하기 때문)
+		또한 만료 처리를 해서, 해당 토큰이 유효하지 않게 처리 (재로그인 방향으로 유도)
+
+	일반적인 흐름:
+	1. 클라이언트는 로그인 시 accessToken과 refreshToken을 서버로부터 받습니다.
+	2. 서버는 refreshToken을 Redis에 저장하고, 쿠키에는 refreshToken을 설정하여 클라이언트에게 전달합니다.
+	3. 클라이언트는 이후 API 요청 시 accessToken을 사용하고, accessToken이 만료되면 refreshToken을 쿠키에서 가져와 서버로 전송합니다.
+	4. 서버는 Redis에서 해당 refreshToken을 찾아 유효성을 확인하고, 유효하다면 새로운 accessToken을 발급하여 응답합니다.
+	5. refreshToken이 만료되거나 유효하지 않으면 클라이언트는 다시 로그인해야 합니다.
+
+	Redis
+	- 토큰 만료 관리: Redis에 refreshToken을 저장하고 만료 시간을 설정하면, 토큰이 만료되었을 때 자동으로 삭제할 수 있습니다. 
+	ex)TTL (Time to Live)을 설정하여 일정 시간 후에 토큰을 자동으로 만료시키는 방식으로 관리할 수 있습니다.
+
+★ ** != null **은 객체의 존재 여부를 확인하는 조건이고, ** startsWith() **는 값의 내용(구체적인 조건)을 확인하는 조건입니다.
+
+★ 차이점은 split(" ")은 공백 기준으로 자르고, substring(7)은 단순히 앞 7글자를 제거하는 차이야.
+
+★ HttpServletRequest 요청에는 리프레쉬 토큰이 쿠키에 포함되어 있어야 한다.
+            request = Header request.getHeader(Authorization")
+                  Cookie request.getCookies(refreshToken)
+                  Body   request.getInputStream("FormData/JSONData")
+
+★ 쿠키 예상 구조
+            Cookie[] cookies = {
+                new Cookie("JSESSIONID", "ABC123DEF456"),
+                new Cookie("refreshToken", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."),
+                new Cookie("userPreference", "darkMode")
+            };
+
+★ @Transactional(readOnly = true) , **JPA의 변경 감지(dirty checking)**
+		- 데이터 변경이 있는 쿼리(INSERT, UPDATE, DELETE)를 실행하면 예외 발생!
+	rollbackFor : 지정한 예외가 발생하면 트랜잭션 롤백, (RuntimeException & Error 만 롤백)
+		ex)
+			// Exception.class (최상위 클래스, Checked + Unchecked)
+			@Transactional(rollbackFor = Exception.class, noRollbackFor = IllegalArgumentException.class)
+			public void processOrder(Order order) {
+				if (order == null) {
+					throw new IllegalArgumentException("잘못된 주문 정보입니다."); // 롤백되지 않음
+				}
+				throw new IOException("파일 처리 중 오류 발생!"); // 롤백됨
+			}
+	noRollbackFor : 지정한 예외가 발생해도 롤백하지 않음
+	propagation : 트랜잭션 전파 방식 설정, required 
+
+★ 문자열 단독 \" 처리 
+
+    - 클라이언트에서 넘어오는 @RequestBody 값은 보통, JSON 형식으로 데이터를 주고받을 때, 단순 문자열로 보낼 때 "홍길동" 이런 식으로 보낸다.
+	ㄴ 문자열만 단독으로 보낼 때, JSON 규격상 이렇게 쌍따옴표 " "로 감싸진 상태로 온다.
+	ㄴ String newNickname = "\"홍길동\""; // 이렇게 들어온다.
+		ㄴ 우리가 원하는 값은 홍길동이지만, "홍길동" 으로 오기 때문에,
+		ㄴnewNickname = newNickname.replace("\"", ""); // 문자 제거를 해주어야 한다.
+
+    - (DTO) 로 받았을 때, @RequestBody MemberNicknameDto dto 이런 식이면,
+	dto.getNickname() 하면 그냥 홍길동으로 나온다.
+
+	-> 단독으로 받냐 vs 객체로 받냐	
+	- DTO로 받는 경우: { "nickname": "홍길동" } -> JSON 객체
+	- 문자열 하나만 받는 경우: "홍길동" -> JSON 문자열(프리미티브 값
+	
+★ [문제] N + 1 문제
+
+	List<Product> products = productRepository.findAll();
+		이렇게 하면, Product만 먼저 가져오고
+		각 Product의 productThumbnails를 나중에 따로따로 조회해.
+
+		즉,
+		1. Product 10개 가져오기 -> 쿼리 1번
+		2. 각 Product의 productThumbnails 조회 -> 10번 추가 쿼리
+		총 11번 쿼리가 나가게 돼.
+		그래서 이걸 N + 1 문제라고 불러.
+ 
+	-> JOIN FETCH가 이걸 해결해줌
+
+		SELECT p.*, t.*
+		FROM product p
+		JOIN product_thumbnail t ON p.product_id = t.product_id
+
+	-> 정리
+		- findAll() 기본	N + 1번	Product 1번 + Thumbnail N번 개별 조회
+		- JOIN FETCH 사용 시	1번	Product와 Thumbnail 한 번에 다 가져옴
+
+	★ 주의할 점
+		- 중복 주의
+		product 가 10 개인데, 각 product 에 썸네일 3개씩 있으면, 30개가 조회된다.
+		그래서 List<Product> 로 받으면 중복된 Product 가 나올 수 있다.
+		이를 해결하기 위해, DTO 변환하거나 DISTINCT 사용
+		@Query("SELECT DISTINCT p FROM Product p JOIN FETCH p.productThumbnails")
+
+★ modelMapper : entity -> dto 변환 메서드를 자동으로 생성해주는 역할
+
+★ ConstraintViolationException : @Valldated 를 사용한, @RequestParam, @PathVariable 등의 검증 실패
+						단일 필드 유효성 검사 (@Min, @NotBlank 등)
+						모든 에러 메시지를 한 번에 반환
+
+★ 커스텀 어노테이션  
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target({ElementType.METHOD, ElementType.TYPE})
+	public @interface RequiresRole {
+		MemberRole[] value();
+	}
+	추가 정리 하기 02/23/2025
+
+★ Util class
+	- 주로 특정한 목적을 위해 여러 메서드를 제공하는 클래스, 주로 정적 메서드로 이루어져있따.
+		인스턴스를 생성하지 않고도 직접 메서드를 호출.
+
+★  API 요청 기본 구조
+	- HTTP 요청을 통해 서버로 전송
+	- 기본 형식 
+		ex) HTTP 메서드 + endpoint(URI) : https://api.example.com/users
+	- Header : 인증 정보, 요청 형식(Content-Type), API KEY
+	- Body : JSON, XML (주로 POST, PUT)
+		
+		GET /users?name=joo HTTP/1.1
+		Host : api.example.com
+		Authorization : Bearer AccessToken 
+
+★ OAuth2 vs UserDetails
+	- 일반 로그인 (UserDetails): 사용자 정보는 주로 데이터베이스에서 가져오고, 비밀번호는 credentials로 처리됩니다.	(getUsername() 으로 사용자 이메일)
+	- OAuth2 로그인 (OAuth2User): 외부 인증 제공자로부터 사용자 정보를 가져오며, 비밀번호는 존재하지 않으며, 외부 시스템에서 인증된 사용자 정보만 사용됩니다. (getAttribute("email") 으로 OAuth2 이메일)
+
+★ OAuth2(=Authorization) vs JWT(=Authentication) 
+	OAuth2
+		- OAuth2 는 사용자가 특정 리소스에 접근 권한이 있는지 확인
+		- 만료 후, RefreshToken 으로 AccessToken 재발급
+		- 보통 DB or Redis 에 저장
+
+	JWT
+		- JWT 사용자가 누구인지 인증
+		- 만료 후, 로그인 재요청
+		- 보통 Cookie 에 저장
+
+	최근에는 AccessToken (JWT + HttpOnly), RefreshToken (Redis + DB)

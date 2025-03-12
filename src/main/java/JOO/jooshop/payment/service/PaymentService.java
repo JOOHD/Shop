@@ -1,6 +1,7 @@
 package JOO.jooshop.payment.service;
 
 import JOO.jooshop.cart.repository.CartRepository;
+import JOO.jooshop.global.Exception.PaymentHistoryNotFoundException;
 import JOO.jooshop.global.ResponseMessageConstants;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
@@ -27,6 +28,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static JOO.jooshop.global.authorization.MemberAuthorizationUtil.verifyUserIdMatch;
 @Service
@@ -156,18 +159,27 @@ public class PaymentService {
         verifyUserIdMatch(memberId);
 
         // 해당 사용자의 결제 내역을 DB 에서 전부 조회
-        List<PaymentHistory> paymentHistories = paymentRepository.findByMemberId(memberId);
+        List<PaymentHistory> paymentHistories = getFindByMemberId(memberId);
 
-        // 클라이언트에 응답할 DTO 리스트 초기화
+        /*
         List<PaymentHistoryDto> paymentHistoryDtos = new ArrayList<>();
-
-        // 결제내역 하나씩 DTO, 변환 후 리스트에 추가
         for (PaymentHistory paymentHistory : paymentHistories) {
             PaymentHistoryDto paymentHistoryDto = new PaymentHistoryDto(paymentHistory);
             paymentHistoryDtos.add(paymentHistoryDto);
-        }
+        }*/
+
+        List<PaymentHistoryDto> paymentHistoryDtos = paymentHistories.stream()
+                .map(PaymentHistoryDto::new)   // PaymentHistory -> PaymentHistoryDto 변환
+                .collect(Collectors.toList()); // 리스트로 반환
+        
         // 결제내역 응답 반환
         return paymentHistoryDtos;
+    }
+
+    private List<PaymentHistory> getFindByMemberId(Long memberId) {
+        return Optional.ofNullable(paymentRepository.findByMemberId(memberId))
+                .filter(paymentHistories -> !paymentHistories.isEmpty())
+                .orElseThrow(() -> new PaymentHistoryNotFoundException(ResponseMessageConstants.PAYMENT_HISTORY_NOT_FOUND_BY_MEMBER));
     }
 
     /**
@@ -194,54 +206,93 @@ public class PaymentService {
     /**
      * setRefundInfo : 결제 취소 진행 후 정보 저장
      * (실제 환불 처리를 수행하고 DB에 상태 반영)
-     * @param requestDto 클라이언트에서 전송한 환불 요청 정보
+     * @param request 클라이언트에서 전송한 환불 요청 정보
      * @param paymentHistory 환불하려는 결제 내역
      * @param paymentInfo 환불 전 검증 후 얻은 환불 정보(PG사 UID, 금액 등)
      * @return 저장된 환불 정보
+     *
+     * 메서드 흐름
+     * [Client] -> 환불 요청 (DTO) -> [PaymentService.setRefundInfo()]
+     *   -> paymentHistory 조회 (verifyUserIdMatch)
+     *   -> 부분/전체 환불 계산
+     *   -> afterChecksum 계산
+     *   -> PaymentRefund 생성
+     *      -> paymentHistory, impUid, refundAmount, etc...
+     *   -> paymentRefundRepository.save(refund)
+     *   -> paymentHistory 상태 변경 및 checksum 동기화
+     *   -> 아임포트 API로 실제 환불 처리
      */
     public PaymentRefund setRefundInfo(PaymentCancelDto request, PaymentHistory paymentHistory, PaymentRefund paymentInfo) {
-        String impUid = paymentInfo.getImpUid();
+
+        // 결제 고유번호(아임포트 UID), 환불 금액, 현재 checksum 조회
+        String impUid = paymentInfo.getImpUid(); // impUid 는 String 문자열 형식이다.
         Integer amount = paymentInfo.getAmount();
         Integer checksum = paymentInfo.getChecksum();
 
-        List<PaymentHistory> paymentHistoriesWithSameUid = paymentRepository.findByImpUid(impUid);
+        // 같은 impUid 를 가진 결제 내역들을 전부 조회(여러 주문이 하나의 결제로 묶여있을 수 있다)
+        List<PaymentHistory> paymentHistoriesWithSameUid = getPaymentHistoriesWithSameUid(impUid);
 
+        // 환불 후 남은 금액 계산 (기존 checksum - 환불금액)
         Integer afterChecksum = checksum - amount;
 
+        // 같은 impUid를 가진 모든 결제 내역에 대해 남은 금액 업데이트
         for (PaymentHistory history : paymentHistoriesWithSameUid) {
             history.setTotalPrice(afterChecksum);
         }
 
+        // 현재 환불 대상 결제 상태를 'CANCELED'로 변경
         paymentHistory.setStatusType(Status.CANCELED);
 
+        // 환불 정보를 생성 (vbank일 경우와 일반 결제일 경우를 구분하여 생성)
         PaymentRefund paymentRefund = buildRefund(paymentHistory, request, paymentInfo);
 
+        // 생성된 환불 내역을 DB에 저장
         paymentRefundRepository.save(paymentRefund);
 
+        // 저장된 환불 내역 반환
         return paymentRefund;
     }
+    private List<PaymentHistory> getPaymentHistoriesWithSameUid(String impUid) {
+        return Optional.ofNullable(paymentRepository.findByImpUid(impUid))
+                .filter(paymentHistory -> !paymentHistory.isEmpty())
+                .orElseThrow(() -> new PaymentHistoryNotFoundException(ResponseMessageConstants.PAYMENT_HISTORY_NOT_FOUND_BY_IMPUID));
+    }
 
+    /**
+     * 환불 정보를 생성하는 메서드
+     * - 가상계좌(vbank) 결제일 경우 환불 계좌 정보 포함
+     * - 일반 결제일 경우 환불 사유만 포함
+     *
+     * @param paymentHistory 환불할 결제 내역
+     * @param request        클라이언트로부터 전달받은 결제 취소 요청 정보(DTO)
+     * @param paymentInfo    기존 결제 정보(impUid, 환불금액, checksum 등 포함)
+     * @return 생성된 환불 내역 엔티티 반환
+     */
     private PaymentRefund buildRefund(PaymentHistory paymentHistory, PaymentCancelDto request, PaymentRefund paymentInfo) {
+
+        // 가상계좌 환불일 경우 추가적인 정보(환불 계좌 정보 등)를 포함하여 PaymentRefund 생성
         if (request.getPayMethod() == PayMethod.vbank) {
-            return new PaymentRefund( // buildRefund 메서드의 환불 처리 정보
-                    paymentHistory,
-                    paymentInfo.getImpUid(),
-                    paymentInfo.getAmount(),
-                    paymentHistory.getOrders().getPhoneNumber(),
-                    paymentInfo.getChecksum(),
-                    request.getReason(),
-                    request.getRefundHolder(),
-                    request.getRefundBank(),
-                    request.getRefundAccount()
+            return new PaymentRefund(
+                    paymentHistory,                        // 환불할 결제 내역 엔티티
+                    paymentInfo.getImpUid(),               // 아임포트 고유 결제번호
+                    paymentInfo.getAmount(),               // 환불 금액
+                    paymentHistory.getOrders().getPhoneNumber(), // 주문자의 연락처
+                    paymentInfo.getChecksum(),             // 환불 후 남은 금액 (checksum)
+                    request.getReason(),                   // 환불 사유
+                    request.getRefundHolder(),             // 환불 받을 계좌 예금주
+                    request.getRefundBank(),               // 환불 받을 은행명
+                    request.getRefundAccount()             // 환불 받을 계좌번호
             );
         }
-        return new PaymentRefund( // setRefundInfo 메서드의 환불 처리 정보
-                paymentHistory,
-                paymentInfo.getImpUid(),
-                paymentInfo.getAmount(),
-                paymentHistory.getOrders().getPhoneNumber(),
-                paymentInfo.getChecksum(),
-                request.getReason()
+
+        // 일반 결제 환불일 경우 기본 환불 정보만 포함하여 PaymentRefund 생성
+        return new PaymentRefund(
+                paymentHistory,                        // 환불할 결제 내역 엔티티
+                paymentInfo.getImpUid(),               // 아임포트 고유 결제번호
+                paymentInfo.getAmount(),               // 환불 금액
+                paymentHistory.getOrders().getPhoneNumber(), // 주문자의 연락처
+                paymentInfo.getChecksum(),             // 환불 후 남은 금액 (checksum)
+                request.getReason()                    // 환불 사유
         );
     }
 }
