@@ -1,6 +1,7 @@
 package JOO.jooshop.product.service;
 
 import JOO.jooshop.contentImgs.service.ContentImgService;
+import JOO.jooshop.global.authorization.RequiresRole;
 import JOO.jooshop.members.entity.enums.MemberRole;
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.entity.ProductColor;

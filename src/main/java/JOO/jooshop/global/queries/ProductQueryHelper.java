@@ -8,6 +8,12 @@ import com.querydsl.core.types.OrderSpecifier;
 import java.time.LocalDateTime;
 
 public class ProductQueryHelper {
+    /*
+        QueryHelper
+        1. 동적 조건(where절) 만들기 쉽게하기 위해
+        2. BooleanBuilder 같은 로직을 모듈화해서 반복 코드 줄임
+        3. 페이징/정렬 같은 공통 기능을 재사용 위해
+     */
 
     /**
      * 정렬 수행
@@ -86,10 +92,22 @@ public class ProductQueryHelper {
         }
     }
 
+    /*
+        BooleanBuilder filterBuilder = new BooleanBuilder();
+
+        1. 조건 필터 (예: 신규 상품)
+          AND
+        2. 카테고리 필터 (예: 카테고리 id = 1 인 상품 OR 부모 카테고리 id = 1)
+          AND
+        3. 키워드 검색 필터 (예: 상품명에 "신발" 포함 OR 상품설명에 "신발" 포함)
+        모든 조건이 AND로 조합돼서 최종적으로 where 절에 들어가게 되는 거야.
+     */
+
     // 카테고리 필터링 메서드
     private static void addCategoryFilter(Long category, QProduct product, BooleanBuilder filterBuilder) {
         if (category != null) {
-            filterBuilder.andAnyOf(
+            filterBuilder.andAnyOf( // andAnyOf() 여러 조건 중 하나라도 만족 시, true 그러나 filterBuilder AND 로 계속 추가.
+                    // QProduct.managements.any(리스트 요건 중 하나라도 만족 시, true)....equals(data)
                     product.productManagements.any().category.categoryId.eq(category),
                     product.productManagements.any().category.parent.categoryId.eq(category)
             );

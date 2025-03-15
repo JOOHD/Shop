@@ -30,7 +30,6 @@ public class CartController {
      */
     @PostMapping("/add/{productMgtId}")
     public ResponseEntity<String> addCart(@Valid @RequestBody CartRequestDto request, @PathVariable Long productMgtId) {
-
         Long createdId = cartService.addCart(request, productMgtId);
 
         return ResponseEntity.ok("장바구니에 등록되었습니다. cart_id : " + createdId);
@@ -55,7 +54,8 @@ public class CartController {
     @PutMapping("/{cartId}")
     public ResponseEntity<CartDto> updateCart(@PathVariable Long cartId, @Valid @RequestBody CartUpdateDto request) {
         Cart updatedCart = modelMapper.map(request, Cart.class);
-        CartDto updatedCartDto = new CartDto(cartService.updateCart(cartId, updatedCart));
+        CartDto updatedCartDto = new CartDto();
+        cartService.updateCart(cartId, updatedCart);
 
         return ResponseEntity.ok(updatedCartDto);
     }
@@ -63,6 +63,7 @@ public class CartController {
     @DeleteMapping("/{cartId}")
     public ResponseEntity<String> deleteCart(@PathVariable Long cartId) {
         cartService.deleteCart(cartId);
+
         return ResponseEntity.ok(ResponseMessageConstants.DELETE_SUCCESS);
     }
 }

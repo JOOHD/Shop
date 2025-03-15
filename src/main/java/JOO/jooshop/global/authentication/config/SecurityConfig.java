@@ -3,6 +3,8 @@ package JOO.jooshop.global.authentication.config;
 import JOO.jooshop.global.authentication.jwts.service.CookieService;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.authentication.oauth2.custom.service.CustomOAuth2UserServiceV1;
+import JOO.jooshop.global.authentication.oauth2.handler.CustomLoginFailureHandler;
+import JOO.jooshop.global.authentication.oauth2.handler.CustomLoginSuccessHandlerV1;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
 import JOO.jooshop.members.repository.RefreshRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;

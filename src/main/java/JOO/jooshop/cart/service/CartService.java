@@ -27,7 +27,6 @@ import static JOO.jooshop.global.authorization.MemberAuthorizationUtil.verifyUse
 public class CartService {
 
     private final CartRepository cartRepository;
-    private final ProductRepositoryV1 productRepository;
     private final MemberRepositoryV1 memberRepository;
     private ProductManagementRepository productManagementRepository;
 

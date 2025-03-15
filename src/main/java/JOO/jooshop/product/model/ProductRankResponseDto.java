@@ -13,15 +13,16 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProductRankResponseDto {
-    private Long productId;
-    private ProductType productType;
-    private String productName;
-    private Integer price;
-    private Long wishListCount;
-    private Boolean isDiscount;
-    private Integer discountRate;
-    private Boolean isRecommend;
-    private String productThumbnails;
+
+    private Long productId;           // 상품 고유 번호 (Primary Key)
+    private ProductType productType;  // 상품의 유형 (남성/여성/유니섹스 등 ENUM)
+    private String productName;       // 상품 이름
+    private Integer price;            // 상품 가격
+    private Long wishListCount;       // 위시리스트에 추가된 횟수 (인기 상품 기준에 사용될 수 있음)
+    private Boolean isDiscount;       // 할인 여부 (true = 할인중, false = 비할인)
+    private Integer discountRate;     // 할인율 (퍼센트로 저장, 예: 20 -> 20%)
+    private Boolean isRecommend;      // 추천 상품 여부 (true면 추천 상품)
+    private String productThumbnails; // 상품 썸네일 이미지 경로나 URL (대표 이미지)
 
 
     public ProductRankResponseDto(Product product) {
