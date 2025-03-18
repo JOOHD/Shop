@@ -13,6 +13,8 @@ public class ProductQueryHelper {
         1. 동적 조건(where절) 만들기 쉽게하기 위해
         2. BooleanBuilder 같은 로직을 모듈화해서 반복 코드 줄임
         3. 페이징/정렬 같은 공통 기능을 재사용 위해
+
+        해당 클래스는 개발자가 생성한 클래스이다.
      */
 
     /**
@@ -51,7 +53,7 @@ public class ProductQueryHelper {
      * @return
      */
     public static BooleanBuilder createFilterBuilder(Condition condition, Long category, String keyword, QProduct product) {
-        //
+        // 동적 WHERE 절 처리용. 조건이 들어오면 .and()로 계속 붙인다.
         BooleanBuilder filterBuilder = new BooleanBuilder();
 
         // 조건 필터링

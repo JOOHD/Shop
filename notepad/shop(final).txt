@@ -1,14 +1,159 @@
-not yet   :  address, category, inquiry, review, wishList
-working  : payment blog 복기, next step 03/12
-
 우선 순위 
-1. order(결제 아임포트), 
-2. category, inquery
-3. queryDsl 이용한 search, filter
+1. category, inquery, address, review, wishList 마무리
+2. 주요 디렉토리 접근 관점/주요 기능/다른 디렉토리와 관계성 정리
+3. global 정리 (위와 같은 정리)
 
++ 서버(AWS, CLOUD) 공부
 
-+ 장바구니가 order 에 엮이지 않음
-+ 서버(AWS, CLOUD) 해봐야 된다.
+★ Optional & Stream/Collectors & ramda
+
+★ 너가 진행하는 프로젝트 특징
+	- 백엔드 스프링 부트 기반
+	- jar 파일로 배포
+	- 톰캣을 내장해서 jar 실행으로 동작
+	- application.yml 설정으로 환경 관리
+	- MySQL, Redis, Spring Security 등 최신 기술 사용
+	- CI/CD GitHub Actions 사용 (업로드 자동화 중)
+	- 클라우드 배포 가능성도 있어 보임
+
+	항목			설명
+	아키텍처		모놀리식 or 마이크로서비스 구조도 가능하지만, 깔끔하게 나뉘어 있음
+	빌드 & 배포	Gradle or Maven으로 빌드 후 Executable JAR 배포
+	서버 방식		내장 톰캣 기반으로 독립 실행 (java -jar)
+	환경 구성		application.yml에서 profile 관리 (dev, staging, prod 등)
+	인프라 관리	GitHub Actions 통한 CI/CD 파이프라인 구성
+	데이터베이스	MySQL, Redis 같은 최신 스택
+	보안			JWT, OAuth2 등 사용 가능성 존재
+	프론트/백 분리	프론트엔드와 REST API, 또는 클라이언트-서버가 분리되어 있음
+
+	Level Up
+	- Docker / Kubernetes 클러스터 환경 배포
+	- 클라우드 (AWS, GCP) 환경 자동화
+	- **마이크로서비스 아키텍처(MSA)**로 점진적 전환
+	- CQRS / 이벤트 소싱 등 확장 가능!
+
+★★  인스턴스 메서드
+
+	public void updateInventory(Category category, Long additionalStock, Long productStock, Boolean isRestockAvailable, Boolean isRestocked, Boolean isSoldOut) {
+ 		 this.category = category;                       // 기존 "상의" → "맨투맨"으로 변경
+	 	 this.addtionalStock = additionalStock;
+		-> 위에 뜻이 this = category(field) = category(parameter = 클라이언트에서 받아온 값); 
+	
+	★ 더 깊게 들어가면
+		1. 기존 상태
+			ProductManagement 엔티티 안에 category 라는 필드가 있었고, category = "상의(default)" 상태,
+			private Category category; // "상의"
+	
+		2. 클라이언트 요청 예시
+			{
+		    		"categoryId" : 3 // "맨투맨" 카테고리 ID				
+			}
+
+		3. Category 를 새로 조회 -> Entity update
+			Category category = categoryRepository.findById(3).orElseThrow(...);
+			existingInventory.updateInventory(category, ...);
+
+		4. updateInventory method
+			this.category = category;
+		
+	★ 정리
+		this.category는 엔티티의 기존 필드 값이었고,
+		category는 클라이언트가 요청한 새로운 값, 결국 this.category = category;는
+		-> 기존 값을 클라이언트가 선택한 "맨투맨"으로 변경한 거다!
+
+★★  QueryDSL
+	
+	- 조건: eq(), gt(), like(), between() 등
+	- 컬렉션: any(), all()
+	- 논리 조합: BooleanBuilder, .and(), .or()
+	- 정렬 & 그룹화: orderBy(), groupBy()
+	- 집계 & 서브쿼리: exists(), case()
+	- 페치 조인: fetchJoin()
+	- 데이터 가져오기: fetch(), fetchOne()
+	 
+	QProduct
+		-> DSL 을 사용해서 동적 필터링(조건), 정렬 기준(OrderBy, category, keyword)
+
+    ex)
+	@Entity
+	public class Product {
+
+    		@Id
+    		@GeneratedValue(strategy = GenerationType.IDENTITY)
+    		private Long productId;
+    		private String productName;
+    		private Integer price;
+    		private Integer discountRate;
+    		private Boolean isDiscount;
+    		private Boolean isRecommend;
+    		private LocalDateTime createdAt;
+    		private Long wishListCount;
+
+    		// ... 생략 ...
+	}
+	
+   	 // QProduct는 이렇게 자동 생성됩니다 
+   	 public class QProduct extends EntityPathBase<Product> {
+    		public static final QProduct product = new QProduct("product");
+    		public final StringPath productName = createString("productName");
+    		public final NumberPath<Integer> price = createNumber("price", Integer.class);
+    		public final BooleanPath isDiscount = createBoolean("isDiscount");
+    		public final DateTimePath<LocalDateTime> createdAt = createDateTime("createdAt", LocalDateTime.class);
+    		public final NumberPath<Long> wishListCount = createNumber("wishListCount", Long.class);
+    		// ... 생략 ...
+   	 }
+
+	-> EntityPathBase<T>
+		- Q 클래스들이 EntityPathBase<T> 를 상속 받는다.
+		- @Entity 클래스를 만들고, QueryDSL 을 빌드하면 자동으로 생성되는 게 QProduct 같은 Q 클래스이다.
+		- EntityPathBase 는 QueryDSL 에서 사용하는 경로 표현식의 기본 클래스
+		- 쉽게 말하면, QProduct 는 EntityPathBase<Product> 를 상속하면서, Product 엔티티에 대한 "타입 안전한 경로(path)" 를 제공한다.
+		ex) 
+			public class QProduct extends EntityPathBase<Product>
+	
+	-> OrderSpecifier<?>
+		- QeuryDSL 에서 order by 구문을 작성할 때 사용하는 객체.
+			return product.price.asc(); // -> 이게 바로 OrderSpecifier<?> 를 반환.
+			-> product.price.asc() 를 하면 OrderSpecifier 를 생성하고, 이를 통해 정렬 조건을 명시. 
+
+	// QueryDSL 적용
+	QProduct product = QProduct.product;
+
+	// 1. 정렬 기준으로 가져온다. (인기순)
+	OrderSpecifier<?> orderSpecifier = ProductQueryHelper.getOrderSpecifier(OrderBy.POPULAR, product);
+	// -> product.wishListCount.desc()
+
+	// 2. 필터링 조건을 만든다. (추천 상품 + 카테고리ID 1 + 키워드 '티셔츠')
+	BooleanBuilder filterBuilder = ProductQueryHelper.createdFilterBuilder(
+		Condition.RECOMMEND, // 추천 상품 필터
+		1L, 				   // 카테고리 필터 (카테고리 id가 1)
+	        "티셔츠", 			   // 검색 키워드
+		product			   
+	);	
+	
+	// 3. QueryDSL 쿼리 생성 (JPAQueryFactory 사용)
+	List<Product> products = queryFactory
+			.selectFrom(product)
+			.where(filterBuilder)
+			.orderBy(orderSpecifier)
+			.fetch();
+
+	1.정렬 기준
+
+		case POPULAR:
+    			return product.wishListCount.desc();
+		-> wishListCount 기준으로 내림차순 정렬!
+			청바지(100) → 티셔츠(50) → 운동화(10)
+
+	2. 필터 조건
+
+		- 추천 상품만 가져와야 한다
+			product.isRecommend.isTrue()
+		- 카테고리 ID가 1이거나 부모 카테고리 ID가 1인 것
+			product.productManagements.any().category.categoryId.eq(1)
+		- 키워드가 티셔츠에 포함
+			product.productName.containsIgnoreCase("티셔츠")
+		-> AND 조건으로 묶임!
 
 ★★★ throwable(checked exception) vs RuntimeException 
 	public class PaymentHistoryNotFoundException extends (throwable -> RuntimeException)  {
@@ -21,7 +166,7 @@ working  : payment blog 복기, next step 03/12
 
 	- >RuntimeException을 상속하면 언체크 예외가 되어 예외를 던질 때 throws 선언이 필요하지 않습니다. 이 때문에 커스텀 예외를 만들 때 RuntimeException을 상속하는 것이 일반적으로 더 용이합니다.
 
-★★★ Add ★★★
+	★ Add
 
 	// 예외 메시지 상수들을 저장하는 클래스, 일관성을 유지
 	public class ResponseMessageConstants {
@@ -35,8 +180,7 @@ working  : payment blog 복기, next step 03/12
         	return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage);
     	}
 	
-★★★ 관계 요약 ★★★
-
+       ★ 관계 요약 
 PaymentHistoryNotFoundException
           |
           | 예외 발생 (예: 결제 내역 없음)
@@ -67,31 +211,6 @@ GlobalExceptionHandler
 			public boolean isSoldOut() { // OK! 직관적임
 			    return soldOut;
 			}
-
-★ 너가 진행하는 프로젝트 특징
-	- 백엔드 스프링 부트 기반
-	- jar 파일로 배포
-	- 톰캣을 내장해서 jar 실행으로 동작
-	- application.yml 설정으로 환경 관리
-	- MySQL, Redis, Spring Security 등 최신 기술 사용
-	- CI/CD GitHub Actions 사용 (업로드 자동화 중)
-	- 클라우드 배포 가능성도 있어 보임
-
-	항목			설명
-	아키텍처		모놀리식 or 마이크로서비스 구조도 가능하지만, 깔끔하게 나뉘어 있음
-	빌드 & 배포	Gradle or Maven으로 빌드 후 Executable JAR 배포
-	서버 방식		내장 톰캣 기반으로 독립 실행 (java -jar)
-	환경 구성		application.yml에서 profile 관리 (dev, staging, prod 등)
-	인프라 관리	GitHub Actions 통한 CI/CD 파이프라인 구성
-	데이터베이스	MySQL, Redis 같은 최신 스택
-	보안			JWT, OAuth2 등 사용 가능성 존재
-	프론트/백 분리	프론트엔드와 REST API, 또는 클라이언트-서버가 분리되어 있음
-
-	Level Up
-	- Docker / Kubernetes 클러스터 환경 배포
-	- 클라우드 (AWS, GCP) 환경 자동화
-	- **마이크로서비스 아키텍처(MSA)**로 점진적 전환
-	- CQRS / 이벤트 소싱 등 확장 가능!
 
 ★ if (request.getNickname() == null || request.getNickname().isEmpty()
 	null : 객체가 할당되지 않았다.
@@ -207,8 +326,6 @@ GlobalExceptionHandler
 
    -> 트랜잭션이 성공하면 무결성 유지
    -> 트랜잭션이 실패하면 롤백되어 무결성 위반 방지
-
-★ Optional & Stream/Collectors & ramda
 
 ★ secretKey 는 유출되면 JWT 미래가 없다. -> kEY Rolling 기술을 사용
 
