@@ -36,6 +36,21 @@ public class JWTFilterV3 extends OncePerRequestFilter {
         4. JWTFilter : JWT 토큰 인증 (parse(추출), validation(검증), authentication(인증))
                         사용자 정보 SecurityContextHolder 에 저장
         5. SecurityContextHolder : 인증 정보 보관
+
+        JWTFilterV0,1,2,3 설명
+        V0 : 기본 구조
+            - doFilterInternal 메서드에서 Authorization 헤더를 검증하여,
+                JWT 토큰을 추출하고, 유효성 검사를 통해 인증 정보를 설정하는 단순한 흐름
+
+        V1 : 쿠키와 헤더 검증 추가
+            - Authorization 헤더와 refreshAuthorization 쿠키를 함께 처리하여 토큰 검증을 확장
+
+        V2 : 토큰 만료 검증 및 사용자 인증 흐름 추가
+            - refreshToken이 만료되지 않았을 경우 사용자 인증을 처리하고, 만약 만료되었다면 로그아웃 처리를 추가
+
+        V3 : 최종 인증 처리 및 코드 정리
+            - 인증 흐름을 명확하게 정의하고, accessToken과 refreshToken을 모두 검증한 후,
+                최종적으로 인증된 사용자를 SecurityContextHolder에 저장
      */
 
     private final JWTUtil jwtUtil;
@@ -49,72 +64,47 @@ public class JWTFilterV3 extends OncePerRequestFilter {
         String authorization = request.getHeader("Authorization");
         // 쿠키에서 "refreshAuthorization(refreshToken)" 값을 가져 옴
         String refreshAuthorization = cookieService.getRefreshAuthorization(request);
-        if (refreshAuthorization == null) {
+
+        if (refreshAuthorization == null || !refreshAuthorization.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
-        String refreshToken = Objects.requireNonNull(refreshAuthorization).substring(7);
-        log.info("Id : " + jwtUtil.getMemberId(refreshToken) + " 유저가 로그인 했습니다.");
-
-        // 현재 시각을 "년-월-일"으로
-        LocalDateTime now = LocalDateTime.now();
-        String currentDate = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
-        // refreshAuthorization 쿠키 검증
-        if (!refreshAuthorization.startsWith("Bearer+")) {
-
-            log.info("로그인 하지 않은 상태이거나, refreshAuthorization 을 Request Header 에 담아주지 않았습니다.");
-            log.info(" now : " + currentDate);
-            // 토큰이 유효하지 않으므로 request 와response 를 다음 필터로 넘겨줌
-            filterChain.doFilter(request, response);
-            // 메서드 종료
+        String refreshToken = refreshAuthorization.substring(7); // "Bearer " 이후 부분만 처리
+        if (!jwtUtil.validateToken(refreshToken)) {
+            filterChain.doFilter(request, response);  // refresh token이 유효하지 않으면 넘김
             return;
         }
 
-        // accessToken 유효기간이 만료한 경우 메서드 종료, API 사용 시, Request Header 에 Authorization 을 담아주는 상황
         if (authorization != null && authorization.startsWith("Bearer ")) {
             String accessToken = authorization.split(" ")[1];
 
             if (jwtUtil.isExpired(accessToken)) {
-                String memberId = jwtUtil.getMemberId(accessToken);
-
-                log.info("access token 이 만료되었습니다.");
-                if (memberId != null) {
-                    log.info("memberId : " + memberId + " now : " + currentDate);
-                }
-                filterChain.doFilter(request, response);
-                // 메서드 종료
+                filterChain.doFilter(request, response);  // 만료된 access token 처리
                 return;
             }
-            // access 에 있는 username, role 을 통해 Authentication 사용자 정보를 검증 후, 저장
-            Authentication authToken = getAuthentication(refreshToken);
-            SecurityContextHolder.getContext().setAuthentication(authToken);
 
-            filterChain.doFilter(request, response);
+            Authentication authToken = getAuthentication(accessToken);
+            SecurityContextHolder.getContext().setAuthentication(authToken);
         }
+
+        filterChain.doFilter(request, response);
     }
 
-    private Authentication getAuthentication (String token){
+    private Authentication getAuthentication(String token) {
         if (!jwtUtil.validateToken(token)) {
-            // 토큰이 유효하지 않을 경우 예외 처리
             throw new BadCredentialsException("유효하지 않은 토큰입니다.");
         }
 
         String memberId = jwtUtil.getMemberId(token);
-        MemberRole role = jwtUtil.getRole(token);
-
-        // JWT 토큰에서 memberId 추출, DB 에서 해당 사용자 찾기
         Member member = memberRepository.findById(Long.valueOf(memberId))
                 .orElseThrow(() -> new BadCredentialsException("사용자를 찾을 수 없습니다."));
 
-        // 인증 처리 위한 사용자 정보를 담은 객체 생성
         CustomMemberDto customMemberDto = CustomMemberDto.createCustomMember(member);
+        // customUserDetails 로 통일
+        CustomUserDetails customUserDetails = new CustomUserDetails(customMemberDto);
 
-        // CustomUserDetails 객체로 감싸고, Spring Security 에서 사용할 수 있도록 한다.
-        CustomUserDetails customOAuth2User = new CustomUserDetails(customMemberDto);
-        return new UsernamePasswordAuthenticationToken(customOAuth2User, null, customOAuth2User.getAuthorities());
+        return new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
     }
-
 }
 
 

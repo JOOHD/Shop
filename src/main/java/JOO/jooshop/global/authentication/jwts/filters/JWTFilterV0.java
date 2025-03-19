@@ -2,7 +2,10 @@ package JOO.jooshop.global.authentication.jwts.filters;
 
 import JOO.jooshop.global.authentication.jwts.entity.CustomUserDetails;
 import JOO.jooshop.global.authentication.jwts.entity.CustomMemberDto;
+import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
+import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.entity.enums.MemberRole;
+import JOO.jooshop.members.repository.MemberRepositoryV1;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -22,7 +25,7 @@ import java.io.PrintWriter;
 public class JWTFilterV0 extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
-    private final MemberRepository memberRepository;
+    private final MemberRepositoryV1 memberRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -49,11 +52,12 @@ public class JWTFilterV0 extends OncePerRequestFilter {
             // accessToken 으로부터 username, role 값을 획득
             String memberId = jwtUtil.getMemberId(accessToken);
             MemberRole role = jwtUtil.getRole(accessToken);
-            Member member = memberRepositoryV1.findById(Long.valueOf(memberId))
+
+            Member member = memberRepository.findById(Long.valueOf(memberId))
                     .orElseThrow(() -> new UsernameNotFoundException("회원이 존재하지 않습니다."));
 
             // 멤버 엔티티 생성
-            CustomMemberDto customMemberDto = CustomMemberDto.createCustomMember(Long.valueOf(memberId), member, role, true);
+            CustomMemberDto customMemberDto = CustomMemberDto.createCustomMember(member);
 
             // 멤버 엔터티를 -> CustomUserDetails 로 변환
             CustomUserDetails customUserDetails = new CustomUserDetails(customMemberDto);

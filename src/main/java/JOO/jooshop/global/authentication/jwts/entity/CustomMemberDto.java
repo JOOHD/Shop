@@ -47,9 +47,12 @@ public class CustomMemberDto {
         this.password = password;
         this.memberRole = memberRole;
         this.isActive = isActive;
-        this.isBanned = isBanned();
-        this.isAccountExpired = isAccountExpired();
-        this.isPasswordExpired = isPasswordExpired();
+
+        // [2025-03-19] 계정 상태 필드 초기화, isBanned() 메서드로 설정 x
+        // Security 인증 처리 (CustomUserDetails)에서 상태 체크 메서드에서 참조됨
+        this.isBanned = isBanned;                    // 계정 잠김
+        this.isAccountExpired = isAccountExpired;    // 계정 만료
+        this.isPasswordExpired = isPasswordExpired;  // 비밀번호 만료 여부
     }
 
     /** 핵심 생성자 */
