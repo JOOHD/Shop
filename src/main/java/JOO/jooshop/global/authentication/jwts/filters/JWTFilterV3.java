@@ -65,6 +65,7 @@ public class JWTFilterV3 extends OncePerRequestFilter {
         // 쿠키에서 "refreshAuthorization(refreshToken)" 값을 가져 옴
         String refreshAuthorization = cookieService.getRefreshAuthorization(request);
 
+        // refreshToken 검증
         if (refreshAuthorization == null || !refreshAuthorization.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
