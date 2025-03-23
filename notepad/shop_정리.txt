@@ -1,13 +1,63 @@
 우선 순위 
-1. category, inquery, address, review, wishList 마무리
+1. category, inquery, review, wishList 마무리
 2. 주요 디렉토리 접근 관점/주요 기능/다른 디렉토리와 관계성 정리
 3. global 정리 (위와 같은 정리)
 
 + 서버(AWS, CLOUD) 공부
 
+★ JPQL 을 사용한 프로젝트 로직의 한 부분
+	
+	
+	● AddressService
+	private vodi resetDefaultAddress(Long memberId, Long excludeAddressId) {
+		addressRepository.resetDefaultAddresses(memberId, excludeAddressId);
+	}
+	- 특정 멤버가 가진 주소 중에, 
+		지정한 주소를 제외하고, 나머지 기본 주소(defaultAddress)를 전부 false 로 변경하는 기능
+
+	-> "지금 지정한 기본 주소를 제외하고 기존에 있던 기본 주소는 다 해제한다."
+		-> 기본 주소는 항상 하나만 유지하는 로직
+
+	● AddressRepository
+	@Modifying
+	@Query("UPDATE Addresses a SET a.defaultAddress = false " +
+		    "WHERE a.member.id = :memberId AND a.addressId != :excludeId")
+	void resetDefaultAddresses(@Param("memberId") Long memberId, @Param("excludeId") Long excludeId);
+
+	● data
+	addressId	memberId	주소지		defaultAddress
+	10		1		서울시 강남구	true
+	11		1		서울시 마포구	false
+	12		1		서울시 송파구	false
+
+	1. 메서드 호출
+		- resetDefaultAddress(1L, 11L);
+
+	2. 실행되는 JPQL 쿼리		
+		UPDATE Addresses a
+		SET a.defaultAddress = false
+		WHERE a.member.id = 1 AND a.addressId != 11
+	
+		- 멤버 1의 주소 중에서
+		- addressId != 11인 데이터만
+		- defaultAddress = false로 바꾼다.
+
+	3. 쿼리 실행 후 상태 변화
+	addressId	memberId	주소지		defaultAddress
+	10		1		서울시 강남구	✅ true → ❌ false
+	11		1		서울시 마포구	(변경 없음 → exclude라서 패스) false
+	12		1		서울시 송파구	(이미 false → 그대로)
+
+	-> 결과적으로 addressId = 11 이 기본 주소가 되고, 나머지 기본 주소들은 전부 해제
+
+	4. resetDefaultAddress 메서드 목적
+		- 기본 주소는 회원당 하나만 유지되어야 하니까
+		- 새로운 기본 주소를 설정하거나, 기존 기본 주소를 바꿀 때
+			- 기존 기본 주소가 두 개 이상이 되면 안 됨, 그래서 다른 기본 주소는 전부 false
+
 ★ Optional & Stream/Collectors & ramda
 
-★ 너가 진행하는 프로젝트 특징
+★ Shop 프로젝트 특징
 	- 백엔드 스프링 부트 기반
 	- jar 파일로 배포
 	- 톰캣을 내장해서 jar 실행으로 동작
@@ -23,7 +73,7 @@
 	환경 구성		application.yml에서 profile 관리 (dev, staging, prod 등)
 	인프라 관리	GitHub Actions 통한 CI/CD 파이프라인 구성
 	데이터베이스	MySQL, Redis 같은 최신 스택
-	보안			JWT, OAuth2 등 사용 가능성 존재
+	보안			JWT, OAuth2 등 사용 
 	프론트/백 분리	프론트엔드와 REST API, 또는 클라이언트-서버가 분리되어 있음
 
 	Level Up
@@ -60,100 +110,6 @@
 		this.category는 엔티티의 기존 필드 값이었고,
 		category는 클라이언트가 요청한 새로운 값, 결국 this.category = category;는
 		-> 기존 값을 클라이언트가 선택한 "맨투맨"으로 변경한 거다!
-
-★★  QueryDSL
-	
-	- 조건: eq(), gt(), like(), between() 등
-	- 컬렉션: any(), all()
-	- 논리 조합: BooleanBuilder, .and(), .or()
-	- 정렬 & 그룹화: orderBy(), groupBy()
-	- 집계 & 서브쿼리: exists(), case()
-	- 페치 조인: fetchJoin()
-	- 데이터 가져오기: fetch(), fetchOne()
-	 
-	QProduct
-		-> DSL 을 사용해서 동적 필터링(조건), 정렬 기준(OrderBy, category, keyword)
-
-    ex)
-	@Entity
-	public class Product {
-
-    		@Id
-    		@GeneratedValue(strategy = GenerationType.IDENTITY)
-    		private Long productId;
-    		private String productName;
-    		private Integer price;
-    		private Integer discountRate;
-    		private Boolean isDiscount;
-    		private Boolean isRecommend;
-    		private LocalDateTime createdAt;
-    		private Long wishListCount;
-
-    		// ... 생략 ...
-	}
-	
-   	 // QProduct는 이렇게 자동 생성됩니다 
-   	 public class QProduct extends EntityPathBase<Product> {
-    		public static final QProduct product = new QProduct("product");
-    		public final StringPath productName = createString("productName");
-    		public final NumberPath<Integer> price = createNumber("price", Integer.class);
-    		public final BooleanPath isDiscount = createBoolean("isDiscount");
-    		public final DateTimePath<LocalDateTime> createdAt = createDateTime("createdAt", LocalDateTime.class);
-    		public final NumberPath<Long> wishListCount = createNumber("wishListCount", Long.class);
-    		// ... 생략 ...
-   	 }
-
-	-> EntityPathBase<T>
-		- Q 클래스들이 EntityPathBase<T> 를 상속 받는다.
-		- @Entity 클래스를 만들고, QueryDSL 을 빌드하면 자동으로 생성되는 게 QProduct 같은 Q 클래스이다.
-		- EntityPathBase 는 QueryDSL 에서 사용하는 경로 표현식의 기본 클래스
-		- 쉽게 말하면, QProduct 는 EntityPathBase<Product> 를 상속하면서, Product 엔티티에 대한 "타입 안전한 경로(path)" 를 제공한다.
-		ex) 
-			public class QProduct extends EntityPathBase<Product>
-	
-	-> OrderSpecifier<?>
-		- QeuryDSL 에서 order by 구문을 작성할 때 사용하는 객체.
-			return product.price.asc(); // -> 이게 바로 OrderSpecifier<?> 를 반환.
-			-> product.price.asc() 를 하면 OrderSpecifier 를 생성하고, 이를 통해 정렬 조건을 명시. 
-
-	// QueryDSL 적용
-	QProduct product = QProduct.product;
-
-	// 1. 정렬 기준으로 가져온다. (인기순)
-	OrderSpecifier<?> orderSpecifier = ProductQueryHelper.getOrderSpecifier(OrderBy.POPULAR, product);
-	// -> product.wishListCount.desc()
-
-	// 2. 필터링 조건을 만든다. (추천 상품 + 카테고리ID 1 + 키워드 '티셔츠')
-	BooleanBuilder filterBuilder = ProductQueryHelper.createdFilterBuilder(
-		Condition.RECOMMEND, // 추천 상품 필터
-		1L, 				   // 카테고리 필터 (카테고리 id가 1)
-	        "티셔츠", 			   // 검색 키워드
-		product			   
-	);	
-	
-	// 3. QueryDSL 쿼리 생성 (JPAQueryFactory 사용)
-	List<Product> products = queryFactory
-			.selectFrom(product)
-			.where(filterBuilder)
-			.orderBy(orderSpecifier)
-			.fetch();
-
-	1.정렬 기준
-
-		case POPULAR:
-    			return product.wishListCount.desc();
-		-> wishListCount 기준으로 내림차순 정렬!
-			청바지(100) → 티셔츠(50) → 운동화(10)
-
-	2. 필터 조건
-
-		- 추천 상품만 가져와야 한다
-			product.isRecommend.isTrue()
-		- 카테고리 ID가 1이거나 부모 카테고리 ID가 1인 것
-			product.productManagements.any().category.categoryId.eq(1)
-		- 키워드가 티셔츠에 포함
-			product.productName.containsIgnoreCase("티셔츠")
-		-> AND 조건으로 묶임!
 
 ★★★ throwable(checked exception) vs RuntimeException 
 	public class PaymentHistoryNotFoundException extends (throwable -> RuntimeException)  {
@@ -194,7 +150,9 @@ GlobalExceptionHandler
           |
      사용자에게 응답
 		
+★ import static JOO.jooshop.global.ResponseMessageConstants.*;
 
+★ @Transactional이 클래스 전체에 걸려있는데, 조회(fetch)만 하는 메서드는 @Transactional(readOnly = true)
 
 ★ 리팩토링할 때 고려할 주요 포인트는 코드의 중복 제거, 클래스 간의 책임 분리, 명확한 함수 이름을 통해
 	 코드의 가독성을 높이고 유지보수를 용이하게 만드는 것
@@ -517,3 +475,109 @@ GlobalExceptionHandler
 		- 보통 Cookie 에 저장
 
 	최근에는 AccessToken (JWT + HttpOnly), RefreshToken (Redis + DB)
+
+★ Spring Security 흐름
+
+	1. Request -> JwtAuthenticationFilter 진입
+	2. Authentication : Bearer token 에서 token 만 추출
+	3. jwtUtil.validateToken(token) -> 유효하면 통과
+	4. getAuthentication() -> UsernamePasswordAuthenticationToken 발급
+		-> 이게 Authentication 객체
+	5. SecurityContextHolder 에 Authentication 저장
+	6. 이후 권한 검사 (Authentication) -> ROLE_ADMIN, ROLE_USER 확인
+
+	+ tip
+	AccessToken : 유저 인증용, 보통 짧게(30분), cookie or header 저장
+	RefreshToken : AccessToken 재발급 용, 길게 (한달), DB or Redis 에 저장
+	Bearer : 인증타입 accessToken 구분용
+	SecurityContextHolder : 인증 성공한 유저 정보 저장소
+
+★ authentication & authorization 흐름
+
+    - JWT 필터에서 인증(Authentication) 후 권한(Authorization) 관리
+	
+	authentication 	
+	- 사용자의 신원을 확인하는 단계 (로그인 성공 -> JWT 발급 단계)
+	authorization
+	- 사용자의 권한을 확인하는 단계 (API 호출 시, JWT 확인)
+
+[ 클라이언트 ]
+     |
+     | 로그인 요청 (id/pw)
+     |
+[ 서버 ]
+     |
+     | Authentication (사용자 검증)
+     | -> JWT 발급 (access + refresh)
+     |
+[ 클라이언트 (토큰 저장: 쿠키, 로컬스토리지 등) ]
+     |
+     | 요청 보낼 때 Authorization 헤더에 토큰 포함
+     | -> Authorization: Bearer {accessToken}
+     |
+[ 서버 (필터에서 인증/권한 검증) ]
+     |
+     | Authentication (토큰 유효성 검증)
+     | -> 권한 확인 (Authorization)
+     |
+     | 요청 처리
+
+★ Spring Security + JWT 인증 흘므 설명
+
+1. 로그인 요청 : 클라이언트 ID/PW Request
+2. 인증 처리 : Security 가 Authentication 사용자 검증
+3. 토큰 발급 : 인증 성공 시, JWTUtil.createAccessToken() 호출 access/refresh 발급
+4. 토큰 전달 : 클라이언트는 JWT access(header) & refresh(cookie/redis) 저장
+5. 요청 시, 토큰 포함 : 클라이언트는 API 요청 시, HTTP Header 에 Authorizaiton: Bearer {AccessToken} 을 요청
+6. 필터에서 토큰 검증 : JWTAuthenticationFilter 가 Authorization header 에서 토큰을 추출하고, util.validateToken 검증
+7. 인증 정보 생성 : 검증된 토큰에서 사용자 정보를 추출해서 Authentication 객체 생성 후, SecurityContext에 저장.
+8. 인가(Authorization)	SecurityContext에 저장된 인증 정보를 기반으로 요청한 리소스에 접근 권한을 확인
+9. 만료 시 RefreshToken 사용	AccessToken이 만료되면 클라이언트가 RefreshToken으로 새로운 AccessToken 재발급 요청
+10. 로그아웃	서버는 클라이언트의 토큰을 무효화하거나(블랙리스트), 클라이언트가 토큰 삭제
+
+★ 흐름도 
+
+클라이언트                백엔드 서버(Spring Security + JWTUtil)
+    │                             │
+    │------- 로그인 요청 --------> │
+    │                             │
+    │      사용자 검증 (DB)        │
+    │                             │
+    │    AccessToken, RefreshToken 생성 (JWTUtil) 
+    │                             │
+    │<---- 토큰 반환 (JSON) ------ │
+    │                             │
+(AccessToken 저장 후 API 요청)     │
+    │                             │
+    │---- 요청 + Authorization --->│ (JWTAuthenticationFilter)
+    │    Bearer AccessToken        │
+    │                             │
+    │ 토큰 유효성 검사 (validateToken)  
+    │ 클레임에서 memberId, role 추출
+    │ Authentication 객체 생성 (UsernamePasswordAuthenticationToken)
+    │ SecurityContext에 저장
+    │                             │
+    │   권한체크(인가), 컨트롤러 호출
+    │                             │
+    │<----- 응답 반환 -------------│
+    │                             │
+
+★ JWT + 스프링 시큐리티 흐름을 코드에 연결하면?
+	1. 로그인 성공
+		- JWTUtil.createAccessToken()
+		- JWTUtil.createRefreshToken()
+
+	2. 클라이언트가 서버 요청 시
+		- JWTAuthenticationFilter가 Authorization 헤더를 확인
+		- JWTUtil.validateToken()으로 유효성 검사
+		- JWTUtil.getMemberId() 등으로 사용자 정보 추출
+
+	3. 인증 성공하면 SecurityContextHolder에 Authentication 등록
+	4. 이후 인가 필터가 권한 체크를 수행하고 컨트롤러를 호출
+
+	핵심 포인트
+	- 클레임은 토큰 안에 들어있는 사용자 정보
+	- JWTUtil은 토큰 생성/검증/파싱을 담당
+	- Spring Security 필터가 JWT 인증을 핸들링
+	- SecurityContextHolder에 인증정보 저장해서 인가 처리
+	- AccessToken은 짧게, RefreshToken은 길게(보통 DB에 저장해서 관리)

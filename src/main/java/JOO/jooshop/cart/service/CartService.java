@@ -30,21 +30,35 @@ public class CartService {
     private final MemberRepositoryV1 memberRepository;
     private ProductManagementRepository productManagementRepository;
 
+    // Cart 조회 메서드 - 중복 코드 리팩토링
+    private Cart findCartById(Long cartId) {
+        return cartRepository.findById(cartId)
+                .orElseThrow(() -> new NoSuchElementException(PRODUCT_NOT_FOUND));
+    }
+    
+    // Cart 조회 후 사용자 검증
+    private void verifyMember(Long cartId, Long memberId) {
+        Cart cart = findCartById(cartId);
+        verifyUserIdMatch(cart.getMember().getId()); // 로그인안된 사용자와 요청 사용자 비교
+    }
+
+    /** =================== 공통 메서드 =================== */
+
     /**
      * 장바구니 담기
      * @param request
      * @param productMgtId
      * @return
-     * 
+     *
      * 사용자 정보와 상품 정보를 가져온다. 그 후 상품 + 사용자 정보로 장바구니에 이미 존재하는지 찾는다.
      * 동일 사용자가 (같은 상품/옵션) 선택 시, 수량과 가격을 올리고,
-                   (같은 상품, 다른 옵션) or (다른 상품) 선택 시, 따로 담는다.
+    (같은 상품, 다른 옵션) or (다른 상품) 선택 시, 따로 담는다.
      * 위에 상황을 위해, 상품 옵션 정보를 담은 ProductManagement table 생성
-     * 
+     *
      *  메서드 흐름
-        1. DTO에서 회원 정보와 수량 추출
-        2. DB에서 회원(Member) 조회
-        3. DB에서 상품 옵션(ProductManagement) 조회
+        1. DTO, 회원 정보와 수량 추출
+        2. DB, 회원(Member) 조회
+        3. DB, 상품 옵션(ProductManagement) 조회
         4. findByProductManagementAndMember() 메서드로 이미 담긴 상품인지 판별
         5. if문 진입 (이미 담긴 경우)
             → 수량, 가격 업데이트
@@ -67,20 +81,15 @@ public class CartService {
 
         // 장바구니에 동일 상품이 존재하면 수량·가격 수정, 없으면 새 상품 추가
         if (existingCart != null) { // 이미 담은 상품과 옵션인 경우 수량, 가격을 수정
-
             // 현재 수량 + 담은 수량
             existingCart.setQuantity(existingCart.getQuantity() + request.getQuantity());
-            
             // 현재 가격 + 담은 가격
             existingCart.setPrice(existingCart.getPrice() + productMgt.getProduct().getPrice() * request.getQuantity());
-
             cartRepository.save(existingCart);
             return existingCart.getCartId();
-
         } else {
             Long price = productMgt.getProduct().getPrice() * request.getQuantity();
             Cart cart = new Cart(member, productMgt, request.getQuantity(), price);
-
             cartRepository.save(cart);
             return cart.getCartId();
         }
@@ -106,12 +115,9 @@ public class CartService {
      * @return
      */
     public Cart updateCart(Long cartId, Cart updatedCart) {
+        verifyMember(cartId, updatedCart.getMember().getId()); // 사용자 검증
 
-        Cart existingCart = cartRepository.findById(cartId)
-                .orElseThrow(() -> new NoSuchElementException(PRODUCT_NOT_FOUND));
-
-        verifyUserIdMatch(existingCart.getMember().getId()); // 로그인 된 사용자와 요청 사용자 비교
-
+        Cart existingCart = findCartById(cartId);
         existingCart.setQuantity(updatedCart.getQuantity());
         Long price = existingCart.getProductManagement().getProduct().getPrice() * updatedCart.getQuantity();
         existingCart.setPrice(price);
@@ -124,11 +130,9 @@ public class CartService {
      * @param cartId
      */
     public void deleteCart(Long cartId) {
-        Cart cart = cartRepository.findById(cartId)
-                .orElseThrow(() -> new NoSuchElementException(PRODUCT_NOT_FOUND));
+        verifyMember(cartId, null); // 사용자 검증
 
-        verifyUserIdMatch(cart.getMember().getId()); // 로그인 된 사용자와 요청 사용자 비교
-
+        Cart cart = findCartById(cartId);
         cartRepository.delete(cart);
     }
 
