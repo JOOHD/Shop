@@ -70,11 +70,11 @@ public class PaymentService {
         verifyUserIdMatch(memberId); // 로그인 된 사용장와 요청 사용자 비교
 
         Orders order = getOrderById(orderId);
-        updatePaymentStatus(order);
+        updatePaymentStatus(order);  // 주문 상태 -> 결제 완룔 변경
 
         Member member = getMemberById(memberId);
 
-        // 주문한 상품들에 대해 각각 결제내역 저장
+        // 결제내역 생성 및 저장 (상품별)
         createPaymentHistory(response, request.getInventoryIdList(), order, member, request.getPrice().intValue());
     }
     private Orders getOrderById(Long orderId) {
@@ -101,47 +101,42 @@ public class PaymentService {
      * @param totalPrice       결제 총 금액
      */
     private void createPaymentHistory(Payment response, List<Long> productMgtIdList, Orders order, Member member, Integer totalPrice) {
-        for (Long productMgtId : productMgtIdList) {
-            // 결제 응답으로부터 필요한 결제 정보를 추출한다.
-            String impUid = response.getImpUid();         // 아임포트에서 발급한 고유 결제번호
-            String payMethod = response.getPayMethod();   // 결제 수단 (카드, 가상계좌 등)
-            BigDecimal payAmount = response.getAmount();  // 결제된 금액 (총 결제 금액)
-            String bankCode = response.getBankCode();     // 은행 코드 (가상계좌일 경우 값 존재, 카드일 경우 null)
-            String bankName = response.getBankName();     // 은행명 (가상계좌일 경우 값 존재, 카드일 경우 null)
-            String buyerAddr = response.getBuyerAddr();   // 구매자 주소
-            String buyerEmail = response.getBuyerEmail(); // 구매자 이메일
+        // 결제 응답으로부터 필요한 결제 정보를 추출한다.
+        String impUid = response.getImpUid();         // 아임포트에서 발급한 고유 결제번호
+        String payMethod = response.getPayMethod();   // 결제 수단 (카드, 가상계좌 등)
+        BigDecimal payAmount = response.getAmount();  // 결제된 금액 (총 결제 금액)
+        String bankCode = response.getBankCode();     // 은행 코드 (가상계좌일 경우 값 존재, 카드일 경우 null)
+        String bankName = response.getBankName();     // 은행명 (가상계좌일 경우 값 존재, 카드일 경우 null)
+        String buyerAddr = response.getBuyerAddr();   // 구매자 주소
+        String buyerEmail = response.getBuyerEmail(); // 구매자 이메일
 
+        for (Long productMgtId : productMgtIdList) {
             ProductManagement productMgt = productMgtRepository.findById(productMgtId)
                     .orElseThrow(() -> new NoSuchElementException(ResponseMessageConstants.PRODUCT_NOT_FOUND));
+            Long quantity = cartRepository.findByProductManagement(productMgt)
+                    .orElseThrow(() -> new NoSuchElementException(ResponseMessageConstants.CART_NOT_FOUND)) // Optional 처리 보완
+                    .getQuantity();
 
-            // 해당 상품관리 정보를 기준으로 장바구니에서 수량을 조회한다. (주문할 때 장바구니 기준으로 수량을 가져옴)
-            Long quantity = cartRepository.findByProductManagement(productMgt).getQuantity();
-
-            // 상품관리에서 실제 상품 엔티티를 가져온다.(option/stock 이 어느 상품에 소속인지 알기 위함)
-            //      -> 결제내역에서는 상품명, 옵션명, 수량, 가격, 썸네일 등을 종합적으로 보여줘야
             Product product = productMgt.getProduct();
+            String option = productMgt.getColor().getColor() + ", " + productMgt.getSize();
 
-            // 상품 옵션(색상, 사이즈)을 문자열로 만든다. (예: 블랙, M)
-            String option = productMgt.getColor().getColor() + ", " + productMgt.getSize().toString(); // 상품옵션 문자열로 저장
-
-            // 결제 내역 엔티티를 생성 = paymentHistory
-            PaymentHistory paymentHistory = new PaymentHistory(
-                    impUid,                      // 아임포트 결제 고유 번호
-                    member,                      // 결제한 회원 정보
-                    order,                       // 주문 정보
-                    product,                     // 상품 정보
-                    product.getProductName(),    // 상품 이름
-                    option,                      // 상품 옵션 (색상, 사이즈)
-                    quantity,                    // 구매 수량
-                    product.getPrice(),          // 상품 개당 가격
-                    payAmount.intValue(),        // 결제된 총 금액
-                    Status.COMPLETE_PAYMENT,     // 결제 상태 (완료)
-                    payMethod,                   // 결제 수단
-                    bankCode,                    // 은행 코드 (가상계좌 전용)
-                    bankName,                    // 은행명
-                    buyerAddr,                   // 구매자 주소
-                    buyerEmail                   // 구매자 이메일
-            );
+            PaymentHistory paymentHistory = PaymentHistory.builder()
+                    .impUid(impUid)
+                    .member(member)
+                    .orders(order)
+                    .product(product)
+                    .productName(product.getProductName())
+                    .productOption(option)
+                    .quantity(quantity)
+                    .price(product.getPrice())
+                    .totalPrice(totalPrice)
+                    .statusType(Status.COMPLETE_PAYMENT)
+                    .payMethod(payMethod)
+                    .bankCode(bankCode)
+                    .bankName(bankName)
+                    .buyerAddr(buyerAddr)
+                    .buyerEmail(buyerEmail)
+                    .build();
 
             // 생성한 결제 내역을 DB에 저장한다.
             paymentRepository.save(paymentHistory);
@@ -149,7 +144,7 @@ public class PaymentService {
     }
 
     /**
-     * paymentHistoryList : 내 결제내역 모아보기
+     * paymentHistoryList : 내 결제내역 전부 조회
      * @param memberId 사용자 ID
      * @return 결제내역 DTO 리스트
      */

@@ -5,8 +5,10 @@
 
 + 서버(AWS, CLOUD) 공부
 
-★ JPQL 을 사용한 프로젝트 로직의 한 부분
-	
+★ 웬만한 조회는 Id 를 통한 데이터 가져오기로 이루어진다
+
+
+★ JPQL 을 사용한 프로젝트 로직의 한 부분	
 	
 	● AddressService
 	private vodi resetDefaultAddress(Long memberId, Long excludeAddressId) {
@@ -176,6 +178,10 @@ GlobalExceptionHandler
 
 ★ libs folder
 	- Gradle build 결과물이 저장되는 기본 폴더 (./gradlew build or bootJar 명령어 실행 시,build/libs/ 폴더에 jar 파일이 만들어진다.
+
+★ enum에서 ==와 equals()의 차이
+enum은 싱글턴 객체이므로, ==로 비교해도 참조가 동일하기 때문에 일반적으로 enum에서는 ==를 사용해도 괜찮습니다. 하지만 equals()를 사용하는 것이 좀 더 안전하고 일관된 방법. 
+다른 객체나 클래스에서는 equals()를 사용해야 값 비교가 제대로 수행됩니다.
 
 ★ 중복은 Optional<>그리고 Optional 은 orElseThrow() 와 같이 사용된다.
 	그러나 ptional을 리턴하는 메서드에서만 orElseThrow() 호출 가능하지,

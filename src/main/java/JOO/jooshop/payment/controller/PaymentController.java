@@ -90,7 +90,7 @@ public class PaymentController {
      * - GET /order/paymentconfirm
      */
     @GetMapping("/order/paymentConfirm")
-    public void deleteSession() {
+    public ResponseEntity<String> deleteSession() {
         // 세션에서 cartIds 가져오기 (결제 완료된 장바구니)
         List<Long> cartIds = (List<Long>) httpSession.getAttribute("cartIds");
         if (cartIds == null || cartIds.isEmpty()) {
@@ -113,6 +113,8 @@ public class PaymentController {
         // 세션에서 임시 주문 정보 삭제
         httpSession.removeAttribute("temporaryOrder");
         httpSession.removeAttribute("cartIds");
+
+        return ResponseEntity.ok("주문 및 세션 정리 완료");
     }
 
     /**
