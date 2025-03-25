@@ -94,7 +94,8 @@ public class Inquiry {
         this.email = email;
     }
 
-/*    public void setMember(Member member) {
+    /*
+    public void setMember(Member member) {
         this.member = member;
     }
 

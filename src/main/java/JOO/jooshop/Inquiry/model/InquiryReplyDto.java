@@ -1,6 +1,5 @@
 package JOO.jooshop.Inquiry.model;
 
-import JOO.jooshop.Inquiry.controller.InquiryReplyController;
 import JOO.jooshop.Inquiry.entity.InquiryReply;
 import lombok.AllArgsConstructor;
 import lombok.Data;
