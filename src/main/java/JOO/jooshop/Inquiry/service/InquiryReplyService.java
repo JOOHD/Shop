@@ -33,11 +33,18 @@ public class InquiryReplyService {
     private final JavaMailSender mailSender;
 
     /**
-            * 문의 답변 등록
+     * 문의 답변 등록
      * @param replyRequest
      * @param inquiryId
      * @return
-             */
+     *
+     * InquiryReply reply = new InquiryReply(
+     *     inquiry = Inquiry(1001L, "핸드드립 커피 세트", "상품 문의", "이 제품 색상은 몇 가지인가요?"),
+     *     member = Member(5001L, "adminUser", "admin@example.com", ADMIN),
+     *     inquiryTitle = "이 제품 색상은 몇 가지인가요?",
+     *     replyContent = "현재 블랙, 화이트, 네이비 세 가지 색상이 있습니다."
+     * );
+     */
     @Transactional
     @RequiresRole({MemberRole.ADMIN, MemberRole.SELLER})
     public Long createReply(InquiryReplyDto replyRequest, Long inquiryId) throws Exception {

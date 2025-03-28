@@ -57,13 +57,16 @@ public class InquiryService {
                 .password(requestDto.getPassword())
                 .build();
 
+        // header 호출 이유는, 사용자가 로그인한 상태인지 확인하기 위해
+        // header = token 인증 정보로 로그인 여부 판단
         if (authHeader != null) {
+            // 로그인한 사용자 → Member 정보 가져옴
             Long memberId = MemberAuthorizationUtil.getLoginMemberId();
             Member member = memberRepository.findById(memberId)
                     .orElseThrow(() -> new NoSuchElementException(ResponseMessageConstants.MEMBER_NOT_FOUND));
 
             inquiry.createInquiryWriter(member, member.getNickname(), member.getEmail());
-
+            // 비회원 → 요청에서 이름과 이메일을 직접 가져옴
         } else {
             inquiry.createInquiryWriter(null,requestDto.getName(), requestDto.getEmail());
         }
