@@ -64,7 +64,7 @@ public class InquiryReplyService {
 
         inquiryReplyRepository.save(reply);
 
-        // Inquiry 테이블의 isResponse -> true
+        // 답변 등록 isResponse -> true
         inquiry.setResponse(true);
         // 답변 메일
         sendReplyNotice(inquiry, reply);
@@ -89,11 +89,11 @@ public class InquiryReplyService {
         MimeMessage message = mailSender.createMimeMessage();
 
         message.addRecipients(Message.RecipientType.TO, mailAddress);
-        message.setSubject("[PUSHOP] 문의하신 상품에 대한 답변이 도착했습니다."); // 제목
+        message.setSubject("[JOOSHOP] 문의하신 상품에 대한 답변이 도착했습니다."); // 제목
 
         String body = "<div style='max-width: 1000px;'>"
                 + "<div style='width: 85%; margin: 0 auto; color: rgb(7, 145, 163);'>"
-                + "<h1 style='left:10vw'>PUSHOP</h1>"
+                + "<h1 style='left:10vw'>JOOSHOP</h1>"
                 + "<h1>문의주셔서 감사합니다.<br>아래 답변 내용을 확인해주세요.</h1>"
                 + "<a href='" + //문의글 보러가기 링크
                 "'><b>문의내용 보러가기</b> / 추가 문의하기</a></div>"

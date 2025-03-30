@@ -6,18 +6,12 @@ import JOO.jooshop.product.entity.enums.ProductType;
 import JOO.jooshop.product.model.ProductCreateDto;
 import JOO.jooshop.productManagement.entity.ProductManagement;
 import JOO.jooshop.productThumbnail.entity.ProductThumbnail;
-import JOO.jooshop.reviewImg.ReviewImg;
 import JOO.jooshop.wishList.entity.WishList;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;

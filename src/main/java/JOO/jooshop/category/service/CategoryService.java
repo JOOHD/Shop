@@ -42,7 +42,7 @@ public class CategoryService {
      * @param request 카테고리 정보
      * @param parentId 부모 카테고리 ID (null인 경우 최상위 카테고리)
      * @return 생성된 카테고리 ID
-     * 
+     *
      * 부모 카테고리 ID = Null, 최상위 카테고리 생성
      * 부모 카테고리 ID != Null, 해당 부모 카테고리 하위에 자식 카테고리 생성
      */
@@ -53,11 +53,18 @@ public class CategoryService {
     }
 
     /**
+     * 최상위 카테고리 생성
+     */
+    private Category createTopLevelCategory(Category request) {
+        return new Category(0L, request.getName());
+    }
+
+    /**
      * 자식 카테고리 생성
      * @param request 카테고리 정보
      * @param parentId 부모 카테고리 ID
      * @return 자식 카테고리
-     * 
+     *
      * 부모 카테고리 depth = 0, 자식 카테고리를 만들 수 있으며, 이를 통해 계층 구조를 유지
      */
     private Category createChildCategory(Category request, Long parentId) {
@@ -72,15 +79,6 @@ public class CategoryService {
         Category childCategory = new Category(parentCategory, parentCategory.getDepth() + 1, request.getName());
         parentCategory.getChildren().add(childCategory); // 자식 카테고리 추가
         return childCategory;
-    }
-
-    /**
-     * 최상위 카테고리 생성
-     * @param request 카테고리 정보
-     * @return 최상위 카테고리
-     */
-    private Category createTopLevelCategory(Category request) {
-        return new Category(0L, request.getName());
     }
 
     /**
@@ -100,10 +98,8 @@ public class CategoryService {
     }
 }
 
-    /*
-      카테고리 생성
-      parentId 파라미터가 없는 경우 - 부모 카테고리를 만든다.
-      있는 경우 - 해당하는 부모 카테고리 밑에 자식 카테고리를 만든다.
+/*
+    * Ver1
     @RequiresRole({MemberRole.ADMIN, MemberRole.SELLER})
     public Long createCategory(Category request, Long parentId) {
         Category category;
@@ -127,4 +123,4 @@ public class CategoryService {
         Category savedCategory = categoryRepository.save(category);
         return savedCategory.getCategoryId();
     }
-    */
+*/

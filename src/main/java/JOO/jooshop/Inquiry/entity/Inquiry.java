@@ -70,10 +70,6 @@ public class Inquiry {
     @OneToMany(mappedBy = "inquiry")
     private List<InquiryReply> replies;
 
-    public Inquiry() {
-        this.createdAt = LocalDateTime.now();
-    }
-
     @Builder
     public Inquiry(Member member, Product product, String name, String email, InquiryType inquiryType, String inquiryTitle, String inquiryContent, String password) {
         this.member = member;

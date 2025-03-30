@@ -3,6 +3,7 @@ package JOO.jooshop.review.controller;
 import JOO.jooshop.review.entity.Review;
 import JOO.jooshop.review.model.ReviewCreateDto;
 import JOO.jooshop.review.model.ReviewDto;
+import JOO.jooshop.review.service.ReviewService;
 import jakarta.mail.Multipart;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ import static JOO.jooshop.global.ResponseMessageConstants.*;
 @Slf4j
 public class ReviewController {
 
-    private final ReivewService reivewService;
+    private final ReviewService reviewService;
 
     /**
      * 리뷰 작성
@@ -38,9 +39,15 @@ public class ReviewController {
             @RequestPart(value = "reviewContent") String reviewContent,
             @PathVariable Long paymentId) {
 
-        ReviewCreateDto request = new ReviewCreateDto();
-        request.setReviewContent(reviewContent);
-        request.setRating(rating);
+        // ReviewCreateDto request = new ReviewCreateDto();
+        // request.setReviewContent(reviewContent);
+        // request.setRating(rating);
+
+        // @Builder 사용
+        ReviewCreateDto request = ReviewCreateDto.builder()
+                .reviewContent(reviewContent)
+                .rating(rating)
+                .build();
 
         Review createdReview = reviewService.createReview(request, images, paymentId);
 
@@ -78,15 +85,6 @@ public class ReviewController {
         return reviewService.findReviewByUser(memberId);
     }
 
-    /**
-     * 리뷰 상세보기
-     * @param reviewId reviewId
-     * @return review detail
-     */
-    @GetMapping("/{reviewId}")
-    public ReviewDto reviewDatail(@Valid @PathVariable Long reviewId) {
-        return reviewService.reviewDetail(reviewId);
-    }
 
     /**
      * 리뷰 수정

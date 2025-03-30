@@ -2,6 +2,7 @@ package JOO.jooshop.reviewImg;
 
 import static com.querydsl.core.types.PathMetadataFactory.*;
 
+import JOO.jooshop.reviewImg.entity.ReviewImg;
 import com.querydsl.core.types.dsl.*;
 
 import com.querydsl.core.types.PathMetadata;

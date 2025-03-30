@@ -1,4 +1,4 @@
-package JOO.jooshop.reviewImg;
+package JOO.jooshop.reviewImg.entity;
 
 import JOO.jooshop.review.entity.Review;
 import jakarta.persistence.*;

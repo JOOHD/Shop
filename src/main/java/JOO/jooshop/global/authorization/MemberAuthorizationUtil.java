@@ -55,7 +55,7 @@ public class MemberAuthorizationUtil {
         }
     }
 
-    public static void verifyUserIdMatch(Long givenId) { // order/cart/address/payment/profile 같은 memberId = givenId
+    public static void verifyUserIdMatch(Long givenId) { // order/cart/address/payment/profile, memberId = givenId (요청받은)
         Long loginMemberId = getLoginMemberId();        // 현재 로그인한 사용자 ID
         MemberRole memberRole = getLoginMemberRole();   // 현재 로그인한 사용자 역할
 

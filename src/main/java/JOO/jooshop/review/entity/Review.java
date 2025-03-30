@@ -1,7 +1,7 @@
 package JOO.jooshop.review.entity;
 
 import JOO.jooshop.payment.entity.PaymentHistory;
-import JOO.jooshop.reviewImg.ReviewImg;
+import JOO.jooshop.reviewImg.entity.ReviewImg;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

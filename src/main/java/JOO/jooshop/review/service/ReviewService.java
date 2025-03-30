@@ -10,7 +10,9 @@ import JOO.jooshop.review.entity.Review;
 import JOO.jooshop.review.model.ReviewCreateDto;
 import JOO.jooshop.review.model.ReviewDto;
 import JOO.jooshop.review.repository.ReviewRepository;
-import JOO.jooshop.reviewImg.ReviewImg;
+import JOO.jooshop.reviewImg.entity.ReviewImg;
+import JOO.jooshop.reviewImg.repository.ReviewImgRepository;
+import JOO.jooshop.reviewImg.service.ReviewImgService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -19,9 +21,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static JOO.jooshop.global.ResponseMessageConstants.*;
-import static JOO.jooshop.global.authorization.MemberAuthorizationUtil.;
+import static JOO.jooshop.global.authorization.MemberAuthorizationUtil.*;
 
 @Service
 @RequiredArgsConstructor
@@ -42,10 +45,7 @@ public class ReviewService {
      * @return message
      */
     public Review createReview(ReviewCreateDto request, @Nullable List<MultipartFile> images, Long paymentId) {
-        PaymentHistory paymentHistory = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new NoSuchElementException("해당 주문 내역을 찾을 수 없습니다."));
-
-        // 로그인 유저 == 요청 사용자 일치 유무 확인
+        PaymentHistory paymentHistory = findPaymentHistoryById(paymentId);
         verifyUserIdMatch(paymentHistory.getMember().getId());
 
         // 이미 Review 가 존재하는지 확인
@@ -53,20 +53,12 @@ public class ReviewService {
             throw new IllegalStateException("이미 후기가 작성되었습니다.");
         }
 
-        // entity 객체 생성
+        // entity 객체 생성, 저장, 리뷰 작성 여부 true
         Review review = new Review(paymentHistory, request.getReviewContent(), request.getRating());
-
-        // DB 저장
         reviewRepository.save(review);
-
-        // 결제내역에서 리부 작성 여부 true 로 변환
         paymentHistory.setReview(true);
 
-        // 이미지파일에 이미지가 있을 경우에만
-        if (images != null && !Objects.equals(images.get(0).getOriginalFilename(), "")) {
-            // 이미지 업로드
-            reviewImgService.uploadReviewImg(review.getReviewId(), images.stream().toList());
-        }
+        reviewImgService.uploadReviewImg(review.getReviewId(), images);
         return review;
     }
 
@@ -75,13 +67,13 @@ public class ReviewService {
      * @return
      */
     public List<ReviewDto> allReview() {
-        List<Review> reviews = reviewRepository.findAll();
-        if (reviews.isEmpty()) {
-            return Collections.emptyList();
-        }
+        return reviewRepository.findAll()
+                .stream()
+                .map(ReviewDto::new)
+                .collect(Collectors.toList());
+
         // new ReviewDto(review.getId(), review.getContent(), review.getRating()))
         // Review Entity -> ReviewDto 변환, (ReviewDto 의 생성자를 직접 호출하여 객체를 생성)
-        return reviews.stream().map(ReviewDto::new).toList();
     }
 
     /**
@@ -90,16 +82,11 @@ public class ReviewService {
      * @return
      */
     public List<ReviewDto> findReviewByProduct(Long productId) {
-        Product product = productRepository.findByProductId(productId)
-                .orElseThrow(() -> new NoSuchElementException(PRODUCT_NOT_FOUND));
-
-        List<Review> reviews = reviewRepository.findByPaymentHistoryProduct(product);
-
-        if (reviews.isEmpty()) {
-            return null;
-        }
-
-        return reviews.stream().map(ReviewDto::new).toList();
+        Product product = findProductId(productId);
+        return reviewRepository.findByPaymentHistoryProduct(product)
+                .stream()
+                .map(ReviewDto::new)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -108,92 +95,114 @@ public class ReviewService {
      * @return
      */
     public List<ReviewDto> findReviewByUser(Long memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new NoSuchElementException(MEMBER_NOT_FOUND));
-
-        List<Review> reviews = reviewRepository.findByPaymentHistoryMember(member);
-
-        if (reviews.isEmpty()) {
-            return null;
-        }
-
-        return reviews.stream().map(ReviewDto::new).toList();
+        Member member = findMemberById(memberId);
+        return reviewRepository.findByPaymentHistoryMember(member)
+                .stream()
+                .map(ReviewDto::new)
+                .collect(Collectors.toList());
     }
 
     /**
      * 리뷰 수정
      * @param updateRequest (reviewContent, rating)
-     * @param reviewId
      * @param memberId 수정 요청 당사자
      * @return
      */
     public Review updateReview(ReviewCreateDto updateRequest, Long reviewId, Long memberId) {
+        Review currentReview = findReviewById(reviewId);
+        validateReview(currentReview, memberId);
 
-        // 현재 리뷰 조회
-        Review currentReview = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new NoSuchElementException(WRITING_NOT_FOUND));
-
-        // 해당 리뷰 작성자의 memberId 가져옴
-        Long reviewWriterId = currentReview.getPaymentHistory().getMember().getId();
-
-        // 로그인 중인 유저의 memberId와 파라미터로 받은 memberId 가 같은지 확인
-        verifyUserIdMatch(memberId);
-
-        // 수정자가 해당 리뷰의 작성자가 아니면 접근 금지
-        if (!memberId.equals(reviewWriterId)) {
-            throw new SecurityException(ACCESS_DENIED);
-        }
-
-        // 리뷰 내용과 평점 업데이트
         currentReview.updateReview(updateRequest.getReviewContent(), updateRequest.getRating());
-
         return reviewRepository.save(currentReview);
     }
 
     /**
      * 리뷰 삭제
      * @param reviewId
+     *
+     * 1. 리뷰는 결제와 연결되어 있다. (리뷰가 작성될 때, PaymentHistory 의 review = true 설정
+     * 2. review = false 설정을 먼저 하는 이유? (이미지 삭제 먼저 할 수도 있을텐데..)
+     *      - 리뷰 삭제 중 이미지 파일 삭제 시 예외가 발생함.
+     *      - 예외가 발생하면 이후 로직(review = false 설정)이 실행되지 못할 수도 있음.
+     *      - 그러면 결제 내역(PaymentHistory)에는 여전히 review = true로 남아 있음.
+     *      - 하지만 실제 리뷰는 삭제되어 존재하지 않음 → 데이터 정합성이 깨짐.
      */
     public void deleteReview(Long reviewId, Long memberId) {
 
-        // 현재 리뷰 조회
-        Review currentReview = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new NoSuchElementException(WRITING_NOT_FOUND));
-        // 해당 리뷰 작성자의 memberId 가져오기
-        Long reviewWriterId = currentReview.getPaymentHistory().getMember().getId();
+        Review currentReview = findReviewById(reviewId);
+        validateReview(currentReview, memberId);
 
-        // 리뷰에 관련된 결제 이력을 가져와 리뷰 여부를 'false'로 설정
         PaymentHistory paymentHistory = currentReview.getPaymentHistory();
-        paymentHistory.setReview(false); // 리뷰 작성 여부 확인 위함
+        paymentHistory.setReview(false);
 
-        // 로그인 중인 유저의 memberId와 파라미터로 받은 memberId가 같은지 확인
-        verifyUserIdMatch(memberId);
-
-        // 삭제 요청자가 해당 리뷰의 작성자가 아니라면 접근을 거부
-        if (!memberId.equals(reviewWriterId)) {
-            throw new SecurityException(ACCESS_DENIED);
-        }
-
-        // 리뷰와 관련된 모든 이미지들을 가져옴
-        List<ReviewImg> reviewImgList = reviewImgRepository.findByReview_ReviewId(reviewId);
-
-        // 이미지가 있을 경우 해당 이미지들을 삭제
-        if (reviewImgList != null) {
-            for (ReviewImg reviewImg : reviewImgList) {
-                // 이미지 파일 삭제
-                reviewImgRepository.delete(reviewImg);
-                // 실제 이미지 파일 삭제
-                String imagePath = "src/main/resources/static" + reviewImg.getReviewImgPath();
-                ReviewImgService.deleteImageFile(imagePath);
-            }
-        }
-
-        // 리뷰 삭제
+        deleteReviewImages(reviewId);
         reviewRepository.delete(currentReview);
     }
+
+    /**
+     * 결제 내역 조회 (예외 포함)
+     */
+    private PaymentHistory findPaymentHistoryById(Long paymentId) {
+        return paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new NoSuchElementException("해당 주문 내역을 찾을 수 없습니다."));
+    }
+
+    /**
+     * 상품 조회 (예외 포함)
+     */
+    private Product findProductId(Long productId) {
+        return productRepository.findByProductId(productId)
+                .orElseThrow(() -> new NoSuchElementException(PRODUCT_NOT_FOUND));
+    }
+
+    /**
+     * 회원 조회 (예외 포함)
+     */
+    private Member findMemberById(Long memberId) {
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new NoSuchElementException(MEMBER_NOT_FOUND));
+    }
+
+    /**
+     * 리뷰 조회 (예외 포함)
+     */
+    private Review findReviewById(Long reviewId) {
+        return reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new NoSuchElementException(WRITING_NOT_FOUND));
+    }
+
+    /**
+     * 리뷰 작성자 검증
+     */
+    private void validateReview(Review review, Long memberId) {
+        verifyUserIdMatch(memberId);
+        if (!review.getPaymentHistory().getMember().getId().equals(memberId)) {
+            throw new SecurityException(ACCESS_DENIED);
+        }
+    }
+
+    /**
+     * 리뷰 이미지 업로드
+     */
+    private void uploadReviewImages(Long reviewId, @Nullable List<MultipartFile> images) {
+        if (images != null && !Objects.equals(images.get(0).getOriginalFilename(), "")) {
+            reviewImgService.uploadReviewImg(reviewId, images);
+        }
+    }
+
+    /**
+     * 리뷰 이미지 삭제
+     */
+    private void deleteReviewImages(Long reviewId) {
+        List<ReviewImg> reviewImgList = reviewImgRepository.findByReview_ReviewId(reviewId);
+        if (reviewImgList != null) {
+            for (ReviewImg reviewImg : reviewImgList) {
+                reviewImgRepository.delete(reviewImg);
+                reviewImgService.deleteImageFile("src/main/resources/static" + reviewImg.getReviewImgPath());
+            }
+        }
+    }
 }
-
-
 
 
 

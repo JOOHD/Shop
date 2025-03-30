@@ -1,7 +1,7 @@
 package JOO.jooshop.review.model;
 
 import JOO.jooshop.review.entity.Review;
-import JOO.jooshop.reviewImg.ReviewImg;
+import JOO.jooshop.reviewImg.entity.ReviewImg;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;

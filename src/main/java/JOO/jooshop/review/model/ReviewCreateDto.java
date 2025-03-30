@@ -4,6 +4,7 @@ import JOO.jooshop.review.entity.Review;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReviewCreateDto {
@@ -23,7 +25,6 @@ public class ReviewCreateDto {
         this(
                 review.getReviewContent(),
                 review.getRating()
-
         );
     }
 }

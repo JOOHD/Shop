@@ -2,6 +2,7 @@ package JOO.jooshop.review.entity;
 
 import static com.querydsl.core.types.PathMetadataFactory.*;
 
+import JOO.jooshop.reviewImg.entity.ReviewImg;
 import com.querydsl.core.types.dsl.*;
 
 import com.querydsl.core.types.PathMetadata;
@@ -34,7 +35,7 @@ public class QReview extends EntityPathBase<Review> {
 
     public final NumberPath<Long> reviewId = createNumber("reviewId", Long.class);
 
-    public final ListPath<JOO.jooshop.reviewImg.ReviewImg, JOO.jooshop.reviewImg.QReviewImg> reviewImages = this.<JOO.jooshop.reviewImg.ReviewImg, JOO.jooshop.reviewImg.QReviewImg>createList("reviewImages", JOO.jooshop.reviewImg.ReviewImg.class, JOO.jooshop.reviewImg.QReviewImg.class, PathInits.DIRECT2);
+    public final ListPath<ReviewImg, JOO.jooshop.reviewImg.QReviewImg> reviewImages = this.<ReviewImg, JOO.jooshop.reviewImg.QReviewImg>createList("reviewImages", ReviewImg.class, JOO.jooshop.reviewImg.QReviewImg.class, PathInits.DIRECT2);
 
     public final DateTimePath<java.time.LocalDateTime> updatedAt = createDateTime("updatedAt", java.time.LocalDateTime.class);
 
