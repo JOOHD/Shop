@@ -1,8 +1,7 @@
-package JOO.jooshop.reviewImg;
+package JOO.jooshop.reviewImg.entity;
 
 import static com.querydsl.core.types.PathMetadataFactory.*;
 
-import JOO.jooshop.reviewImg.entity.ReviewImg;
 import com.querydsl.core.types.dsl.*;
 
 import com.querydsl.core.types.PathMetadata;
@@ -17,7 +16,7 @@ import com.querydsl.core.types.dsl.PathInits;
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
 public class QReviewImg extends EntityPathBase<ReviewImg> {
 
-    private static final long serialVersionUID = -492864810L;
+    private static final long serialVersionUID = -2038880043L;
 
     private static final PathInits INITS = PathInits.DIRECT2;
 

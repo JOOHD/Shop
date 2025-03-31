@@ -2,6 +2,7 @@ package JOO.jooshop.product.service;
 
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.model.ProductRankResponseDto;
+import JOO.jooshop.product.repository.ProductColorRepositoryV1;
 import JOO.jooshop.product.repository.ProductRepositoryV1;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +31,7 @@ public class ProductRankingService {
      */
 
     public final ProductRepositoryV1 productRepository;
-    public final ProductColorRepository productColorRepository;
+    public final ProductColorRepositoryV1 productColorRepository;
     public final ModelMapper modelMapper;
     private final RedisTemplate<String, String> redisTemplate;
 

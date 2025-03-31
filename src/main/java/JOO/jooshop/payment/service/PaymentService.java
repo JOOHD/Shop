@@ -102,24 +102,25 @@ public class PaymentService {
      */
     private void createPaymentHistory(Payment response, List<Long> productMgtIdList, Orders order, Member member, Integer totalPrice) {
         // 결제 응답으로부터 필요한 결제 정보를 추출한다.
-        String impUid = response.getImpUid();         // 아임포트에서 발급한 고유 결제번호
-        String payMethod = response.getPayMethod();   // 결제 수단 (카드, 가상계좌 등)
-        BigDecimal payAmount = response.getAmount();  // 결제된 금액 (총 결제 금액)
-        String bankCode = response.getBankCode();     // 은행 코드 (가상계좌일 경우 값 존재, 카드일 경우 null)
-        String bankName = response.getBankName();     // 은행명 (가상계좌일 경우 값 존재, 카드일 경우 null)
-        String buyerAddr = response.getBuyerAddr();   // 구매자 주소
-        String buyerEmail = response.getBuyerEmail(); // 구매자 이메일
+        String impUid = response.getImpUid();
+        String payMethod = response.getPayMethod();
+        BigDecimal payAmount = response.getAmount();
+        String bankCode = response.getBankCode();
+        String bankName = response.getBankName();
+        String buyerAddr = response.getBuyerAddr();
+        String buyerEmail = response.getBuyerEmail();
 
         for (Long productMgtId : productMgtIdList) {
             ProductManagement productMgt = productMgtRepository.findById(productMgtId)
                     .orElseThrow(() -> new NoSuchElementException(ResponseMessageConstants.PRODUCT_NOT_FOUND));
             Long quantity = cartRepository.findByProductManagement(productMgt)
-                    .orElseThrow(() -> new NoSuchElementException(ResponseMessageConstants.CART_NOT_FOUND)) // Optional 처리 보완
+                    .orElseThrow(() -> new NoSuchElementException(ResponseMessageConstants.CART_NOT_FOUND))
                     .getQuantity();
 
             Product product = productMgt.getProduct();
             String option = productMgt.getColor().getColor() + ", " + productMgt.getSize();
 
+            // PaymentHistory 빌더 사용 시 모든 필수 값을 전달
             PaymentHistory paymentHistory = PaymentHistory.builder()
                     .impUid(impUid)
                     .member(member)

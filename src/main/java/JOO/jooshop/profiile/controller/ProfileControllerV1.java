@@ -1,6 +1,8 @@
 package JOO.jooshop.profiile.controller;
 
+import JOO.jooshop.global.authorization.MemberAuthorizationUtil;
 import JOO.jooshop.members.entity.Member;
+import JOO.jooshop.members.repository.MemberRepositoryV1;
 import JOO.jooshop.profiile.entity.Profiles;
 import JOO.jooshop.profiile.entity.enums.MemberAges;
 import JOO.jooshop.profiile.entity.enums.MemberGender;
@@ -49,8 +51,8 @@ public class ProfileControllerV1 {
         MemberAuthorizationUtil.verifyUserIdMatch(memberId);
         Optional<Profiles> memberProfiles = getMemberProfileByMemberId(memberId);
 
-        if (memberProfile.isPresent()) {
-            Profiles profiles = memberProfile.get();
+        if (memberProfiles.isPresent()) {
+            Profiles profiles = memberProfiles.get();
             MemberDTO memberDTO = MemberDTO.createMemberDto(profiles.getMember()); // DTO 변환
             MemberProfileDTO memberProfileDTO = MemberProfileDTO.createMemberProfileDto(profiles, memberDTO);
 
@@ -108,7 +110,7 @@ public class ProfileControllerV1 {
         newNickname = newNickname.replace("\"", "");
         log.info(newNickname);
         // request.user.id 가 요구하는 프로필 정보의 id 와 같은지 체크
-        MemberAuthorizationUtil.verifyUserIdMach(memberId);
+        MemberAuthorizationUtil.verifyUserIdMatch(memberId);
         // memberId 를 통해 member 조회
         Optional<Member> optionalMember = memberRepositoryV1.findById(memberId);
         if (optionalMember.isPresent()) {

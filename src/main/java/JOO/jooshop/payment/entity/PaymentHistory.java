@@ -11,19 +11,10 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Builder
+@AllArgsConstructor
 @Table(name = "payment_history")
 public class PaymentHistory {
 
-    /*@Id
-    @SequenceGenerator(
-            name = "pay_sequence",
-            sequenceName = "pay_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "pay_sequence"
-    )*/
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "payment_history_id")
@@ -65,23 +56,26 @@ public class PaymentHistory {
     private Integer totalPrice;
 
     @Column(name = "paid_at", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime paidAt;
+    @Builder.Default
+    private LocalDateTime paidAt = LocalDateTime.now();
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private Status statusType;
 
     @Column(name = "review")
+    @Builder.Default
     private Boolean review = false;
 
     @Column(name = "quantity")
     private Long quantity;
 
-    public PaymentHistory() {
-        this.paidAt =  LocalDateTime.now();
-    }
-
-    public PaymentHistory(String impUid, Member member, Orders orders, Product product, String productName, String productOption, Long quantity ,Integer price, Integer totalPrice, Status statusType, String payMethod, String bankCode, String bankName, String buyerAddr, String buyerEmail) {
+    // 빌더에서 호출할 생성자 수정
+    public PaymentHistory(String impUid, Member member, Orders orders, Product product,
+                          String productName, String productOption, Long quantity,
+                          Integer price, Integer totalPrice, Status statusType,
+                          String payMethod, String bankCode, String bankName,
+                          String buyerAddr, String buyerEmail) {
         this.impUid = impUid;
         this.member = member;
         this.orders = orders;
@@ -91,13 +85,13 @@ public class PaymentHistory {
         this.quantity = quantity;
         this.price = price;
         this.totalPrice = totalPrice;
-        this.paidAt =  LocalDateTime.now();
         this.statusType = statusType;
         this.payMethod = payMethod;
         this.bankCode = bankCode;
         this.bankName = bankName;
         this.buyerAddr = buyerAddr;
         this.buyerEmail = buyerEmail;
+
     }
 
     public void setReview(Boolean review) {

@@ -1,6 +1,7 @@
 package JOO.jooshop.Inquiry.controller;
 
 import JOO.jooshop.Inquiry.model.InquiryReplyDto;
+import JOO.jooshop.Inquiry.service.InquiryReplyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
