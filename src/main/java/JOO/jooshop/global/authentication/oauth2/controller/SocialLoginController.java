@@ -83,7 +83,7 @@ public class SocialLoginController {
 
     /* 소셜 로그인 처리 */
     @GetMapping("/login/oauth2/code/kakao")
-    public @ResponseBody void kakaoCallback(@RequestParam String code, HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void kakaoCallback(@RequestParam String code, HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         // HTTP 요청을 보내기 위한 기본 클라이언트 클래스 (CRUD, JSON/XML 처리)
         RestTemplate restTemplate = new RestTemplate();

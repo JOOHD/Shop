@@ -4,7 +4,7 @@ spring:
       max-file-size: 5MB # 한 개의 파일 업로드 크기 제한
       max-request-size: 5MB
   jwt:
-    secret: 
+    secret:
   profiles:
     # develop : develop 환경에서 application run 을 실행
     # production : 실 사용자가 사용하는 환경에서 application run 을 실행

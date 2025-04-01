@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.security.auth.login.CredentialNotFoundException;
 import java.nio.file.attribute.UserPrincipalNotFoundException;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -23,7 +22,7 @@ import java.util.Optional;
 public class MemberService {
 
     private final MemberRepositoryV1 memberRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
+    // private final BCryptPasswordEncoder passwordEncoder;
 
     @Transactional
     public Member joinMember(Member member) {
@@ -46,6 +45,8 @@ public class MemberService {
     public Member memberLogin(LoginRequest loginRequest) throws UserPrincipalNotFoundException, CredentialNotFoundException {
         Member member = memberRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new UserPrincipalNotFoundException("User not found with email: " + loginRequest.getEmail()));
+
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
         if (!passwordEncoder.matches(loginRequest.getPassword(), member.getPassword())) {
             log.info("Invalid password for email: {} ", loginRequest.getEmail());

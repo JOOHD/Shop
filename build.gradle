@@ -43,7 +43,7 @@ dependencies {
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
     implementation 'org.springframework.boot:spring-boot-devtools'
 
-    // Java Mail Sender module - 2024.04.03 추가
+    // Java Mail Sender module
     implementation 'org.springframework:spring-context:6.1.5'
     implementation 'org.springframework:spring-context-support:6.1.5'
     implementation 'com.sun.mail:jakarta.mail:2.0.1'

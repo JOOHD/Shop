@@ -1,5 +1,7 @@
 package JOO.jooshop.global.authentication.config;
 
+import JOO.jooshop.global.authentication.jwts.filters.CustomJsonEmailPasswordAuthenticationFilter;
+import JOO.jooshop.global.authentication.jwts.filters.LoginFilter;
 import JOO.jooshop.global.authentication.jwts.service.CookieService;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.authentication.oauth2.custom.service.CustomOAuth2UserServiceV1;
@@ -7,11 +9,20 @@ import JOO.jooshop.global.authentication.oauth2.handler.CustomLoginFailureHandle
 import JOO.jooshop.global.authentication.oauth2.handler.CustomLoginSuccessHandlerV1;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
 import JOO.jooshop.members.repository.RefreshRepository;
+import JOO.jooshop.members.service.MemberService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -40,4 +51,45 @@ public class SecurityConfig {
 
     @Value("${frontend.url}")
     private String frontendUrl;
+
+    @Bean
+    @Primary
+    public AuthenticationConfiguration authenticationConfiguration() {
+        return new AuthenticationConfiguration();
+    }
+
+    @Bean
+    public LoginFilter loginFilter() throws Exception {
+        // LoginFilter
+    }
+
+    @Bean
+    public AuthenticationSuccessHandler loginSuccessHandler() {
+        return customLoginSuccessHandler;
+    }
+    @Bean
+    public AuthenticationFailureHandler loginFailureHandler() {
+        return customLoginFailureHandler;
+    }
+
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public MemberService memberService() {
+        return new MemberService(memberRepositoryV1, passwordEncoder());
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+
+        return configuration.getAuthenticationManager();
+    }
+
+    @Bean
+    public CustomJsonEmailPasswordAuthenticationFilter customJsonUsernamePasswordAuthenticationFilter() throws Exception {
+        return new CustomJsonEmailPasswordAuthenticationFilter(authenticationManager(authenticationConfiguration()), objectMapper);
+    }
 }

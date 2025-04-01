@@ -49,8 +49,16 @@ public class JWTUtil {
 
     @PostConstruct
     public void init() { // @Value로 주입된 jwtSecret 값을 SecretKey로 변환, JWTUtil을 생성때 한 번 실행됨.
-        byte[] keyBytes = Base64.getDecoder().decode(jwtSecret);
-        this.secretKey = Keys.hmacShaKeyFor(keyBytes); // 이제 JWT를 서명(Sign)할 수 있다.
+        if (jwtSecret == null || jwtSecret.isEmpty()) {
+            // SecretKey 자동생성
+            this.secretKey = Jwts.SIG.HS256.key().build();
+            log.info("JWT SecretKey 자동 생성 완료");
+        } else {
+            // Base64 디코딩하여 SecretKey 설정
+            byte[] keyBytes = Base64.getDecoder().decode(jwtSecret);
+            this.secretKey = Keys.hmacShaKeyFor(keyBytes);
+            log.info("JWT SecretKey (yml 설정값 사용) 적용 완료");
+        }
     }
 
     private Claims parseToken(String token) {
