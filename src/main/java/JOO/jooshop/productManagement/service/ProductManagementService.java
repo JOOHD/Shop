@@ -1,7 +1,7 @@
 package JOO.jooshop.productManagement.service;
 
-import JOO.jooshop.category.entity.Category;
-import JOO.jooshop.category.repository.CategoryRepository;
+import JOO.jooshop.categorys.entity.Category;
+import JOO.jooshop.categorys.repository.CategoryRepository;
 import JOO.jooshop.global.authorization.RequiresRole;
 import JOO.jooshop.members.entity.enums.MemberRole;
 import JOO.jooshop.productManagement.entity.ProductManagement;

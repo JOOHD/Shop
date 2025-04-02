@@ -2,15 +2,13 @@ package JOO.jooshop.productManagement.entity;
 
 import JOO.jooshop.order.entity.Orders;
 import JOO.jooshop.product.entity.Product;
-import JOO.jooshop.category.entity.Category;
+import JOO.jooshop.categorys.entity.Category;
 import JOO.jooshop.product.entity.ProductColor;
 import JOO.jooshop.productManagement.entity.enums.Size;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,8 +1,8 @@
-package JOO.jooshop.category.service;
+package JOO.jooshop.categorys.service;
 
-import JOO.jooshop.category.entity.Category;
-import JOO.jooshop.category.model.CategoryDto;
-import JOO.jooshop.category.repository.CategoryRepository;
+import JOO.jooshop.categorys.entity.Category;
+import JOO.jooshop.categorys.model.CategoryDto;
+import JOO.jooshop.categorys.repository.CategoryRepository;
 import JOO.jooshop.global.authorization.RequiresRole;
 import JOO.jooshop.members.entity.enums.MemberRole;
 import lombok.RequiredArgsConstructor;

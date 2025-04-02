@@ -1,9 +1,6 @@
 package JOO.jooshop.productManagement.model;
 
-import JOO.jooshop.category.entity.Category;
-import JOO.jooshop.product.entity.ProductColor;
 import JOO.jooshop.productManagement.entity.ProductManagement;
-import JOO.jooshop.productManagement.entity.enums.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;

@@ -1,6 +1,6 @@
-package JOO.jooshop.category.model;
+package JOO.jooshop.categorys.model;
 
-import JOO.jooshop.category.entity.Category;
+import JOO.jooshop.categorys.entity.Category;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;

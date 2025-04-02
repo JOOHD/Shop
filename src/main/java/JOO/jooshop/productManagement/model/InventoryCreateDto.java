@@ -1,6 +1,6 @@
 package JOO.jooshop.productManagement.model;
 
-import JOO.jooshop.category.entity.Category;
+import JOO.jooshop.categorys.entity.Category;
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.entity.ProductColor;
 import JOO.jooshop.productManagement.entity.ProductManagement;

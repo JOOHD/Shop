@@ -1,14 +1,10 @@
 package JOO.jooshop.productManagement.model;
 
-import JOO.jooshop.category.entity.Category;
 import JOO.jooshop.productManagement.entity.ProductManagement;
 import JOO.jooshop.productManagement.entity.enums.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import JOO.jooshop.product.entity.enums.ProductType;
-
-import java.awt.*;
-import java.util.List;
 
 @Data
 @AllArgsConstructor

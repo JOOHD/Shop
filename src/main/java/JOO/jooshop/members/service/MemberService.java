@@ -22,7 +22,7 @@ import java.util.Optional;
 public class MemberService {
 
     private final MemberRepositoryV1 memberRepository;
-    // private final BCryptPasswordEncoder passwordEncoder;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     @Transactional
     public Member joinMember(Member member) {

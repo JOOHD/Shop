@@ -8,8 +8,10 @@ import java.util.Optional;
 
 public interface RefreshRepository extends JpaRepository<Refresh, Long> {
 
+    // refresh 존재 여부
     Boolean existsByRefreshToken(String refresh);
 
+    // refresh 토큰 삭제
     @Transactional
     void deleteByRefreshToken(String refresh);
 

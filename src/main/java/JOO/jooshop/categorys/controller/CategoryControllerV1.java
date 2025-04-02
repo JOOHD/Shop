@@ -1,8 +1,8 @@
-package JOO.jooshop.category.controller;
+package JOO.jooshop.categorys.controller;
 
-import JOO.jooshop.category.entity.Category;
-import JOO.jooshop.category.model.CategoryDto;
-import JOO.jooshop.category.service.CategoryService;
+import JOO.jooshop.categorys.entity.Category;
+import JOO.jooshop.categorys.model.CategoryDto;
+import JOO.jooshop.categorys.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

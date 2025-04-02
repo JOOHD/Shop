@@ -1,8 +1,8 @@
 package JOO.jooshop.global.dummydata.util;
 
-import JOO.jooshop.category.entity.Category;
-import JOO.jooshop.category.repository.CategoryRepository;
-import JOO.jooshop.category.service.CategoryService;
+import JOO.jooshop.categorys.entity.Category;
+import JOO.jooshop.categorys.repository.CategoryRepository;
+import JOO.jooshop.categorys.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

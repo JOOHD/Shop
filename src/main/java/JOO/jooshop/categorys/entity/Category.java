@@ -1,4 +1,4 @@
-package JOO.jooshop.category.entity;
+package JOO.jooshop.categorys.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;

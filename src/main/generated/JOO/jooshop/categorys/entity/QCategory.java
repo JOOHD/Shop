@@ -1,4 +1,4 @@
-package JOO.jooshop.category.entity;
+package JOO.jooshop.categorys.entity;
 
 import static com.querydsl.core.types.PathMetadataFactory.*;
 

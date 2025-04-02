@@ -2,18 +2,21 @@ package JOO.jooshop.global.authentication.jwts.filters;
 
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.members.entity.Member;
+import JOO.jooshop.members.entity.Refresh;
+import JOO.jooshop.members.model.RefreshDto;
 import JOO.jooshop.members.repository.RefreshRepository;
 import JOO.jooshop.members.service.MemberService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonObject;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -22,12 +25,25 @@ import org.springframework.util.StreamUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static JOO.jooshop.global.authentication.jwts.utils.CookieUtil.createCookie;
 
 @Slf4j
 public class LoginFilter extends CustomJsonEmailPasswordAuthenticationFilter {
 
+    /**
+     * 전체 요약
+     * 1. authentication.getName() 이메일 조회
+     * 2. memberService.validateDuplicatedEmail(email) 로 회원 정보 조회
+     * 3. 사용자 권한(Role) 정보 추출
+     * 4. jwtUtil.createAccessToken() & jwtUtil.createRefreshToken() 을 사용해 JWT ACCESS/REFRESH 토큰 생성
+     * 5. saveOrUpdateRefreshEntity() 호출 -> 리프레시 토큰을 DB에 저장/업데이트
+     * 6. addResponseDataV3() 를 호출하여 엑세스 토큰을 JSON 으로 반환하고 리프레시 토큰을 쿠키에 저장.
+     */
     private Long accessTokenExpirationPeriod = 3600L;
 
     private Long refreshTokenExpirationPeriod = 1209600L;
@@ -35,19 +51,26 @@ public class LoginFilter extends CustomJsonEmailPasswordAuthenticationFilter {
     private final MemberService memberService;
     private final JWTUtil jwtUtil;
     private final RefreshRepository refreshRepository;
-    private final ObjectMapper objectMapper;
 
     private static final String CONTENT_TYPE = "application/json"; // JSON 타입의 데이터로 오는 로그인 요청만 처리
 
-    public LoginFilter(AuthenticationManager authenticationManager, ObjectMapper objectMapper, MemberService memberService, JWTUtil jwtUtil, RefreshRepository refreshRepository, ObjectMapper objectMapper1) {
-        super(authenticationManager, objectMapper);
+    public LoginFilter(AuthenticationManager authenticationManager, ObjectMapper objectMapper, MemberService memberService, JWTUtil jwtUtil, RefreshRepository refreshRepository) {
+        super(authenticationManager, objectMapper); // 초기화
         this.memberService = memberService;
         this.jwtUtil = jwtUtil;
         this.refreshRepository = refreshRepository;
-        this.objectMapper = objectMapper1;
     }
 
-    @Override
+    /**
+     * 로그인 요청을 처리하고 인증 시도
+     * @param request from which to extract parameters and perform the authentication
+     * @param response the response, which may be needed if the implementation has to do a
+     * redirect as part of a multi-stage authentication process (such as OIDC).
+     * @return
+     * @throws AuthenticationException
+     * @throws IOException
+     */
+    @Override 
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException {
 
         try {
@@ -89,8 +112,17 @@ public class LoginFilter extends CustomJsonEmailPasswordAuthenticationFilter {
         }
     }
 
+    /**
+     * 로그인 성공 시 실행하는 메소드 (여기서 JWT, 발급하면 됨)
+     * @param request
+     * @param response
+     * @param chain
+     * @param authentication the object returned from the <tt>attemptAuthentication</tt>
+     * method.
+     * @throws IOException
+     * @throws ServletException
+     */
     @Override
-    // 로그인 성공 시 실행하는 메소드 (여기서 JWT를 발급하면 됨)
     public void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException, ServletException
     {
         // 개발 단계에서 로그확인. 배포 후 : 없앨 예정
@@ -118,6 +150,14 @@ public class LoginFilter extends CustomJsonEmailPasswordAuthenticationFilter {
         addResponseDataV3(response, newAccess, newRefresh, email);
     }
 
+    /**
+     * 로그인 실패 시 401 응답 반환
+     * @param request
+     * @param response
+     * @param failed
+     * @throws IOException
+     * @throws ServletException
+     */
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
 
@@ -129,11 +169,105 @@ public class LoginFilter extends CustomJsonEmailPasswordAuthenticationFilter {
     }
 
     // 사용자의 권한 정보를 가져옴
-
     private String extractAuthority(Authentication authentication) {
         return authentication.getAuthorities().stream()
                 .findFirst()
                 .map(GrantedAuthority::getAuthority)
                 .orElse("ROLE_USER"); // 기본 권한 설정. [따로 설정하지 않았을때]
     }
+
+    /**
+     * 로그인 성공 시, -> [response header] : Access Token 추가, [response Cookie] : Refresh Token 추가
+     */
+    private void setTokenResponseV1(HttpServletResponse response, String accessToken, String refreshToken) {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        // [reponse Header] : Access Token 추가
+        response.addHeader("Authorization", "Bearer " + accessToken);
+        // [reponse Cookie] : Refresh Token 추가
+        response.addCookie(createCookie("RefreshToken", refreshToken));
+        // HttpStatus 200 OK
+        response.setStatus(HttpStatus.OK.value());
+    }
+
+    /**
+     * [response.data] 에 Json 형태로 accessToken 을 넣어주고, 쿠키에 refreshToken 을 넣어주는 방식
+     */
+    private void addResponseDataV2(HttpServletResponse response, String accessToken, String refreshToken, String email) throws IOException {
+        // 액세스 토큰을 JsonObject 형식으로 응답 데이터에 포함하여 클라이언트에게 반환
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        // response.data 에 accessToken, refreshToken 담아주기.
+        JsonObject responseData = new JsonObject();
+        responseData.addProperty("accessToken", accessToken);
+        responseData.addProperty("refreshToken", refreshToken);
+        response.getWriter().write(responseData.toString());
+        // HttpStatus 200 OK
+        response.setStatus(HttpStatus.OK.value());
+    }
+
+    /**
+     * 쿠키에 refreshToken 을 넣어주는 방식
+     */
+    private void addResponseDataV3(HttpServletResponse response, String accessToken, String refreshToken, String email) throws IOException {
+        // 액세스 토큰을 JsonObject 형식으로 응답 데이터에 포함하여 클라이언트에게 반환
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        // JSON 객체를 생성하고 액세스 토큰을 추가
+        JsonObject responseData = new JsonObject();
+        responseData.addProperty("accessToken", accessToken);
+        response.getWriter().write(responseData.toString());
+        // 리프레시 토큰을 쿠키에 저장
+        response.addCookie(createCookie("refreshAuthorization", "Bearer+" +refreshToken));
+        // HttpStatus 200 OK
+        response.setStatus(HttpStatus.OK.value());
+    }
+
+    /**
+     * [RefreshToken - DB 관리] 리프레쉬 토큰 관리권한이 서버에 있다.
+     * 로그인에 성공 시, 이미 가지고 있던 리프레쉬 토큰 or 처믕 로그인한 유저에 대해 리프레쉬 토큰을 DB에 업데이트.
+     * @param member 회원의 PK로, member의 refresh Token를 조회.
+     * @param newRefreshToken
+     */
+    private void saveOrUpdateRefreshEntity(Member member, String newRefreshToken) {
+        // 멤버의 PK 식별자로, refresh 토큰을 가져온다.
+        Optional<Refresh> existedRefresh = refreshRepository.findById(member.getId());
+        LocalDateTime expirationDateTime = LocalDateTime.now().plusSeconds(refreshTokenExpirationPeriod);
+        if (existedRefresh.isPresent()) {
+            // 로그인 이메일과 같은 이메일을 가지고 있는 Refresh 엔티티에 대해서, refresh 값을 새롭게 업데이트해줌
+            Refresh refreshEntity = existedRefresh.get();
+            // Dto 를 통해서, 새롭게 생성한 RefreshToken 값, 유효기간 등을 받아준다.
+            RefreshDto refreshDto = RefreshDto.createRefreshDto(newRefreshToken, expirationDateTime);
+            // Dto 정보들로 기존에 있던 Refresh 엔티티를 업데이트합니다.
+            refreshEntity.updateRefreshToken(refreshDto);
+            // 저장합니다.
+            refreshRepository.save(refreshEntity);
+        } else {
+            // 완전히 새로운 리프레시 토큰을 생성 후 저장
+            Refresh newRefreshEntity = new Refresh(member, newRefreshToken, expirationDateTime);
+            refreshRepository.save(newRefreshEntity);
+        }
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

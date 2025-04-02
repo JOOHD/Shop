@@ -24,7 +24,7 @@ public class QProductManagement extends EntityPathBase<ProductManagement> {
 
     public final NumberPath<Long> additionalStock = createNumber("additionalStock", Long.class);
 
-    public final JOO.jooshop.category.entity.QCategory category;
+    public final JOO.jooshop.categorys.entity.QCategory category;
 
     public final JOO.jooshop.product.entity.QProductColor color;
 
@@ -64,7 +64,7 @@ public class QProductManagement extends EntityPathBase<ProductManagement> {
 
     public QProductManagement(Class<? extends ProductManagement> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.category = inits.isInitialized("category") ? new JOO.jooshop.category.entity.QCategory(forProperty("category"), inits.get("category")) : null;
+        this.category = inits.isInitialized("category") ? new JOO.jooshop.categorys.entity.QCategory(forProperty("category"), inits.get("category")) : null;
         this.color = inits.isInitialized("color") ? new JOO.jooshop.product.entity.QProductColor(forProperty("color")) : null;
         this.product = inits.isInitialized("product") ? new JOO.jooshop.product.entity.QProduct(forProperty("product")) : null;
     }

@@ -1,6 +1,6 @@
-package JOO.jooshop.category.repository;
+package JOO.jooshop.categorys.repository;
 
-import JOO.jooshop.category.entity.Category;
+import JOO.jooshop.categorys.entity.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

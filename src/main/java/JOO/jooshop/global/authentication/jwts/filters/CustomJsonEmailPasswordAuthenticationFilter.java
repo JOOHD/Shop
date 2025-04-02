@@ -21,6 +21,17 @@ import java.util.Map;
 
 public class CustomJsonEmailPasswordAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
+    /**
+     * 전체 요약
+     * 1. 클랑이언트 /login 경로로 POST 요청 (JSON)
+     * 2. CustomJsonEamilPassword.. 가 요청을 가로챔
+     * 3. StreamUtils.copyToString() 사용해 요청 본문을 String 으로 읽음
+     * 4. ObjectMapper 로 Json을 Map<String, String> 형태로 변환
+     * 5. email 과 password 값을 추출하여 UsernamePasswordAuthenticationToken 생성
+     * 6. AuthenticationManager.authenticate()를 호출하여 인증 진행
+     *      - 인증 성공 시 인증된 Authentication 객체 반환
+     *      - 인증 실패 시 예외 발생
+     */
     public static final String SPRING_SECURITY_FORM_USERNAME_KEY = "email";
 
     public static final String SPRING_SECURITY_FORM_PASSWORD_KEY = "password";
@@ -36,9 +47,9 @@ public class CustomJsonEmailPasswordAuthenticationFilter extends AbstractAuthent
 
     private boolean postOnly = true;
 
-    private final ObjectMapper objectMapper;
-
-
+    // private : 자식 클래스에서 직접 접근 불가능.
+    // protected : 자식 클래스에서 직접 사용할 수 있다.
+    protected final ObjectMapper objectMapper;
 
     public CustomJsonEmailPasswordAuthenticationFilter(AuthenticationManager authenticationManager, ObjectMapper objectMapper) {
         super(DEFAULT_ANT_PATH_REQUEST_MATCHER, authenticationManager);
@@ -83,6 +94,8 @@ public class CustomJsonEmailPasswordAuthenticationFilter extends AbstractAuthent
         UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(email, password);
         //principal 과 credentials 전달
 
+        // this = CustomJsonEmailPasswordAuthenticationFilter 의 인스턴스를 가리킨다.
+        // 즉, AbstractAuthentication... 을 상속, 부모 클래스의 메서드를 호출한다는 의미 (this 생략 가능)
         return this.getAuthenticationManager().authenticate(authRequest);
     }
 
