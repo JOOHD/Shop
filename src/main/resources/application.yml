@@ -69,3 +69,8 @@ spring:
     url: http://localhost:8080
   frontend:
     url: http://localhost:3000  # 기본값을 http://localhost:3000으로 설정
+
+  imp:
+    api:
+      key: ${IMP_API_KEY}
+      secretkey: ${IMP_SECRET_KEY}

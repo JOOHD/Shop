@@ -16,7 +16,7 @@ import com.querydsl.core.types.dsl.PathInits;
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
 public class QCategory extends EntityPathBase<Category> {
 
-    private static final long serialVersionUID = -1029812213L;
+    private static final long serialVersionUID = -819836386L;
 
     private static final PathInits INITS = PathInits.DIRECT2;
 
