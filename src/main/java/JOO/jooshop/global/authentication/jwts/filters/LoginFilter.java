@@ -230,20 +230,18 @@ public class LoginFilter extends CustomJsonEmailPasswordAuthenticationFilter {
      * @param newRefreshToken
      */
     private void saveOrUpdateRefreshEntity(Member member, String newRefreshToken) {
-        // 멤버의 PK 식별자로, refresh 토큰을 가져온다.
-        Optional<Refresh> existedRefresh = refreshRepository.findById(member.getId());
+        // memberId 로 refresh 엔티티 조회 (중복 저장 방지)
+        Optional<Refresh> existedRefresh = refreshRepository.findByMemberId(member.getId());
         LocalDateTime expirationDateTime = LocalDateTime.now().plusSeconds(refreshTokenExpirationPeriod);
+
         if (existedRefresh.isPresent()) {
-            // 로그인 이메일과 같은 이메일을 가지고 있는 Refresh 엔티티에 대해서, refresh 값을 새롭게 업데이트해줌
+            // 이미 존재한다면, 기존 엔티티 업데이트
             Refresh refreshEntity = existedRefresh.get();
-            // Dto 를 통해서, 새롭게 생성한 RefreshToken 값, 유효기간 등을 받아준다.
             RefreshDto refreshDto = RefreshDto.createRefreshDto(newRefreshToken, expirationDateTime);
-            // Dto 정보들로 기존에 있던 Refresh 엔티티를 업데이트합니다.
             refreshEntity.updateRefreshToken(refreshDto);
-            // 저장합니다.
             refreshRepository.save(refreshEntity);
         } else {
-            // 완전히 새로운 리프레시 토큰을 생성 후 저장
+            // 없으면 새로 저장
             Refresh newRefreshEntity = new Refresh(member, newRefreshToken, expirationDateTime);
             refreshRepository.save(newRefreshEntity);
         }
