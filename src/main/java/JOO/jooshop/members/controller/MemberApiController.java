@@ -64,7 +64,7 @@ public class MemberApiController {
         return handleMemberActivationDeactivation(memberId, true, "이미 활성화된 계정입니다!", "계정이 활성화되었습니다.");
     }
 
-    @PostMapping("/repassword/{memberId") // 회원 비밀번호 재설정
+    @PostMapping("/repassword/{memberId}") // 회원 비밀번호 재설정
     public ResponseEntity<?> rePasswordMember(@PathVariable Long memberId, HttpServletRequest request, @RequestBody ResetPasswordRequest passwordRequest) {
         MemberAuthorizationUtil.verifyUserIdMatch(memberId);
         Member existingMember = findExistingMember(memberId);

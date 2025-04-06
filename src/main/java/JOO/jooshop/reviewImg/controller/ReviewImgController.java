@@ -29,7 +29,7 @@ public class ReviewImgController {
         return ResponseEntity.status(HttpStatus.OK).body("사진 삭제 완료");
     }
 
-    @GetMapping("/{reviewId")
+    @GetMapping("/{reviewId}")
     public ResponseEntity<List<String>> getReviewImgs(@PathVariable Long reviewId) {
         List<ReviewImg> images = reviewImgService.getReviewImg(reviewId);
         if (!images.isEmpty()) {

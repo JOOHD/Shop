@@ -28,12 +28,15 @@ public class ProductRankingService {
 
         Redis : 실시간 랭킹 같은 빠른 데이터 처리를 위해 사용. ZSet(정렬된 집합) 활용
         ModelMapper : Entity -> DTO 변환을 편하게 하기 위해 사용
+
+        - RedisTemplate<String, Object> + GenericJackson2JsonRedisSerializer 조합은 문자열 + 객체 모두 저장 가능
+        - 단순 랭킹뿐 아니라, 제품 상세 캐시, 인기 상품 리스트, 유저 임시 정보 저장 등 다양한 기능에 대응
      */
 
     public final ProductRepositoryV1 productRepository;
     public final ProductColorRepositoryV1 productColorRepository;
     public final ModelMapper modelMapper;
-    private final RedisTemplate<String, String> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     // 상품 조회수 증가 메서드
     public void increaseProductViews(Long productId) {
@@ -46,7 +49,10 @@ public class ProductRankingService {
     public Set<String> getTopProductIds(int limit) {
         String key = "product_views";
         // Redis 에 있는 key 값을 ZSet 에서 '조회수가 높은 순서'로 상품 ID를 가져온다.
-        return redisTemplate.opsForZSet().reverseRange(key, 0, limit - 1);
+        return redisTemplate.opsForZSet().reverseRange(key, 0, limit - 1)
+                .stream()
+                .map(String::valueOf) // Object -> String
+                .collect(Collectors.toSet());
     }
 
     // 랭킹순으로 상품 리스트를 조회하는 메서드

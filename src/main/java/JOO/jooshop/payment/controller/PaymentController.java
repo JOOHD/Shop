@@ -49,7 +49,7 @@ public class PaymentController {
     @Value("${IMP_API_KEY}")
     private String apiKey;
 
-    @Value("${imp.api.secretkey}")
+    @Value("${IMP_SECRET_KEY}")
     private String secretKey;
 
     /**

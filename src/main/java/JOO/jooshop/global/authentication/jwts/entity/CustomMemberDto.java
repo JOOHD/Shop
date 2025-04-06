@@ -65,8 +65,8 @@ public class CustomMemberDto {
                 member.getMemberRole(),
                 member.getIsActive(),
                 member.getIsBanned(),
-                member.getIsAccountExpired(),
-                member.getIsPasswordExpired()
+                member.isAccountExpired(),
+                member.isPasswordExpired()
         );
     }
 

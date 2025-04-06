@@ -23,6 +23,7 @@ spring:
 #    username: root
 #    password: 1234
 #    driver-class-name: org.h2.Driver
+#    port: 465을 쓸 때는 반드시 SSL을 명시해야 함 (starttls X)
   mail:
     username: hddong728@naver.com
     password: Joodone9!

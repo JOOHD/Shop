@@ -67,7 +67,7 @@ public class ProfileControllerV1 {
     }
 
     /* 프로필 이미지 경로 조회 */
-    @GetMapping("/image/{memberId")
+    @GetMapping("/image/{memberId}")
     public ResponseEntity<?> getProfileImage(@PathVariable Long memberId) throws Exception {
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_TYPE, "image/jpeg");
@@ -82,7 +82,7 @@ public class ProfileControllerV1 {
     }
 
     /* 프로필 이미지 삭제 */
-    @DeleteMapping("/image/{memberId")
+    @DeleteMapping("/image/{memberId}")
     public ResponseEntity<String> deleteProfileImage(@PathVariable Long memberId) {
         MemberAuthorizationUtil.verifyUserIdMatch(memberId);
         try {

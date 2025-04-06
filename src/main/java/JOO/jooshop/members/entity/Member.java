@@ -195,14 +195,14 @@ public class Member {
     public boolean getIsBanned() {
         return isBanned;
     }
-    // 회원 계정 만료 여부 가져오기
-    public boolean getIsAccountExpired() {
-        return getIsAccountExpired();
-    }
-    // 회원 비밀번호 만료 여부 가져오기
-    public boolean getIsPasswordExpired() {
-        return getIsPasswordExpired();
-    }
+//    // 회원 계정 만료 여부 가져오기
+//    public boolean getIsAccountExpired() {
+//        return this.getIsAccountExpired(); // 자기 자신을 계속 호출 → 무한 재귀 호출 발생
+//    }
+//    // 회원 비밀번호 만료 여부 가져오기
+//    public boolean getIsPasswordExpired() {
+//        return this.getIsPasswordExpired();
+//    }
 
     // 회원 비활성화
     public void activateMember() {
