@@ -77,7 +77,8 @@ public class JWTFilterV3 extends OncePerRequestFilter {
         }
 
         if (authorization != null && authorization.startsWith("Bearer ")) {
-            String accessToken = authorization.split(" ")[1];
+            String accessToken = authorization.substring(7).trim(); // "Bearer " 는 7글자
+            log.info("accessToken whitespace check: ", accessToken);
 
             if (jwtUtil.isExpired(accessToken)) {
                 filterChain.doFilter(request, response);  // 만료된 access token 처리

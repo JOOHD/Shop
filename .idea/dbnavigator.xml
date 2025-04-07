@@ -36,6 +36,9 @@
   <component name="DBNavigator.Project.DatabaseSessionManager">
     <connection id="866b87e2-b2ee-47f4-a01b-ae5c96563b19" />
   </component>
+  <component name="DBNavigator.Project.ExecutionManager">
+    <retain-sticky-names value="false" />
+  </component>
   <component name="DBNavigator.Project.ObjectQuickFilterManager">
     <last-used-operator value="EQUAL" />
     <filters />

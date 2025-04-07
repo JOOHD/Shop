@@ -126,7 +126,7 @@ public class LoginFilter extends CustomJsonEmailPasswordAuthenticationFilter {
     public void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException, ServletException
     {
         // 개발 단계에서 로그확인. 배포 후 : 없앨 예정
-        log.warn("개발 단계에서 유저에 대한 정보를 확인하는 로그입니다. 배포 시 삭제해야 합니다 ! [24.04.06 김성우]");
+        log.warn("개발 단계에서 유저에 대한 정보를 확인하는 로그입니다. 배포 시 삭제");
         log.info("로그인에 성공했습니다.");
         log.info("유저 메일: " + authentication.getName());
         log.info("유저 권한: " + authentication.getAuthorities().stream()
@@ -216,6 +216,7 @@ public class LoginFilter extends CustomJsonEmailPasswordAuthenticationFilter {
         // JSON 객체를 생성하고 액세스 토큰을 추가
         JsonObject responseData = new JsonObject();
         responseData.addProperty("accessToken", accessToken);
+        responseData.addProperty("refreshToken", refreshToken);
         response.getWriter().write(responseData.toString());
         // 리프레시 토큰을 쿠키에 저장
         response.addCookie(createCookie("refreshAuthorization", "Bearer+" +refreshToken));
@@ -231,7 +232,7 @@ public class LoginFilter extends CustomJsonEmailPasswordAuthenticationFilter {
      */
     private void saveOrUpdateRefreshEntity(Member member, String newRefreshToken) {
         // memberId 로 refresh 엔티티 조회 (중복 저장 방지)
-        Optional<Refresh> existedRefresh = refreshRepository.findByMemberId(member.getId());
+        Optional<Refresh> existedRefresh = refreshRepository.findByMember(member);
         LocalDateTime expirationDateTime = LocalDateTime.now().plusSeconds(refreshTokenExpirationPeriod);
 
         if (existedRefresh.isPresent()) {

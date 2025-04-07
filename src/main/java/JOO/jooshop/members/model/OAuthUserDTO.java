@@ -25,7 +25,7 @@ public class OAuthUserDTO {
 
     public static OAuthUserDTO createOAuthUserDTO(Long memberId, String email, String username, MemberRole role, SocialType socialType, String socialId, boolean isCertifty) {
         OAuthUserDTO userDTO = new OAuthUserDTO();
-        userDTO.setMemberId(memberId); // Member Id 를 반환하도록 추가하였음 [2024.04.17 김성우]
+        userDTO.setMemberId(memberId); // Member Id 를 반환하도록 추가
         userDTO.setEmail(email);
         userDTO.setUsername(username);
         userDTO.setRole(role);
@@ -37,7 +37,7 @@ public class OAuthUserDTO {
 
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
-        map.put("memberId", memberId); // Member Id 를 반환하도록 추가하였음 [2024.04.17 김성우]
+        map.put("memberId", memberId); // Member Id 를 반환하도록 추가
         map.put("email", this.email);
         map.put("username", this.username);
         map.put("role", this.role.toString());

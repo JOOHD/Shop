@@ -254,7 +254,7 @@ public class SocialLoginController {
 
     /* 리프레쉬 토큰 저장 */
     private void saveRefresh(Member member, String newRefreshToken) {
-        Optional<Refresh> existedRefresh = refreshRepository.findByMemberId(member.getId());
+        Optional<Refresh> existedRefresh = refreshRepository.findByMember(member);
         LocalDateTime expirationDateTime = LocalDateTime.now().plusSeconds(refreshTokenExpirationPeriod);
 
         // 맴버의 Refresh 토큰이 존재하지 않는 경우, 새 refreshToken 을 생성하고 저장

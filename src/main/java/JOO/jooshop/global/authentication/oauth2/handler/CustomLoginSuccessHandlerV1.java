@@ -41,7 +41,7 @@ public class CustomLoginSuccessHandlerV1 extends SimpleUrlAuthenticationSuccessH
         - refresh DB(보안), Cookie(클라이언트-서버 간 자동 인증) 쿠키 기반 인증 방식
         - 로그인 성공 후, frontend 로 redirect
      */
-    private JWTUtil jwtUtil;
+    private final JWTUtil jwtUtil;
     private final MemberRepositoryV1 memberRepository;
     private final RefreshRepository refreshRepository;
 

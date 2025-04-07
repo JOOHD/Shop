@@ -109,7 +109,7 @@ public class CustomLoginSuccessHandlerV2 extends SimpleUrlAuthenticationSuccessH
 
     private void saveOrUpdateRefreshEntity(Member member, String newRefreshToken) {
         // 멤버의 PK 식별자로, refresh 토큰을 가져온다.
-        Optional<Refresh> existedRefresh = refreshRepository.findByMemberId(member.getId());
+        Optional<Refresh> existedRefresh = refreshRepository.findByMember(member);
         LocalDateTime expiration = LocalDateTime.now().plusSeconds(refreshTokenExpirationPeriod);
         existedRefresh.ifPresentOrElse(refreshEntity -> {
             if (refreshEntity.getExpiration().isBefore(LocalDateTime.now())) {

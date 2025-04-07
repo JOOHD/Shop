@@ -37,9 +37,9 @@ public class MemberApiController {
     private final MemberRepositoryV1 memberRepository;
     private final JWTUtil jwtUtil;
 
-    @GetMapping("/") // 회원 목록 조회
+    @GetMapping // 회원 목록 조회, ("") 생략
     public ResponseEntity<?> getMemberList(HttpServletRequest request) {
-        // 1. 헤더의 Authorization에서 JWT 토큰을 꺼냄.
+        // 1. 헤더의 Authorization 에서 JWT 토큰을 꺼냄.
         String accessToken = extractAccessToken(request);
         // 2. 토큰에서 MemberRole을 추출.
         MemberRole userRole = jwtUtil.getRole(accessToken);

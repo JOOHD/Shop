@@ -159,7 +159,6 @@ public class CategoryDataUtil {
 
 
     /**
-     * 2024.04.23 김성우
      * 부모 카테고리 생성 후, 자식 카테고리를 생성하지 않아
      * 부모 카테고리 id를 찾을 수 없어 RuntimeException 발생
      */

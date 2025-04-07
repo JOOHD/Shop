@@ -1,5 +1,6 @@
 package JOO.jooshop.members.repository;
 
+import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.entity.Refresh;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,5 +18,5 @@ public interface RefreshRepository extends JpaRepository<Refresh, Long> {
 
     Optional<Refresh> findByRefreshToken(String refresh);
 
-    Optional<Refresh> findByMemberId(Long id);
+    Optional<Refresh> findByMember(Member member);
 }
