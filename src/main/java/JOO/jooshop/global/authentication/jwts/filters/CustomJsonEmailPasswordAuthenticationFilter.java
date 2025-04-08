@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,6 +20,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+@Slf4j
 public class CustomJsonEmailPasswordAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
     /**
@@ -90,6 +92,9 @@ public class CustomJsonEmailPasswordAuthenticationFilter extends AbstractAuthent
 
         String email = usernamePasswordMap.get(SPRING_SECURITY_FORM_USERNAME_KEY);
         String password = usernamePasswordMap.get(SPRING_SECURITY_FORM_PASSWORD_KEY);
+
+        log.info("[로그인 요청] 파싱된 이메일: {}, 비밀번호: {}", email, password);
+        log.info("[로그인 요청] 전체 요청 맵: {}", usernamePasswordMap);
 
         UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(email, password);
         //principal 과 credentials 전달

@@ -47,7 +47,7 @@ public class ProfileControllerV1 {
 
     /* 프로필 조회 */
     @GetMapping("/{memberId}")
-    public ResponseEntity<MemberProfileDTO> getProfile(@PathVariable Long memberId) {
+    public ResponseEntity<MemberProfileDTO> getProfile(@PathVariable("memberId") Long memberId) {
         MemberAuthorizationUtil.verifyUserIdMatch(memberId);
         Optional<Profiles> memberProfiles = getMemberProfileByMemberId(memberId);
 

@@ -17,14 +17,17 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
+@Component
 @RequiredArgsConstructor
 public class JWTFilterV3 extends OncePerRequestFilter {
 
@@ -59,53 +62,88 @@ public class JWTFilterV3 extends OncePerRequestFilter {
 
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // request 에서 Authentication(accessToken) 헤더 찾음
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+
         String authorization = request.getHeader("Authorization");
-        // 쿠키에서 "refreshAuthorization(refreshToken)" 값을 가져 옴
         String refreshAuthorization = cookieService.getRefreshAuthorization(request);
 
-        // refreshToken 검증
+        log.info("[JWT Filter] 요청 URI: {}", request.getRequestURI());
+        log.info("[JWT Filter] Authorization 헤더: {}", authorization);
+        log.info("[JWT Filter] RefreshAuthorization 쿠키: {}", refreshAuthorization);
+
         if (refreshAuthorization == null || !refreshAuthorization.startsWith("Bearer ")) {
+            log.warn("[JWT Filter] RefreshToken 없음 또는 형식 이상");
             filterChain.doFilter(request, response);
             return;
         }
-        String refreshToken = refreshAuthorization.substring(7); // "Bearer " 이후 부분만 처리
+
+        String refreshToken = refreshAuthorization.substring(7);
         if (!jwtUtil.validateToken(refreshToken)) {
-            filterChain.doFilter(request, response);  // refresh token이 유효하지 않으면 넘김
+            log.warn("[JWT Filter] RefreshToken 유효하지 않음");
+            filterChain.doFilter(request, response);
             return;
         }
 
         if (authorization != null && authorization.startsWith("Bearer ")) {
-            String accessToken = authorization.substring(7).trim(); // "Bearer " 는 7글자
-            log.info("accessToken whitespace check: ", accessToken);
+            String accessToken = authorization.substring(7).trim();
+            log.info("[JWT Filter] AccessToken 존재 및 Bearer 확인됨: {}", accessToken);
 
             if (jwtUtil.isExpired(accessToken)) {
-                filterChain.doFilter(request, response);  // 만료된 access token 처리
+                log.warn("[JWT Filter] AccessToken 만료됨");
+                filterChain.doFilter(request, response);
                 return;
             }
 
-            Authentication authToken = getAuthentication(accessToken);
-            SecurityContextHolder.getContext().setAuthentication(authToken);
+            try {
+                Authentication authToken = getAuthentication(accessToken);
+
+                if (authToken != null) {
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                    log.info("[JWT Filter] SecurityContext 에 인증 정보 설정 완료: {}", authToken.getPrincipal());
+                } else {
+                    log.warn("[JWT Filter] 인증 정보가 null 입니다. SecurityContext 설정 생략");
+                }
+
+            } catch (Exception e) {
+                log.warn("[JWT Filter] 인증 정보 설정 실패: {}", e.getMessage());
+            }
+
+        } else {
+            log.warn("[JWT Filter] Authorization 헤더 없음 또는 형식 이상함");
         }
 
         filterChain.doFilter(request, response);
     }
 
     private Authentication getAuthentication(String token) {
+        log.info("[getAuthentication] 토큰으로 인증 시도 중");
+
         if (!jwtUtil.validateToken(token)) {
             throw new BadCredentialsException("유효하지 않은 토큰입니다.");
         }
 
         String memberId = jwtUtil.getMemberId(token);
-        Member member = memberRepository.findById(Long.valueOf(memberId))
-                .orElseThrow(() -> new BadCredentialsException("사용자를 찾을 수 없습니다."));
+        log.info("[getAuthentication] memberId from token: {}", memberId);
+
+        Optional<Member> optionalMember = memberRepository.findById(Long.valueOf(memberId));
+        if (optionalMember.isEmpty()) {
+            log.warn("[getAuthentication] 사용자 없음 (memberId: {})", memberId);
+            return null;
+        }
+
+        Member member = optionalMember.get();
+        log.info("[getAuthentication] 사용자 조회 성공: {}", member.getEmail());
 
         CustomMemberDto customMemberDto = CustomMemberDto.createCustomMember(member);
-        // customUserDetails 로 통일
         CustomUserDetails customUserDetails = new CustomUserDetails(customMemberDto);
+        log.info("[getAuthentication] CustomUserDetails 생성 완료: {}", customUserDetails.getUsername());
 
-        return new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
+        return new UsernamePasswordAuthenticationToken(
+                customUserDetails,
+                null,
+                customUserDetails.getAuthorities()
+        );
     }
 }
 

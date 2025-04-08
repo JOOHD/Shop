@@ -72,6 +72,7 @@ public class LoginFilter extends CustomJsonEmailPasswordAuthenticationFilter {
      */
     @Override 
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException {
+        log.info("[디버깅] attemptAuthentication 호출됨");
 
         try {
             if (request.getContentType() == null || !request.getContentType().equals(CONTENT_TYPE)) {
@@ -126,7 +127,6 @@ public class LoginFilter extends CustomJsonEmailPasswordAuthenticationFilter {
     public void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException, ServletException
     {
         // 개발 단계에서 로그확인. 배포 후 : 없앨 예정
-        log.warn("개발 단계에서 유저에 대한 정보를 확인하는 로그입니다. 배포 시 삭제");
         log.info("로그인에 성공했습니다.");
         log.info("유저 메일: " + authentication.getName());
         log.info("유저 권한: " + authentication.getAuthorities().stream()

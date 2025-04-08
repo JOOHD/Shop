@@ -87,11 +87,13 @@ public class JWTUtil { // JwtTokenProvider
     }
 
     public String getMemberId(String token) {
-        return parseToken(token).get(MEMBERPK_CLAIM_KEY, String.class);
+        Object memberId = parseToken(token).get(MEMBERPK_CLAIM_KEY); // "memberId"는 Long일 수도 있음
+        return memberId != null ? memberId.toString() : null;
     }
 
     public String getCategory(String token) {
-        return parseToken(token).get(CATEGORY_CLAIM_KEY, String.class);
+        Object category = parseToken(token).get(CATEGORY_CLAIM_KEY);
+        return category != null ? category.toString() : null;
     }
 
     public MemberRole getRole(String token) {

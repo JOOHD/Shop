@@ -4,6 +4,9 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+
 public class CookieUtil {
 
     public static Cookie createCookie(String key, String value) {
@@ -22,8 +25,12 @@ public class CookieUtil {
     public static String getCookieValue(HttpServletRequest request,  String cookieName) {
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
-                if (cookieName.equals(cookie.getName())) {
-                    return cookie.getValue();
+                try {
+                    // 쿠키는 + 로 인코딩되기 때문에 공백 처리 필요
+                    return URLDecoder.decode(cookie.getValue(), "UTF-8").replace("+", " ");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                    return null;
                 }
             }
         }
