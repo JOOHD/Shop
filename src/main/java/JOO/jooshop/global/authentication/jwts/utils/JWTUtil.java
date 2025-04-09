@@ -87,12 +87,12 @@ public class JWTUtil { // JwtTokenProvider
     }
 
     public String getMemberId(String token) {
-        Object memberId = parseToken(token).get(MEMBERPK_CLAIM_KEY); // "memberId"는 Long일 수도 있음
+        Object memberId = parseToken(token).get(MEMBERPK_CLAIM_KEY); // "memberId"는 Long 일 수도 있음
         return memberId != null ? memberId.toString() : null;
     }
 
     public String getCategory(String token) {
-        Object category = parseToken(token).get(CATEGORY_CLAIM_KEY);
+        Object category = parseToken(token).get(CATEGORY_CLAIM_KEY); // NPE 을 피하면서도 memberId의 값을 안전하게 확인
         return category != null ? category.toString() : null;
     }
 
