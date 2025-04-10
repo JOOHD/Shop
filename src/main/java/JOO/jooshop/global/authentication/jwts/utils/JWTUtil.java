@@ -41,7 +41,7 @@ public class JWTUtil { // JwtTokenProvider
     private String jwtSecret;
     private static final String MEMBERPK_CLAIM_KEY = "memberId";
     private static final String CATEGORY_CLAIM_KEY = "category";
-    private Long accessTokenExpirationPeriod = 60L * 12; // 12 분
+    private Long accessTokenExpirationPeriod = 60L * 30; // 30 분
     private Long refreshTokenExpirationPeriod = 3600L * 24 * 7; // 7일
 
     @PostConstruct

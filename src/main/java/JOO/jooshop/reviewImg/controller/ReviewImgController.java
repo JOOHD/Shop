@@ -24,13 +24,13 @@ public class ReviewImgController {
     }
 
     @DeleteMapping("/delete/{reviewImgId}")
-    public ResponseEntity<String> deleteReviewImg(@PathVariable Long reviewImgId) {
+    public ResponseEntity<String> deleteReviewImg(@PathVariable("reviewImgId") Long reviewImgId) {
         reviewImgService.deleteReviewImg(reviewImgId);
         return ResponseEntity.status(HttpStatus.OK).body("사진 삭제 완료");
     }
 
     @GetMapping("/{reviewId}")
-    public ResponseEntity<List<String>> getReviewImgs(@PathVariable Long reviewId) {
+    public ResponseEntity<List<String>> getReviewImgs(@PathVariable("reviewId") Long reviewId) {
         List<ReviewImg> images = reviewImgService.getReviewImg(reviewId);
         if (!images.isEmpty()) {
             List<String> imagePaths = images.stream()

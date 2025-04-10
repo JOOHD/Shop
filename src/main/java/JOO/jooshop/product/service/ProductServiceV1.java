@@ -46,6 +46,11 @@ public class ProductServiceV1 {
     @RequiresRole({MemberRole.ADMIN, MemberRole.SELLER})
     public Long createProduct(ProductCreateDto requestDto, @Nullable List<MultipartFile> thumbnailImgs, @Nullable List<MultipartFile> contentImgs) {
 
+        // requestDto.getPrice()가 null이면 null < 0 → NullPointerException 발생함.
+        if (requestDto.getPrice() == null) {
+            throw new IllegalArgumentException("가격은 필수 항목입니다.");
+        }
+
         if (requestDto.getPrice() < 0) {
             throw new IllegalArgumentException("가격은 0 이상이어야 합니다.");
         }

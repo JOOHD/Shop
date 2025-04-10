@@ -41,7 +41,7 @@ public class InquiryController {
      * @return
      */
     @GetMapping("/list/{productId}")
-    public List<InquiryDto> getProductInquiries(@PathVariable Long productId) {
+    public List<InquiryDto> getProductInquiries(@PathVariable("productId") Long productId) {
         return inquiryService.inquiryListByProductId(productId);
     }
 
@@ -52,7 +52,7 @@ public class InquiryController {
      * @return
      */
     @PostMapping("/new/{productId}")
-    public ResponseEntity<String> createInquiry(@Valid @RequestBody InquiryCreateDto requestDto, @PathVariable Long productId , HttpServletRequest request) {
+    public ResponseEntity<String> createInquiry(@Valid @RequestBody InquiryCreateDto requestDto, @PathVariable("productId") Long productId , HttpServletRequest request) {
         try {
 
             Long createdId = inquiryService.createInquiry(requestDto, productId, request);
@@ -68,7 +68,7 @@ public class InquiryController {
      * @return
      */
     @GetMapping("/{inquiryId}")
-    public ResponseEntity<Object> getInquiryById(@PathVariable Long inquiryId) {
+    public ResponseEntity<Object> getInquiryById(@PathVariable("inquiryId") Long inquiryId) {
         try {
             InquiryDto inquiryDetail = inquiryService.inquiryDetail(inquiryId);
             return new ResponseEntity<>(inquiryDetail, HttpStatus.OK);
@@ -84,7 +84,7 @@ public class InquiryController {
      * @return
      */
     @PutMapping("/{inquiryId}")
-    public ResponseEntity<String> updateInquiry(@PathVariable Long inquiryId, @Valid @RequestBody InquiryUpdateDto requestDto) {
+    public ResponseEntity<String> updateInquiry(@PathVariable("inquiryId") Long inquiryId, @Valid @RequestBody InquiryUpdateDto requestDto) {
         Inquiry updated = inquiryService.updateInquiry(inquiryId, requestDto, requestDto.getPassword());
         return ResponseEntity.ok("수정 완료 : "+ updated.getInquiryId());
     }
@@ -96,7 +96,7 @@ public class InquiryController {
      * @return
      */
     @DeleteMapping("/{inquiryId}")
-    public ResponseEntity<String> deleteInquiry(@PathVariable Long inquiryId, @RequestHeader("password") String password) {
+    public ResponseEntity<String> deleteInquiry(@PathVariable("inquiryId") Long inquiryId, @RequestHeader("password") String password) {
         inquiryService.deleteInquiry(inquiryId, password);
         return ResponseEntity.ok().body(DELETE_SUCCESS);
     }

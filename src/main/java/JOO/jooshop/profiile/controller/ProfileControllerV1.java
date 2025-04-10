@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -68,22 +69,22 @@ public class ProfileControllerV1 {
 
     /* 프로필 이미지 경로 조회 */
     @GetMapping("/image/{memberId}")
-    public ResponseEntity<?> getProfileImage(@PathVariable Long memberId) throws Exception {
+    public ResponseEntity<?> getProfileImage(@PathVariable("memberId") Long memberId) throws Exception {
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_TYPE, "image/jpeg");
         return ResponseEntity.ok().body(profileService.getProfileImage(memberId)); // 500 (서비스 클래스 처리)
     }
 
     /* 프로필 이미지 업로드 */
-    @PostMapping("/image/{memberId}")
-    public ResponseEntity<String> postProfileImage(@PathVariable Long memberId, @RequestParam("imageFile") MultipartFile imageFile) throws Exception {
+    @PostMapping(value = "/image/{memberId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> postProfileImage(@PathVariable("memberId") Long memberId, @RequestParam("imageFile") MultipartFile imageFile) throws Exception {
         MemberAuthorizationUtil.verifyUserIdMatch(memberId);
         return profileService.uploadProfileImageV3(memberId, imageFile);
     }
 
     /* 프로필 이미지 삭제 */
     @DeleteMapping("/image/{memberId}")
-    public ResponseEntity<String> deleteProfileImage(@PathVariable Long memberId) {
+    public ResponseEntity<String> deleteProfileImage(@PathVariable("memberId") Long memberId) {
         MemberAuthorizationUtil.verifyUserIdMatch(memberId);
         try {
             profileService.deleteProfileImage(memberId);
@@ -105,7 +106,7 @@ public class ProfileControllerV1 {
 
     /* 회원 닉네임 변경 */
     @PutMapping("/{memberId}/nickname")
-    public ResponseEntity<String> updateMemberNickname(@PathVariable Long memberId, @RequestBody String newNickname) {
+    public ResponseEntity<String> updateMemberNickname(@PathVariable("memberId") Long memberId, @RequestBody String newNickname) {
         // RequestBody 로 건너온 Nickname 을 enum 타입으로 변경
         newNickname = newNickname.replace("\"", "");
         log.info(newNickname);
@@ -126,7 +127,7 @@ public class ProfileControllerV1 {
 
     /* 회원 나이 변경 */
     @PutMapping("/{memberId}/age")
-    public ResponseEntity<String> updateMemberAge(@PathVariable Long memberId, @RequestBody String newAge) {
+    public ResponseEntity<String> updateMemberAge(@PathVariable("memberId") Long memberId, @RequestBody String newAge) {
         // RequestBody 로 건너온 newAge 이 어떻게 넘어오는지 체크
         newAge = newAge.replace("\"", "");
         log.info(newAge);
@@ -148,7 +149,7 @@ public class ProfileControllerV1 {
 
     /* 회원 성별 변경 */
     @PutMapping("/{memberId}/gender")
-    public ResponseEntity<String> updateMemberGender(@PathVariable Long memberId, @RequestBody String newGender) {
+    public ResponseEntity<String> updateMemberGender(@PathVariable("memberId") Long memberId, @RequestBody String newGender) {
         // RequestBody 로 건너온 newGender 이 어떻게 넘어오는지 체크
         newGender = newGender.replace("\"", "");
         log.info(newGender);

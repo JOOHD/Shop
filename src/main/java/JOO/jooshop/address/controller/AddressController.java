@@ -26,7 +26,7 @@ public class AddressController {
      * @return 회원이 등록한 주소 리스트 반환
      */
     @GetMapping("/address/{memberId}")
-    public ResponseEntity<List<Addresses>> fetchAddressList(@PathVariable Long memberId) {
+    public ResponseEntity<List<Addresses>> fetchAddressList(@PathVariable("memberId") Long memberId) {
         // 회원 본인 여부 검증 (인증/인가)
         MemberAuthorizationUtil.verifyUserIdMatch(memberId);
 
@@ -41,7 +41,7 @@ public class AddressController {
      * @return 생성된 주소 정보 반환
      */
     @PostMapping("/address/{memberId}")
-    public ResponseEntity<Addresses> createAddress(@PathVariable Long memberId, @RequestBody AddressesRequstDto addressDto) {
+    public ResponseEntity<Addresses> createAddress(@PathVariable("memberId") Long memberId, @RequestBody AddressesRequstDto addressDto) {
         // 회원 본인 여부 검증
         MemberAuthorizationUtil.verifyUserIdMatch(memberId);
 
@@ -56,7 +56,7 @@ public class AddressController {
      * @return 주소 상세 정보 반환
      */
     @GetMapping("/address/{memberId}/{addressId}")
-    public ResponseEntity<?> fetchDetailAddress(@PathVariable Long memberId, @PathVariable Long addressId) {
+    public ResponseEntity<?> fetchDetailAddress(@PathVariable("memberId") Long memberId, @PathVariable Long addressId) {
         // 회원 본인 여부 검증
         MemberAuthorizationUtil.verifyUserIdMatch(memberId);
 
@@ -72,7 +72,7 @@ public class AddressController {
      * @return 수정 결과 반환
      */
     @PutMapping("/address/{memberId}/{addressId}")
-    public ResponseEntity<?> updateDetailAddress(@PathVariable Long memberId, @PathVariable Long addressId, @RequestBody AddressesRequstDto addressDto) {
+    public ResponseEntity<?> updateDetailAddress(@PathVariable("memberId") Long memberId, @PathVariable Long addressId, @RequestBody AddressesRequstDto addressDto) {
         // 회원 본인 여부 검증
         MemberAuthorizationUtil.verifyUserIdMatch(memberId);
 
@@ -87,7 +87,7 @@ public class AddressController {
      * @return 삭제 결과 반환
      */
     @DeleteMapping("/address/{memberId}/{addressId}")
-    public ResponseEntity<?> deleteDetailAddress(@PathVariable Long memberId, @PathVariable Long addressId) {
+    public ResponseEntity<?> deleteDetailAddress(@PathVariable("memberId") Long memberId, @PathVariable Long addressId) {
         // 회원 본인 여부 검증
         MemberAuthorizationUtil.verifyUserIdMatch(memberId);
 
@@ -102,7 +102,7 @@ public class AddressController {
      * @return 기본 주소 설정 결과 반환
      */
     @PutMapping("/address/default/{memberId}/{addressId}")
-    public ResponseEntity<?> updateIsDefaultAddress(@PathVariable Long memberId, @PathVariable Long addressId) {
+    public ResponseEntity<?> updateIsDefaultAddress(@PathVariable("memberId") Long memberId, @PathVariable Long addressId) {
         // 회원 본인 여부 검증
         MemberAuthorizationUtil.verifyUserIdMatch(memberId);
 

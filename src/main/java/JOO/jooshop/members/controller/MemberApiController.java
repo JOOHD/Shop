@@ -54,18 +54,18 @@ public class MemberApiController {
     }
 
     @PostMapping("/deactivate/{memberId}") // 회원 비활성화
-    public ResponseEntity<?> deActivateMember(@PathVariable Long memberId, HttpServletRequest request) {
+    public ResponseEntity<?> deActivateMember(@PathVariable("memberId") Long memberId, HttpServletRequest request) {
         return handleMemberActivationDeactivation(memberId, false, "이미 비활성화 된 계정입니다!", "계정이 비활성화 되었습니다.");
     }
 
     @PostMapping("/reactivate/{memberId}") // 회원 재활성화
-    public ResponseEntity<?> reActivateMember(@PathVariable Long memberId, HttpServletRequest request) {
+    public ResponseEntity<?> reActivateMember(@PathVariable("memberId") Long memberId, HttpServletRequest request) {
         MemberAuthorizationUtil.verifyUserIdMatch(memberId);
         return handleMemberActivationDeactivation(memberId, true, "이미 활성화된 계정입니다!", "계정이 활성화되었습니다.");
     }
 
     @PostMapping("/repassword/{memberId}") // 회원 비밀번호 재설정
-    public ResponseEntity<?> rePasswordMember(@PathVariable Long memberId, HttpServletRequest request, @RequestBody ResetPasswordRequest passwordRequest) {
+    public ResponseEntity<?> rePasswordMember(@PathVariable("memberId") Long memberId, HttpServletRequest request, @RequestBody ResetPasswordRequest passwordRequest) {
         MemberAuthorizationUtil.verifyUserIdMatch(memberId);
         Member existingMember = findExistingMember(memberId);
 

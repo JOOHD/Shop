@@ -9,6 +9,7 @@ import JOO.jooshop.productThumbnail.entity.ProductThumbnail;
 import JOO.jooshop.wishList.entity.WishList;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -40,6 +41,7 @@ public class Product {
     private String productName;
 
     @Column(name = "price", nullable = false, columnDefinition = "INT CHECK (price >= 0)")
+    @NotNull(message = "상품 가격은 필수입니다.")
     private Integer price;
 
     @Column(name = "product_info")

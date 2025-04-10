@@ -37,7 +37,7 @@ public class ReviewController {
             @RequestParam(value = "images", required = false) List<MultipartFile> images,
             @RequestPart(value = "rating") Integer rating,
             @RequestPart(value = "reviewContent") String reviewContent,
-            @PathVariable Long paymentId) {
+            @PathVariable("paymentId") Long paymentId) {
 
         // ReviewCreateDto request = new ReviewCreateDto();
         // request.setReviewContent(reviewContent);
@@ -69,7 +69,7 @@ public class ReviewController {
      * @return review List
      */
     @GetMapping("/product/{productId}")
-    public List<ReviewDto> productReview(@Valid @PathVariable Long productId) {
+    public List<ReviewDto> productReview(@Valid @PathVariable("productId") Long productId) {
 
         return reviewService.findReviewByProduct(productId);
     }
@@ -80,7 +80,7 @@ public class ReviewController {
      * @return review list
      */
     @GetMapping("/user/{memberId}")
-    public List<ReviewDto> userReview(@Valid @PathVariable Long memberId) {
+    public List<ReviewDto> userReview(@Valid @PathVariable("memberId") Long memberId) {
 
         return reviewService.findReviewByUser(memberId);
     }
@@ -93,7 +93,7 @@ public class ReviewController {
      * @return review detail
      */
     @PutMapping("/{reviewId}/{memberId}")
-    public ResponseEntity<ReviewDto> updateReview(@Valid @PathVariable Long reviewId, @PathVariable Long memberId, @RequestBody ReviewCreateDto request) {
+    public ResponseEntity<ReviewDto> updateReview(@Valid @PathVariable("reviewId") Long reviewId, @PathVariable Long memberId, @RequestBody ReviewCreateDto request) {
 
         ReviewDto updateReviewDto = new ReviewDto(reviewService.updateReview(request, reviewId, memberId));
 
@@ -106,7 +106,7 @@ public class ReviewController {
      * @return none
      */
     @DeleteMapping("/{reviewId}/{memberId}")
-    public ResponseEntity<String> deleteReview(@PathVariable Long reviewId, @PathVariable Long memberId) {
+    public ResponseEntity<String> deleteReview(@PathVariable("reviewId") Long reviewId, @PathVariable Long memberId) {
         reviewService.deleteReview(reviewId, memberId);
         return ResponseEntity.ok(DELETE_SUCCESS);
     }

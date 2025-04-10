@@ -61,10 +61,10 @@ public class ProductApiControllerV1 {
      * @return productId, productName, price
      */
     @PostMapping("/products/new")
-    public ResponseEntity<String> createProduct(@Valid
+    public ResponseEntity<String> createProduct(
+            @Valid @RequestBody ProductCreateDto requestDto,
             @RequestParam(value = "thumbnail_images", required = false) List<MultipartFile> thumbnailImgs,
-            @RequestParam(value = "content_images", required = false) List<MultipartFile> contentImgs,
-            @ModelAttribute ProductCreateDto requestDto) {
+            @RequestParam(value = "content_images", required = false) List<MultipartFile> contentImgs) {
 
         Long productId = productService.createProduct(requestDto, thumbnailImgs, contentImgs); // 저장한 상품의 pk
 
@@ -77,7 +77,7 @@ public class ProductApiControllerV1 {
      * @return
      */
     @GetMapping("/products/{productId}")
-    public ResponseEntity<ProductDetailDto> getProductById(@PathVariable Long productId) {
+    public ResponseEntity<ProductDetailDto> getProductById(@PathVariable("productId") Long productId) {
         ProductDetailDto productDetail = productService.productDetail(productId);
         return new ResponseEntity<>(productDetail, HttpStatus.OK);
     }
@@ -100,7 +100,7 @@ public class ProductApiControllerV1 {
      */
     @PutMapping("/products/{productId}")
     public ResponseEntity<ProductResponseDto> updateProduct(
-                @PathVariable Long productId,
+                @PathVariable("productId") Long productId,
                 @Valid @RequestBody ProductCreateDto request) {
         // 상품 정보 업데이트
         Product updated = productService.updateProduct(productId, request);
@@ -116,7 +116,7 @@ public class ProductApiControllerV1 {
      * @return
      */
     @DeleteMapping("/products/{productId}")
-    public ResponseEntity<String> deleteProduct(@PathVariable Long productId) {
+    public ResponseEntity<String> deleteProduct(@PathVariable("productId") Long productId) {
         productService.deleteProduct(productId);
         return ResponseEntity.ok().body(DELETE_SUCCESS);
     }
@@ -143,7 +143,7 @@ public class ProductApiControllerV1 {
      * @return
      */
     @DeleteMapping("/color/{colorId}")
-    public ResponseEntity<String> deleteColor(@PathVariable Long colorId) {
+    public ResponseEntity<String> deleteColor(@PathVariable("colorId") Long colorId) {
         productService.deleteColor(colorId);
 
         return ResponseEntity.ok().body(DELETE_SUCCESS);

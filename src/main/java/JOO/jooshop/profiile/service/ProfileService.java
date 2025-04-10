@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -57,7 +59,7 @@ public class ProfileService {
     /* 프로필 이미지 업로드 및 수정 (UPDATE) */
     @CachePut(value = "profileImages", key = "#memberId")
     @Transactional
-    public ResponseEntity<String> uploadProfileImageV3(Long memberId, MultipartFile imageFile) {
+    public ResponseEntity<String> uploadProfileImageV3(@PathVariable("memberId") Long memberId, @RequestPart MultipartFile imageFile) {
         MemberAuthorizationUtil.verifyUserIdMatch(memberId);
         String uploadsDir = "/src/main/resources/static/uploads/profileimg/";
 

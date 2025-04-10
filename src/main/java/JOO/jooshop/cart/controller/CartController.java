@@ -29,7 +29,7 @@ public class CartController {
      * @return
      */
     @PostMapping("/add/{productMgtId}")
-    public ResponseEntity<String> addCart(@Valid @RequestBody CartRequestDto request, @PathVariable Long productMgtId) {
+    public ResponseEntity<String> addCart(@Valid @RequestBody CartRequestDto request, @PathVariable("productMgtId") Long productMgtId) {
         Long createdId = cartService.addCart(request, productMgtId);
 
         return ResponseEntity.ok("장바구니에 등록되었습니다. cart_id : " + createdId);
@@ -41,7 +41,7 @@ public class CartController {
      * @return
      */
     @GetMapping("/{memberId}")
-    public List<CartDto> getMyCarts(@PathVariable Long memberId) {
+    public List<CartDto> getMyCarts(@PathVariable("memberId") Long memberId) {
         return cartService.allCarts(memberId);
     }
 
@@ -52,7 +52,7 @@ public class CartController {
      * @return
      */
     @PutMapping("/{cartId}")
-    public ResponseEntity<CartDto> updateCart(@PathVariable Long cartId, @Valid @RequestBody CartUpdateDto request) {
+    public ResponseEntity<CartDto> updateCart(@PathVariable("cartId") Long cartId, @Valid @RequestBody CartUpdateDto request) {
         Cart updatedCart = modelMapper.map(request, Cart.class);
         CartDto updatedCartDto = new CartDto();
         cartService.updateCart(cartId, updatedCart);
@@ -61,7 +61,7 @@ public class CartController {
     }
 
     @DeleteMapping("/{cartId}")
-    public ResponseEntity<String> deleteCart(@PathVariable Long cartId) {
+    public ResponseEntity<String> deleteCart(@PathVariable("cartId") Long cartId) {
         cartService.deleteCart(cartId);
 
         return ResponseEntity.ok(ResponseMessageConstants.DELETE_SUCCESS);

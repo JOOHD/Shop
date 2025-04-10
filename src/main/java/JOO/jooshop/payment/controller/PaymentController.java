@@ -73,7 +73,7 @@ public class PaymentController {
      * - 결제 완료 후 아임포트로부터 결제 정보 검증 및 후처리
      */
     @PostMapping("/order/payment/{imp_uid}")
-    public IamportResponse<Payment> validateIamport(@PathVariable String imp_uid, @RequestBody PaymentRequestDto request) throws IamportResponseException, IOException {
+    public IamportResponse<Payment> validateIamport(@PathVariable("imp_uid") String imp_uid, @RequestBody PaymentRequestDto request) throws IamportResponseException, IOException {
         IamportResponse<Payment> payment = iamportClient.paymentByImpUid(imp_uid);
         log.info("결제 요청 응답. 결제 내역 - 주문 번호: {}", payment.getResponse().getMerchantUid());
 
@@ -126,7 +126,7 @@ public class PaymentController {
      * - 자신의 결제 내역만 조회 가능 (서버에서 ID 검증)
      */
     @GetMapping("/paymentHistory/{memberId}")
-    public ResponseEntity<List<PaymentHistoryDto>> paymentList(@PathVariable Long memberId) {
+    public ResponseEntity<List<PaymentHistoryDto>> paymentList(@PathVariable("memberId") Long memberId) {
         return ResponseEntity.status(HttpStatus.OK).body(paymentService.paymentHistoryList(memberId));
     }
 
@@ -142,7 +142,7 @@ public class PaymentController {
      * - 해당 결제 건에 대한 환불 처리 후 응답 반환
      */
     @PostMapping("/payment/cancel/{paymentHistoryId}")
-    public IamportResponse<Payment> paymentCancel(@PathVariable Long paymentHistoryId, @RequestBody PaymentCancelDto requestDto) throws IamportResponseException, IOException {
+    public IamportResponse<Payment> paymentCancel(@PathVariable("paymentHistoryId") Long paymentHistoryId, @RequestBody PaymentCancelDto requestDto) throws IamportResponseException, IOException {
         // 결제 내역 존재 여부 확인
         PaymentHistory paymentHistory = paymentRepository.findById(paymentHistoryId)
                 .orElseThrow(() -> new PaymentCancelFailureException(ResponseMessageConstants.PAYMENT_CANCEL_FAILURE));

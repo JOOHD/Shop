@@ -85,7 +85,7 @@ public class ProductManagementController {
      * @return
      */
     @PutMapping("/{inventoryId}")
-    public ResponseEntity<String> updateInventory(@PathVariable Long inventoryId, @Valid @RequestBody InventoryUpdateDto request) {
+    public ResponseEntity<String> updateInventory(@PathVariable("inventoryId") Long inventoryId, @Valid @RequestBody InventoryUpdateDto request) {
         ProductManagement updated = managementService.updateInventory(inventoryId, request);
         UpdateResponse response = new UpdateResponse(updated.getInventoryId(), updated.getProduct().getProductId());
         return ResponseEntity.ok().body("수정 완료" + response);
@@ -97,7 +97,7 @@ public class ProductManagementController {
      * @return
      */
     @DeleteMapping("/{inventoryId}")
-    public ResponseEntity<String> deleteInventory(@PathVariable Long inventoryId) {
+    public ResponseEntity<String> deleteInventory(@PathVariable("inventoryId") Long inventoryId) {
         managementService.deleteInventory(inventoryId);
         return ResponseEntity.ok().body(DELETE_SUCCESS);
     }

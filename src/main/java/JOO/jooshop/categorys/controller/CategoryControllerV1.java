@@ -60,7 +60,7 @@ public class CategoryControllerV1 {
      * @return
      */
     @PostMapping("/child/{parentId}")
-    public ResponseEntity<Long> createChildCategory(@RequestBody Category category, @PathVariable Long parentId) {
+    public ResponseEntity<Long> createChildCategory(@RequestBody Category category, @PathVariable("parentId") Long parentId) {
         Long categoryId = categoryService.createCategory(category, parentId); // 부모 카테고리의 ID를 parentId로 전달하여 자식 카테고리 생성
         return ResponseEntity.ok(categoryId);
     }
@@ -91,7 +91,7 @@ public class CategoryControllerV1 {
      * @return
      */
     @DeleteMapping("/{categoryId}")
-    public ResponseEntity<String> deleteCategory(@PathVariable Long categoryId) {
+    public ResponseEntity<String> deleteCategory(@PathVariable("categoryId") Long categoryId) {
         categoryService.deleteCategory(categoryId);
         return ResponseEntity.ok(DELETE_SUCCESS);
     }

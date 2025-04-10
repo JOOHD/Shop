@@ -36,14 +36,14 @@ public class ContentImgController {
 
     // 이미지 삭제
     @DeleteMapping("/delete/{contentImgId}")
-    public ResponseEntity<String> deleteContentImg(@PathVariable Long contentImgId) {
+    public ResponseEntity<String> deleteContentImg(@PathVariable("contentImgId") Long contentImgId) {
         contentImgService.deleteContentImage(contentImgId);
         return ResponseEntity.status(HttpStatus.OK).body(DELETE_SUCCESS);
     }
 
     // 상품 id로 이미지 조회 (경로 리스트)
     @GetMapping("/{productId}")
-    public ResponseEntity<List<String>> getProductContentImgs(@PathVariable Long productId) {
+    public ResponseEntity<List<String>> getProductContentImgs(@PathVariable("contentImgId") Long productId) {
         List<ContentImages> contentImages = contentImgService.getContentImgs(productId);
         if (!contentImages.isEmpty()) {
             List<String> imagePaths = contentImages.stream()

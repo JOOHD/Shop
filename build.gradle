@@ -16,6 +16,10 @@ repositories {
     maven { url 'https://jitpack.io' } //아임포트설정
 }
 
+tasks.withType(JavaCompile) {
+    options.compilerArgs << "-parameters" // 모든 파라미터 이름 반영
+}
+
 dependencies {
     // starter DEPENDENCY
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'

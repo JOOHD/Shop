@@ -7,14 +7,14 @@ import jakarta.validation.ConstraintValidatorContext;
 public class DiscountRateValidator implements ConstraintValidator<ValidDiscountRate, ProductCreateDto> {
     @Override
     public boolean isValid(ProductCreateDto value, ConstraintValidatorContext context) {
-        // isDiscount 가 true && discountRate 가 null || 0 보다 작으면 유효하지 않음
-        if (value.getIsDiscount() && (value.getDiscountRate() == null || value.getDiscountRate() < 1)) {
-            return false;
+        // if (value.getIsDiscount() && value.getDiscountRate() != null) 조건이 잘못 들어가 있었다.
+        // 할인 적용 중이라면 discountRate는 1 이상 100 이하여야 함
+        if (value.getIsDiscount()) {
+            return  value.getDiscountRate() != null &&
+                    value.getDiscountRate() >= 1 &&
+                    value.getDiscountRate() <= 100;
+        } else {
+          return value.getDiscountRate() == null;
         }
-        // isDiscount 가 false, discountRate 가 null 이 아니면 유효하지 않음
-        if (value.getIsDiscount() && value.getDiscountRate() != null) {
-            return false;
-        }
-        return true;
     }
 }

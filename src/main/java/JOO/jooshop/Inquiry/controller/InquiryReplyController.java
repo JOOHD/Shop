@@ -23,14 +23,14 @@ public class InquiryReplyController {
      * @return
      */
     @PostMapping("/new/{inquiryId}")
-    public ResponseEntity<String> createReply(@Valid @RequestBody InquiryReplyDto replyRequest, @PathVariable Long inquiryId) throws Exception {
+    public ResponseEntity<String> createReply(@Valid @RequestBody InquiryReplyDto replyRequest, @PathVariable("inquiryId") Long inquiryId) throws Exception {
         Long createdId = replyService.createReply(replyRequest, inquiryId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body("답변 등록 완료 : "+createdId);
     }
 
     @DeleteMapping("/{replyId}")
-    public ResponseEntity<String> deleteInquiry(@PathVariable Long replyId) {
+    public ResponseEntity<String> deleteInquiry(@PathVariable("replyId") Long replyId) {
         replyService.deleteReply(replyId);
         return ResponseEntity.ok().body(DELETE_SUCCESS);
     }
