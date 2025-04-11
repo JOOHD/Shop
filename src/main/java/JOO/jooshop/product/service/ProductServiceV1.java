@@ -8,6 +8,7 @@ import JOO.jooshop.product.entity.ProductColor;
 import JOO.jooshop.product.model.ProductColorDto;
 import JOO.jooshop.product.model.ProductCreateDto;
 import JOO.jooshop.product.model.ProductDetailDto;
+import JOO.jooshop.product.model.ProductDto;
 import JOO.jooshop.product.repository.ProductColorRepositoryV1;
 import JOO.jooshop.product.repository.ProductRepositoryV1;
 import JOO.jooshop.productThumbnail.service.ProductThumbnailServiceV1;
@@ -23,6 +24,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static JOO.jooshop.global.ResponseMessageConstants.PRODUCT_NOT_FOUND;
 
@@ -66,6 +68,18 @@ public class ProductServiceV1 {
         }
 
         return product.getProductId();
+    }
+
+    /**
+     * 상품 목록 (전체)
+     * @return
+     */
+    @Transactional
+    public List<ProductDto> getAllProducts() {
+        List<Product> products = productRepository.findAll();
+        return products.stream()
+                .map(ProductDto::new) // new ProductDto(product) 호출됨
+                .collect(Collectors.toList());
     }
 
     /**

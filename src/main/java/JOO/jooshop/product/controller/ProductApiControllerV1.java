@@ -7,6 +7,8 @@ import JOO.jooshop.product.model.*;
 import JOO.jooshop.product.service.ProductOrderService;
 import JOO.jooshop.product.service.ProductRankingService;
 import JOO.jooshop.product.service.ProductServiceV1;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,10 +30,21 @@ import static JOO.jooshop.global.ResponseMessageConstants.DELETE_SUCCESS;
 @Slf4j
 public class ProductApiControllerV1 {
 
+    public final ObjectMapper objectMapper;
     public final ModelMapper modelMapper;
     private final ProductServiceV1 productService;
     private final ProductOrderService productOrderService;
     private final ProductRankingService productRankingService;
+    
+    /**
+     * 상품 목록 (전체)
+     * @return
+     */
+    @GetMapping("/products/all")
+    public ResponseEntity<List<ProductDto>> getAllProducts() {
+        List<ProductDto> allProducts = productService.getAllProducts();
+        return ResponseEntity.ok(allProducts);
+    }
 
     /**
      * 상품 목록 (카테고리/조건별 필터링, 조건별 정렬, 검색 통합)
@@ -59,13 +72,24 @@ public class ProductApiControllerV1 {
      * 상품 등록
      * @param requestDto
      * @return productId, productName, price
+     *
+     * 문제 1
+     * @RequestPart : multipart/form-data 에서 JSON 객체나 파일 받을 때 사용
+     * @RequestBody : 일반적인 JSON 요청 처리에만 사용 (multipart 와 함께 사용 불가)
+     * 해결. @RequestBody, MultipartFile -> @RequestPart 수정
+     *
+     * 문제 2
+     * @RequestPart("requestDto") 서버에서 받았지만, 포스트맨에서는 form-data 에서 text/file 만 가능
+     * 방법 1. requestDto를 String으로 받고, 내부에서 직접 ObjectMapper로 파싱하기
+     * 방법 2. Postman → Body → raw → JSON 으로 보내고, 이미지는 따로 업로드하는 API 만들어서 분리 처리
      */
     @PostMapping("/products/new")
     public ResponseEntity<String> createProduct(
-            @Valid @RequestBody ProductCreateDto requestDto,
-            @RequestParam(value = "thumbnail_images", required = false) List<MultipartFile> thumbnailImgs,
-            @RequestParam(value = "content_images", required = false) List<MultipartFile> contentImgs) {
+            @Valid @RequestPart("requestDto") String requestDtoStr,
+            @RequestPart(value = "thumbnailImgs", required = false) List<MultipartFile> thumbnailImgs,
+            @RequestPart(value = "contentImgs", required = false) List<MultipartFile> contentImgs)throws JsonProcessingException {
 
+        ProductCreateDto requestDto = objectMapper.readValue(requestDtoStr, ProductCreateDto.class);
         Long productId = productService.createProduct(requestDto, thumbnailImgs, contentImgs); // 저장한 상품의 pk
 
         return ResponseEntity.status(HttpStatus.CREATED).body("상품 등록 완료. Id : " + productId);
