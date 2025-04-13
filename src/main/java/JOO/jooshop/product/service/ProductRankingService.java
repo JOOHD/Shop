@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -58,24 +59,29 @@ public class ProductRankingService {
     // 랭킹순으로 상품 리스트를 조회하는 메서드
     public List<ProductRankResponseDto> getProductListByRanking(int limit) {
 
+        // Redis 에서 랭킹 순으로 상품 ID를 가져옴
         Set<String> productIds = getTopProductIds(limit);
         // Redis에서 가져온 ID는 문자열이라서 **숫자(Long)**으로 변환.
         List<Long> productIdList = productIds.stream()
                 .map(Long::parseLong)
                 .collect(Collectors.toList());
 
-        // 상품 ID로 DB에서 상품 조회, 해당 상품이 없으면 null 반환.
+        // 상품 ID로 DB 에서 상품 조회, 해당 상품이 없으면 null 제외하고 필터링
         List<Product> products = productIdList.stream()
                 .map(productId -> productRepository.findByProductId(productId).orElse(null))
-                .toList();
+                .filter(Objects::nonNull) // 상품이 없을 수도 있음 (null), 위 repository 방지
+                .collect(Collectors.toList());
 
+        // Product -> ProductRankResponseDto 변환
         return products.stream()
-                .map(product -> { // Product -> ProductRankResponseDto 변환
-                    ProductRankResponseDto ProductRankResponseDto = modelMapper.map(product, ProductRankResponseDto.class);
-                    // ProductThumbnail의 imagePath를 매핑
-                    ProductRankResponseDto.setProductThumbnails(
-                            product.getProductThumbnails().get(0).getImagePath());
-                    return ProductRankResponseDto;
+                .map(product -> {
+                    ProductRankResponseDto dto = modelMapper.map(product, ProductRankResponseDto.class);
+                    // 썸네일 리스트가 비어있을 경우, get(0) 을 아예 호출하지 않도록 설정
+                    //  "Index 0 out of bounds for length 0" 에러 방지
+                    if (!product.getProductThumbnails().isEmpty()) {
+                        dto.setProductThumbnails(product.getProductThumbnails().get(0).getImagePath());
+                    }
+                    return dto;
                 })
                 .toList();
     }

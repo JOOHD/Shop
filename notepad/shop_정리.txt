@@ -1,13 +1,152 @@
 우선 순위 
-1. category, inquery, review, wishList 마무리
+1. review(replycontroller/service), reviewImg, wishList 마무리
 2. 주요 디렉토리 접근 관점/주요 기능/다른 디렉토리와 관계성 정리
 3. global 정리 (위와 같은 정리)
 
+4. POSTMAN View document 팀원이랑 공유할 땐 Docs로 퍼블리시해서 URL로 공유하면 끝.
+
 + 서버(AWS, CLOUD) 공부
 
-★ 웬만한 조회는 Id 를 통한 데이터 가져오기로 이루어진다
+★ @NotNull(message = "가격은 필수입니다.")  // ✔ 정수 타입에는 NotNull, 문자열에는 @NotBlank
 
+★ Postman에서는 테스트 코드로는 자동 재요청이 안돼요. 대신 Pre-response (tests) 에 넣어서 자동 생성.
 
+★ yml jwt secret : ${JWT_SECRET} ----SET---- @Value("${jwt.secret}") 같이 세트 사용
+
+★ RS256은 공개키/개인키 방식, HS256은 시크릿 키 기반입니다.
+
+★ ZSet을 이용한 상품 랭킹(조회수) 관리
+	 ZSet, List, Hash 등 Redis 기능을 다루기 유리
+
+★ @Transactional이 클래스 전체에 걸려있는데, 조회(fetch)만 하는 메서드는 @Transactional(readOnly = true)
+
+★from(entity->dto) vs new (constructor)
+방식					특징				추천 상황
+new ProductDto(product)	단순 매핑			필드가 적고, 가공할 게 없을 때
+ProductDto.from(product)	가공 포함 + 가독성↑	필드 많거나, 데이터 변환/가공이 필요한 경우
+
+● 생성자 사용
+public static ProductSimpleDto from(Product product) {
+     return new ProductSimpleDto(
+         product.getId(),
+         product.getProductType().name(),
+         product.getProductName(),
+         product.getPrice(),
+         product.getCreatedAt(),
+         product.getIsDiscount(),
+         product.getDiscountRate(),
+         product.getIsRecommend(),
+         product.getThumbnails().stream()
+         	.map(Image::getUrl)
+                .collect(Collectors.toList())
+     );
+ }
+
+● from 사용 -> @Builder pattern
+public static ProductSimpleDto from(Product product) {
+    return new ProductSimpleDto(
+        product.getId(),
+        product.getProductType().name(),
+        product.getProductName(),
+        product.getPrice(),
+        product.getCreatedAt(),
+        product.getIsDiscount(),
+        product.getDiscountRate(),
+        product.getIsRecommend(),
+        product.getThumbnails().stream()
+            .map(Image::getUrl)
+            .collect(Collectors.toList())
+    );
+}
+
+● from 사용 이유
+1. 가독성 향상
+	-> map.(ProductDto::from)
+2. 생성자 로직 분리
+	생성자에 너무 많은 처리 -> 정적 메서드에서 처리하고, 생성자는 필드 바인딩만 하는 식. 책임 분가
+	
+	정적 메서드 처리
+	-> Entity -> Dto 변환 과정에서 데이터 가공, 리스트 변환, Enum 이름 변환 등 복잡한 로직은 생성자 내부에 몰아넣지 말고, static 메서드로 따로 빼서 처리
+	
+	ex)	
+		- 생성자가 단순 바인딩이 아닌 로직까지 맡고 있음
+		public ProductDto(Product product) {
+		    this.name = product.getName();
+		    this.imageUrls = product.getImages().stream()
+		        .map(Image::getUrl)
+        		.collect(Collectors.toList()); // 로직이 무거워짐
+		}	
+
+		- 생성자는 간단한 값 세팅만 함, 실질적인 변환로직은 정적 메서드(from)가 맡음
+		public static ProductDto from(Product product) {
+		    List<String> urls = product.getImages().stream()
+        		.map(Image::getUrl)
+		        .collect(Collectors.toList());
+
+		    return new ProductDto(product.getName(), urls);
+		}
+3. 표준 패턴 사용 (Factory Method)
+→ from(Entity) 패턴은 Java/Spring에서 흔히 쓰는 Entity → DTO 변환 표준
+
+★ File uploads 설정 기본 setting
+@PostMapping(value = "/image/{memberId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+public ResponseEntity<String> uploadProfileImageV3(
+        @PathVariable("memberId") Long memberId,
+        @RequestPart MultipartFile imageFile) {
+    ...
+}
+
+★ @Value("${jwt.secret}") 을 사용하면, application.yml 에 정의된 비밀 키 값을 String 형태로 필드에 주입받을 수 있다. 하지만 JWT를 생성하거나 서명할 때는 이 문자열을 암호화에 사용할 수 있는 SecretKey 객체로 변환해야 된다.
+- 이 역할을 따로 @PostConstruct가 붙은 init() 메서드에서 처리
+- @Value는 단순히 설정 파일의 값을 String으로 주입받는 역할,
+-init()은 이 주입받은 문자열을 바탕으로 실제 SecretKey 객체로 변환해주는 역할
+
+	@Value("${jwt.secret}")
+        private String jwtSecret; // 설정 파일에서 주입받은 문자열
+        private SecretKey secretKey; // 실제 서명에 사용할 Key 객체
+
+	@PostConstruct
+	public void init() {
+		// 문자열을 바탕으로 SecretKey 객체 생성
+		this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));.
+
+★ 정리: boolean 필드 Getter 네이밍 규칙
+필드명			Lombok 생성 Getter
+private boolean isX	isX() ✅
+private boolean x		isX() ✅
+private Boolean x		getX() ✅ (boxed 타입)
+
+★ 상품 상세 정보를 Redis에 캐싱할 때 
+public void cacheProductDetail(Long productId, Product product) {
+    String key = "product_detail:" + productId;
+    redisTemplate.opsForValue().set(key, product, Duration.ofMinutes(10)); // 10분 캐시
+}
+
+ProductService 적용
+@Service
+@RequiredArgsConstructor
+public class ProductCacheService {
+
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    public void cacheProductDetail(Long productId, Product product) {
+        String key = "product_detail:" + productId;
+        redisTemplate.opsForValue().set(key, product, Duration.ofMinutes(10));
+    }
+
+    public Product getCachedProduct(Long productId) {
+        String key = "product_detail:" + productId;
+        return (Product) redisTemplate.opsForValue().get(key);
+    }
+}
+
+★ CORS 설정
+프론트엔드와 백엔드가 서로 다른 포트에서 실행될 때, Cross-Origin Resource Sharing (CORS) 문제가 발생할 수 있습니다. 이를 해결하기 위해 백엔드에서 프론트엔드의 URL을 명시적으로 허용해야 합니다.
+
+예를 들어, http://localhost:3000에서 실행되는 React 애플리케이션이 http://localhost:8080에서 실행되는 Spring Boot 백엔드와 통신할 때, 백엔드에서 CORS 정책을 설정하여 이를 허용할 수 있습니다.
+
+ 
+서비스 계층에서 DTO → Entity 변환 방식
 ★ JPQL 을 사용한 프로젝트 로직의 한 부분	
 	
 	● AddressService
@@ -57,33 +196,6 @@
 		- 새로운 기본 주소를 설정하거나, 기존 기본 주소를 바꿀 때
 			- 기존 기본 주소가 두 개 이상이 되면 안 됨, 그래서 다른 기본 주소는 전부 false
 
-★ Optional & Stream/Collectors & ramda
-
-★ Shop 프로젝트 특징
-	- 백엔드 스프링 부트 기반
-	- jar 파일로 배포
-	- 톰캣을 내장해서 jar 실행으로 동작
-	- application.yml 설정으로 환경 관리
-	- MySQL, Redis, Spring Security 등 최신 기술 사용
-	- CI/CD GitHub Actions 사용 (업로드 자동화 중)
-	- 클라우드 배포 가능성도 있어 보임
-
-	항목			설명
-	아키텍처		모놀리식 or 마이크로서비스 구조도 가능하지만, 깔끔하게 나뉘어 있음
-	빌드 & 배포	Gradle or Maven으로 빌드 후 Executable JAR 배포
-	서버 방식		내장 톰캣 기반으로 독립 실행 (java -jar)
-	환경 구성		application.yml에서 profile 관리 (dev, staging, prod 등)
-	인프라 관리	GitHub Actions 통한 CI/CD 파이프라인 구성
-	데이터베이스	MySQL, Redis 같은 최신 스택
-	보안			JWT, OAuth2 등 사용 
-	프론트/백 분리	프론트엔드와 REST API, 또는 클라이언트-서버가 분리되어 있음
-
-	Level Up
-	- Docker / Kubernetes 클러스터 환경 배포
-	- 클라우드 (AWS, GCP) 환경 자동화
-	- **마이크로서비스 아키텍처(MSA)**로 점진적 전환
-	- CQRS / 이벤트 소싱 등 확장 가능!
-
 ★★  인스턴스 메서드
 
 	public void updateInventory(Category category, Long additionalStock, Long productStock, Boolean isRestockAvailable, Boolean isRestocked, Boolean isSoldOut) {
@@ -91,7 +203,7 @@
 	 	 this.addtionalStock = additionalStock;
 		-> 위에 뜻이 this = category(field) = category(parameter = 클라이언트에서 받아온 값); 
 	
-	★ 더 깊게 들어가면
+	● 더 깊게 들어가면
 		1. 기존 상태
 			ProductManagement 엔티티 안에 category 라는 필드가 있었고, category = "상의(default)" 상태,
 			private Category category; // "상의"
@@ -108,7 +220,7 @@
 		4. updateInventory method
 			this.category = category;
 		
-	★ 정리
+	● 정리
 		this.category는 엔티티의 기존 필드 값이었고,
 		category는 클라이언트가 요청한 새로운 값, 결국 this.category = category;는
 		-> 기존 값을 클라이언트가 선택한 "맨투맨"으로 변경한 거다!
@@ -124,7 +236,7 @@
 
 	- >RuntimeException을 상속하면 언체크 예외가 되어 예외를 던질 때 throws 선언이 필요하지 않습니다. 이 때문에 커스텀 예외를 만들 때 RuntimeException을 상속하는 것이 일반적으로 더 용이합니다.
 
-	★ Add
+	● Add
 
 	// 예외 메시지 상수들을 저장하는 클래스, 일관성을 유지
 	public class ResponseMessageConstants {
@@ -138,7 +250,7 @@
         	return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage);
     	}
 	
-       ★ 관계 요약 
+       ● 관계 요약 
 PaymentHistoryNotFoundException
           |
           | 예외 발생 (예: 결제 내역 없음)
@@ -152,12 +264,63 @@ GlobalExceptionHandler
           |
      사용자에게 응답
 		
-★ import static JOO.jooshop.global.ResponseMessageConstants.*;
 
-★ @Transactional이 클래스 전체에 걸려있는데, 조회(fetch)만 하는 메서드는 @Transactional(readOnly = true)
+★★★ @Transcational 의 기본 동작은 RuntimeException & Error 발생 시, 트랜잭션을 롤백하는 것.
+	RuntimeException 발생 시, 트랜잭션 롤백 이유는,, 대부분의 경우 런타임 예외는 프로그래밍의 실수나 얘기치 못한 상태로 발생한 문제를 의미하므로, 이를 그대로 진행하기보다는 롤백하여 데이터를 불일치 상태로 만드는 것을 방지하는 것이 안전하기 때문이다.
 
-★ 리팩토링할 때 고려할 주요 포인트는 코드의 중복 제거, 클래스 간의 책임 분리, 명확한 함수 이름을 통해
-	 코드의 가독성을 높이고 유지보수를 용이하게 만드는 것
+	'롤백하여 데이터를 불일치 상태로 만드는 것을 방지하는 것'
+	ㄴ 트랜잭션을 통해 여러 DB 작업을 하나의 작업 단위로 묶을 때 발생할 수 있는 문제를 설명
+		트랜잭션이 롤백되면 DB 의 상태가 이전 상태로 돌아가, 부분적인 작업이 데이터 일치를 초래하지 않도록 할 수 있다.
+
+	★ 예시 : 주문 처리 시스템
+
+	1. 주문 생성과 재고 차감 작업을 포함하는 트랜잭션
+	온라인 쇼핑몰 시스템에서 주문을 처리할 때, 주문 생성과 재고 차감을 하나의 트랜잭션으로 묶을 수 있습니다. 만약 주문이 들어오면, 시스템은 다음과 같은 작업을 합니다:
+
+		1) 주문 정보 저장: 고객의 주문을 데이터베이스에 저장합니다.
+		2) 재고 차감: 고객이 주문한 상품의 재고를 차감합니다.
+
+	이때, 만약 두 번째 작업(재고 차감)에서 오류가 발생하면, 첫 번째 작업(주문 저장)만 완료되고 재고는 차감되	지 않은 채로 남게 됩니다. 이 경우 데이터가 불일치 상태가 됩니다. 즉, 주문은 저장되었지만 실제 재고는 차감되지 않아서 재고와 주문의 일관성이 깨지게 됩니다.
+
+	2. 트랜잭션 롤백을 통한 문제 해결
+	이런 상황에서 @Transactional을 사용하여 트랜잭션을 묶고, 오류가 발생할 경우 롤백하면 두 작업 모두 취소되어 데이터베이스의 상태가 원래대로 돌아갑니다. 즉, 주문이 생성되지도 않고, 재고도 차감되지 않도록 하여 데이터의 일관성을 유지합니다.
+	
+	ex) 
+		@Transactional
+		public void createOrderAndUpdateStock(Order order, Product product) {
+			// 1. 주문 정보 저장
+			orderRepository.save(order);
+			// 2. 재고 차감 (오류 발생 가능성 있음)
+			if (product.getStock() < 1) {
+			throw new InsufficientStockException("재고가 부족합니다.");
+			}	
+			product.setStock(product.getStock() -1);
+			producRepository.save(product);	
+			// 만약 여기에서 예외가 발생하면, 트랜잭션 전체가 롤백되며
+    			// 주문 정보도 저장되지 않고 재고도 차감되지 않음
+		}	
+		-> 이 코드에서 createOrderAndUpdateStock 메서드가 실행될 때, 만약 재고 부족등의 오류가 발생하면, @Transactional 덕분에 주문저장 & 재고 차감 두 작업 모두 롤백된다. 이렇게 되면, 주문이 잘못 저장되거나 재고가 잘못 차감되는 상황을 방지할 수 있다.
+
+		- 정상적으로 모든 작업이 완료된 경우: 주문이 저장되고 재고가 차감됩니다.
+		- 오류가 발생한 경우: 주문이 저장되지 않고, 재고 차감도 이루어지지 않습니다. 트랜잭션이 롤백되기 때문에 데이터는 원래 상태로 복구됩니다.
+
+★★ 리뷰에 관련된 결제 이력을 가져와 리뷰 여부를 'false'로 설정
+    	PaymentHistory paymentHistory = currentReview.getPaymentHistory();
+    	paymentHistory.setReview(false);
+
+	1. 리뷰와 결제의 관계:
+
+	- 결제는 상품을 구매한 후 이루어지는 중요한 이벤트입니다. 결제 후 사용자는 해당 상품에 대한 리뷰를 작성할 수 있습니다.
+	- 리뷰가 작성되면, 그 결제 기록에 review 필드를 true로 설정하여 해당 결제에 대한 리뷰가 작성되었음을 표시할 수 있습니다.
+
+	2. 리뷰 삭제
+	- 리뷰를 삭제할 때, 해당 리뷰가 작성된 결제에 대한 상태를 "리뷰가 삭제됨"으로 반영해야 한다.
+		이때, PaymentHistory 객체의 review 필드를 false 로 설정하여, "이 결제에는 더 이상 리뷰가 존재하지 않는다."는 상태로 업데이트해야 된다.
+
+	● 왜 PaymentHistory 객체를 업데이트 하는가?
+	- PaymentHistory 객체는 결제에 관련된 중요한 정보를 가지고 있다. 이 객체에서 review 필드를 사용하여, 결제에 대한 리뷰가 작성되었는지, 아니면 삭제되었는지 추적.
+	- 따라서 리뷰를 삭제하면, 그 결제에 해당하는 review 필드를 false 로 설정해 주는 것이 필요.
+		(이렇게 해야 해당 결제에 대한 리뷰가 더 이상 존재하지 않는다는 상태를 반영할 수 있다.)
 
 ★ import com.google.gson.annotations.SerializedName;
 	- SON 필드 이름과 Java 필드 이름이 다를 경우에 사용됩니다. 
@@ -365,17 +528,13 @@ enum은 싱글턴 객체이므로, ==로 비교해도 참조가 동일하기 때
 
 ★ 차이점은 split(" ")은 공백 기준으로 자르고, substring(7)은 단순히 앞 7글자를 제거하는 차이야.
 
+★ 프록시 객체를 통해 호출할 때는 private 메서드에 접근할 수 없습니다
+
 ★ HttpServletRequest 요청에는 리프레쉬 토큰이 쿠키에 포함되어 있어야 한다.
             request = Header request.getHeader(Authorization")
                   Cookie request.getCookies(refreshToken)
                   Body   request.getInputStream("FormData/JSONData")
 
-★ 쿠키 예상 구조
-            Cookie[] cookies = {
-                new Cookie("JSESSIONID", "ABC123DEF456"),
-                new Cookie("refreshToken", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."),
-                new Cookie("userPreference", "darkMode")
-            };
 
 ★ @Transactional(readOnly = true) , **JPA의 변경 감지(dirty checking)**
 		- 데이터 변경이 있는 쿼리(INSERT, UPDATE, DELETE)를 실행하면 예외 발생!
@@ -465,125 +624,3 @@ enum은 싱글턴 객체이므로, ==로 비교해도 참조가 동일하기 때
 		Host : api.example.com
 		Authorization : Bearer AccessToken 
 
-★ OAuth2 vs UserDetails
-	- 일반 로그인 (UserDetails): 사용자 정보는 주로 데이터베이스에서 가져오고, 비밀번호는 credentials로 처리됩니다.	(getUsername() 으로 사용자 이메일)
-	- OAuth2 로그인 (OAuth2User): 외부 인증 제공자로부터 사용자 정보를 가져오며, 비밀번호는 존재하지 않으며, 외부 시스템에서 인증된 사용자 정보만 사용됩니다. (getAttribute("email") 으로 OAuth2 이메일)
-
-★ OAuth2(=Authorization) vs JWT(=Authentication) 
-	OAuth2
-		- OAuth2 는 사용자가 특정 리소스에 접근 권한이 있는지 확인
-		- 만료 후, RefreshToken 으로 AccessToken 재발급
-		- 보통 DB or Redis 에 저장
-
-	JWT
-		- JWT 사용자가 누구인지 인증
-		- 만료 후, 로그인 재요청
-		- 보통 Cookie 에 저장
-
-	최근에는 AccessToken (JWT + HttpOnly), RefreshToken (Redis + DB)
-
-★ Spring Security 흐름
-
-	1. Request -> JwtAuthenticationFilter 진입
-	2. Authentication : Bearer token 에서 token 만 추출
-	3. jwtUtil.validateToken(token) -> 유효하면 통과
-	4. getAuthentication() -> UsernamePasswordAuthenticationToken 발급
-		-> 이게 Authentication 객체
-	5. SecurityContextHolder 에 Authentication 저장
-	6. 이후 권한 검사 (Authentication) -> ROLE_ADMIN, ROLE_USER 확인
-
-	+ tip
-	AccessToken : 유저 인증용, 보통 짧게(30분), cookie or header 저장
-	RefreshToken : AccessToken 재발급 용, 길게 (한달), DB or Redis 에 저장
-	Bearer : 인증타입 accessToken 구분용
-	SecurityContextHolder : 인증 성공한 유저 정보 저장소
-
-★ authentication & authorization 흐름
-
-    - JWT 필터에서 인증(Authentication) 후 권한(Authorization) 관리
-	
-	authentication 	
-	- 사용자의 신원을 확인하는 단계 (로그인 성공 -> JWT 발급 단계)
-	authorization
-	- 사용자의 권한을 확인하는 단계 (API 호출 시, JWT 확인)
-
-[ 클라이언트 ]
-     |
-     | 로그인 요청 (id/pw)
-     |
-[ 서버 ]
-     |
-     | Authentication (사용자 검증)
-     | -> JWT 발급 (access + refresh)
-     |
-[ 클라이언트 (토큰 저장: 쿠키, 로컬스토리지 등) ]
-     |
-     | 요청 보낼 때 Authorization 헤더에 토큰 포함
-     | -> Authorization: Bearer {accessToken}
-     |
-[ 서버 (필터에서 인증/권한 검증) ]
-     |
-     | Authentication (토큰 유효성 검증)
-     | -> 권한 확인 (Authorization)
-     |
-     | 요청 처리
-
-★ Spring Security + JWT 인증 흘므 설명
-
-1. 로그인 요청 : 클라이언트 ID/PW Request
-2. 인증 처리 : Security 가 Authentication 사용자 검증
-3. 토큰 발급 : 인증 성공 시, JWTUtil.createAccessToken() 호출 access/refresh 발급
-4. 토큰 전달 : 클라이언트는 JWT access(header) & refresh(cookie/redis) 저장
-5. 요청 시, 토큰 포함 : 클라이언트는 API 요청 시, HTTP Header 에 Authorizaiton: Bearer {AccessToken} 을 요청
-6. 필터에서 토큰 검증 : JWTAuthenticationFilter 가 Authorization header 에서 토큰을 추출하고, util.validateToken 검증
-7. 인증 정보 생성 : 검증된 토큰에서 사용자 정보를 추출해서 Authentication 객체 생성 후, SecurityContext에 저장.
-8. 인가(Authorization)	SecurityContext에 저장된 인증 정보를 기반으로 요청한 리소스에 접근 권한을 확인
-9. 만료 시 RefreshToken 사용	AccessToken이 만료되면 클라이언트가 RefreshToken으로 새로운 AccessToken 재발급 요청
-10. 로그아웃	서버는 클라이언트의 토큰을 무효화하거나(블랙리스트), 클라이언트가 토큰 삭제
-
-★ 흐름도 
-
-클라이언트                백엔드 서버(Spring Security + JWTUtil)
-    │                             │
-    │------- 로그인 요청 --------> │
-    │                             │
-    │      사용자 검증 (DB)        │
-    │                             │
-    │    AccessToken, RefreshToken 생성 (JWTUtil) 
-    │                             │
-    │<---- 토큰 반환 (JSON) ------ │
-    │                             │
-(AccessToken 저장 후 API 요청)     │
-    │                             │
-    │---- 요청 + Authorization --->│ (JWTAuthenticationFilter)
-    │    Bearer AccessToken        │
-    │                             │
-    │ 토큰 유효성 검사 (validateToken)  
-    │ 클레임에서 memberId, role 추출
-    │ Authentication 객체 생성 (UsernamePasswordAuthenticationToken)
-    │ SecurityContext에 저장
-    │                             │
-    │   권한체크(인가), 컨트롤러 호출
-    │                             │
-    │<----- 응답 반환 -------------│
-    │                             │
-
-★ JWT + 스프링 시큐리티 흐름을 코드에 연결하면?
-	1. 로그인 성공
-		- JWTUtil.createAccessToken()
-		- JWTUtil.createRefreshToken()
-
-	2. 클라이언트가 서버 요청 시
-		- JWTAuthenticationFilter가 Authorization 헤더를 확인
-		- JWTUtil.validateToken()으로 유효성 검사
-		- JWTUtil.getMemberId() 등으로 사용자 정보 추출
-
-	3. 인증 성공하면 SecurityContextHolder에 Authentication 등록
-	4. 이후 인가 필터가 권한 체크를 수행하고 컨트롤러를 호출
-
-	핵심 포인트
-	- 클레임은 토큰 안에 들어있는 사용자 정보
-	- JWTUtil은 토큰 생성/검증/파싱을 담당
-	- Spring Security 필터가 JWT 인증을 핸들링
-	- SecurityContextHolder에 인증정보 저장해서 인가 처리
-	- AccessToken은 짧게, RefreshToken은 길게(보통 DB에 저장해서 관리)

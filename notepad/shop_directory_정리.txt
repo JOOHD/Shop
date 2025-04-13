@@ -114,35 +114,37 @@
 		- 결제 완료 시, 결제 정보는 Payment 엔티티에 저장되고, 이 정보는 주문과 결합되어 주문 상태 업데이트
 	3. 결제 완료 후
 		- 결제가 완료되면, 주문 상태는 "결제 완료"로 업데이트되고, 배송이나 후속 처리 등의 작업이 진행
+
+★★ 전역으로 적용되는 기능 ★★
+@RequiresRole, globalException, ConstraintValidator 
 	
-★★ 디렉토리 트리맵 ★★
-  global
- 	
-  	authentication
-		config
+★★★ 디렉토리 트리맵 ★★★
+  global	
+  	ㄴ authentication
+		ㄴ config
 			AppConfig
 			CorsMvcConfig
 			EmailConfig
 			SecurityConfig
 			SmtpAuthenticator
-		jwts
-			DoFilter
-			CookieService
+		ㄴ jwts
+			Filter(JWT & Login)
+			cookie & userDetails			
 			util
 			    cookie/password/JWT
-		oauth2
+		ㄴ oauth2
 			Handle
 			ResponseDto(google, naver, kakao, oauth2)	
-  	authorization
-  	config
-		RedisConfig
-		WebConfig
-  	exception
-  	image
-  	mail
-  	validation
-  	queries
-		QueryDSL
+  	ㄴ authorization
+  	ㄴ config
+		ㄴ RedisConfig
+		ㄴ WebConfig
+  	ㄴ exception
+  	ㄴ image
+  	ㄴ mail
+  	ㄴ validation
+  	ㄴ queries
+		ㄴ QueryDSL
 	
   address
 	- 본 주소로 설정 시, 기존 기본 주소들을 한 번의 JPQL 업데이트로 효율적으로 해제.
@@ -182,7 +184,20 @@
   review
 	-
 
+★★★ JWTFilterV3 ★★★
 
+JWTFilterV3 역할
+AccessToken + RefreshToken 기반 인증을 처리합니다.
+
+Authorization 헤더에서 AccessToken 추출
+
+쿠키(refreshAuthorization)에서 RefreshToken 추출
+
+AccessToken이 유효한 경우 → SecurityContextHolder에 인증 정보 등록
+
+AccessToken이 만료되었더라도 RefreshToken이 유효하지 않으면 → 인증 없이 다음 필터로 이동
+
+모든 인증은 내부에서 getAuthentication(token)을 통해 이루어집니다.
 
 
 

@@ -1,0 +1,394 @@
+★에러 : java.lang.NoSuchFieldError: category
+ㄴ원인 : 
+1) 클래스 필드 변경 : Product 클래스, category 필드를 새로 추가하거나 rename 했을 경우
+2) 빌드 캐시 미정리 : 이전 빌드된 .class 파일 또는 Q클래스(QProduct)가 최신 상태가 아님
+3) QueryDSL Q클래스 미갱신 : DSL 이 사용하는 QProduct 가 category 필드가 없는 구버젼 상태로 남아 있음
+
+ㄴ해결
+1) build/generated 폴더 삭제 (QueryDSL Q타입 재생성)
+2) 프로젝트 Clean & Build
+3) ./gradlew clean generateQueryDSL 또는 compileQuerydsl
+
+-> NoSuchFieldError 는 Q클래스가 최신 엔티티 필드를 반영하지 못해 생긴 런타임 오류
+	clean + build + Q클래스 재생성으로 해결 가능
+
+★에러 : Content-Type 'multipart/form-data;boundary=...;charset=UTF-8' is not supported
+ㄴ원인 : @RequestBody로 JSON 받도록 되어 있는데 multipart/form-data로 보내서 생긴 미디어 타입 불일치
+ㄴ해결 : @RequestBody (x) → @RequestPart("requestDto")로 수정
+		(form-data 형식 사용해서 이미지 포함 가능하게 바꿈)
+
+	★추가 에러 : 400 Bad Request: Required part 'requestDto' is not present & "message": "Required part 'requestDto' is not present."
+	ㄴ원인 : Postman에서 form-data로 보낼 때 requestDto를 Text로 넣었는데, 내부적으로 Content-Type이 text/plain 또는 application/octet-stream 으로 처리되어 Spring에서 파싱하지 못함
+	ㄴ해결 : @RequestPart("requestDto") String requestDtoStr 로 받고, ObjectMapper.readValue(requestDtoStr, ProductCreateDto.class) 으로 직접 변환
+	-> multipart/form-data에서 JSON과 파일을 함께 보내려면, JSON은 String으로 받고 직접 파싱하자 (Spring이 자동 변환 못 함)
+
+★에러 : Resolved [java.lang.NullPointerException: Cannot invoke "java.lang.Integer.intValue()" because the return value of "ProductCreateDto.getPrice()" is null]
+ㄴ원인 : if (requestDto.getPrice() < 0) { ... }
+		1) getPrice()가 Integer 타입인데 null 상태였음.
+		2) 그런데 < 0 비교 연산을 시도함 → Java에서 오토 언박싱(Integer → int) 발생.
+		3) 결국 내부적으로 .intValue() 호출되는데, null에서 호출되니까 NPE 발생
+ㄴ해결 :
+1. null 체크 먼저 해주기 (방어 코드 추가)
+if (requestDto.getPrice() == null) {
+    throw new IllegalArgumentException("가격은 필수입니다.");
+}
+
+★에러 : "접근 권한이 없습니다. : 로그인 정보 찾을 수 없음" 은 결국 SecurityContextHolder에 등록이 안 되었기 때문
+
+★에러 :Name for argument of type [java.lang.Long] not specified, and parameter name information not available via reflection. Ensure that the compiler uses the '-parameters' flag.
+ㄴ원인1 : @PathVariable Long memberId, 이렇게 쓸 경우, 컴파일 시 -parameters 옵션이 빠져있으면 memberId라는 변수 이름을 알 수 없어서 에러가 발생
+ㄴ원인2 : POST /api/v1/profile/image/4로 multipart/form-data 형식으로 이미지를 잘 전송하고 있는데,
+스프링 서버 쪽에서 @PathVariable Long memberId 파라미터를 제대로 매핑하지 못해서 400 에러 발생.
+ㄴ해결1,2 : 1) @PathVariable("memberId") 처럼 명시적으로 작성
+		2) tasks.withType(JavaCompile) {
+		    	options.compilerArgs << "-parameters"
+		    }
+
+★에러 : reason: actual and formal argument lists differ in length
+ㄴ원인 : 클래스에 명시적으로 정의된 생성자가 없거나, 모든 필드를 매개변수로 받는 생성자가 없는 상태에서 객체를 생성할 때, new (모든 필드값..) 처럼 호출하면, 컴파일러가 해당하는 생성자를 찾지 못함
+ㄴ해결 : @AllArgsConstructor 적용
+
+★에러 : java.lang.IllegalArgumentException: No enum constant com.example.MemberRole.USER
+ㄴ원인 : role 값이 USER로 저장되었는데, MemberRole enum에는 ROLE_USER처럼 접두사가 붙어 있음 → 매칭 실패
+ㄴ해결 : JWT 클레임에서 role을 꺼낼 때, null이었기 때문에 MemberRole.valueOf(role)에서 에러가 터진 것
+	Object memberId = parseToken(token).get(MEMBERPK_CLAIM_KEY); 
+		return memberId != null ? memberId.toString() : null; 삼항연산자 적용
+	- 중간에 memberId, role 값들이 null인지 확인하는 코드들을 추가해서 로그 찍고 확인, 그 과정에서 null 체크 없이 바로 .toString()을 하면 NullPointerException이 나기 때문에 이렇게 작성한 것
+
+
+★에러 : Caused by: java.lang.ClassCastException: class org.springframework.http.ResponseEntity cannot be cast to class jakarta.servlet.ServletResponse
+ㄴ원인 : Spring Security 필터 중 하나가 ResponseEntity를 반환하거나 잘못 다루면서 Tomcat 자체가 올라가지 못하고 크래시나는 상황
+	ㄴ해결 : Filter나 AuthenticationSuccessHandler 또는 AuthenticationFilter 내부에서 실행되는 메서드에서
+			return new ResponseEntity<>(...); 이런 **Spring MVC 방식의 리턴(ResponseEntity)**을 사용하면 Tomcat은 Servlet 기반이기 때문에 이를 처리하지 못해 에러가 발생.
+			public ResponseEntity<?> -> public void & (response.setStatus(HttpServletResponse.SC_OK); // 명시적으로 상태 설정)
+
+★에러  
+org.springframework.dao.DataIntegrityViolationException:
+could not execute statement
+[Duplicate entry '4' for key 'refresh.UK_cayf9x6n7qk7ay3vbktyo7g5w']
+ㄴ원인 : refresh table UK_carysolekn3i02hn2pini... 는 Unique 제약 조건 위반 (member_id or refresh_token)
+		이미 존재하는 refresh token 데이터를 insert 하려다 충돌 발생 
+	ㄴ기존 : Optional<Refresh> existedRefresh = refreshRepository.findById(member.getId());
+			위 방식은 Refresh 의 PK 가 member.getId() 와 1:1 매핑되지 않는 경우, member_id 컬럼에 unique 제약이 걸린 중복 insert 가 발생. (Refresh.id == Member.id 와 잘못된 가정)
+
+ex)
+	@Entity
+	public class Refresh {
+    	@Id
+   	@GeneratedValue(strategy = GenerationType.IDENTITY)
+    	private Long id; // Refresh entity 고유 식별자 (PK)
+
+    	@OneToOne
+    	@JoinColumn(name = "member_id", unique = true) // 외래 키지만 unique 값 (1:1 관계)
+    	private Member member;
+	
+	- 위에 경우가 예시인데, id 는 Refresh 자체의 PK 이고, member_id 는 외래 키(Unique 만 있다.)
+		즉, Refresh.id != member.id 이기 때문에 findById(member.getId())는 거의 항상 null 또는 잘못된 조회가 된다.
+	ㄴ해결 : findById(member.getId()) -> findByMember(member)
+	ㄴ설명 : Refresh entity -> member_id 를 기준으로 조회, 이는 외래 키 + Unique 제약을 가진 컬럼이라 1:1 관계에서 안정적인 조회가 가능, Refresh 가 중복되지 않고, 존재할 경우 업데이트만 하면된다.
+			즉, 조회 기준 컬럼이 잘못됐던 것이 에러의 핵심, (어떤 기준으로 Optional을 감쌌느냐)
+
+	ㄴ추가 : 만약 Refresh entity Id == member_id 성립이 되게 하려면, 
+			ex)
+			@MapsId // 이 어노테이션을 설정해야 된다.
+			private Member member; 
+			- 이러면 Refresh.id == member.id가 되고, PK와 FK가 같아짐.
+
+
+★에러 : intellij, springboot, gradle 환경세팅을 해놓고 application.properties run 실행 시키고 localhost:8080 을 url에 적용하면, whitelabel error page 가 나와야 정상 'HTTP 상태 404 – 찾을 수 없음' 페이지가 나옴. 
+ㄴ원인 : java-version & springboot version 두개가 맞아야 되는것도 있지만, 이번 경우에는 gradle-wrapper.properties의 'distributionUrl=https\://services.gradle.org/distributions/gradle-7.3.1-bin.zip' gradle-8.... 버젼이 맞지 않았다. 
+그래서 다운그레이드 적용시켜서 에러 해결
+
+★영어와 숫자 사이에 간격이 벌어진 경우
+ㄴ원인 : (전각 문자와 반각 문자 입력 등의 차이로 생긴 에러)
+	ㄴ해결 : ALT + '=' 키를 눌러주면 에러 해결.
+
+★org.springframework.context.ApplicationContextException: Failed to start bean 'documentationPluginsBootstrapper'; nested exception is java.lang.NullPointerException
+
+원인 : spring boot와 spring fox의 버전이 맞지 않아 발생하는 에러
+해결 : application.properties 
+		- spring: mvc: pathmatch: matching-strategy: ant_path_matcher 추가
+			ㄴ ex) http://localhost:8081/swagger-ui/index.html
+
+
+----------------------------------------IntelliJ----------------------------------------
+
+★failed to push some refs to "repository"
+ㄴgit push -f origin master 강제 push 협업에서는 비추천
+
+----------------------------------------GIT----------------------------------------
+★Error creating bean with name 'adminServiceImpl' defined in file........Initialization of bean failed; 
+ㄴ발생 : 잘 굴러가던 프로젝트가 tomcat 실행 시, localhost:/8080 에서 404에러 발생.
+ㄴ과정 : ServiceImpl.java class 가 표기 되었기에 어노테이션 에러라고들 구글링 블로거들이 해결 책을 주었다.
+		ㄴ하지만, 해결 실패, clean, project build, maven project update,,, 등등 처방을 해보았지만 실패..
+ㄴ원인 : root-contex.xml 에서 aop 관련 bean 등록을 했었는데 그 후에 탈이 났다고 생각해서 지운 후, 재 실행.
+	---- 후....4시간 태운 에러.
+
+★기본 에러 발생 시, 취할 수 있는 조치
+1.window - show view - problem 창 띄우기
+2.project - clean
+3.project 우클릭 - properties - project facets (java ver 확인)/ Runtime (tomcat ver 확인).
+4.project 우클릭 - Maven - update project
+
+★C:\Users\user\AppData\Roaming\Code\User\workspaceStorage
+ㄴjava language server (vscode) 작업 공간 디렉토리
+(일반적 can't be resolve to a type error 발생시 작업 폴더 삭제하면 error 해결)
+
+★Tomcat server configuration at missing 
+ㄴ다시 server tomcat 만들기 (Tomcat config 파일의 경로가 꼬여버린 것.)
+
+lombok.jar 은 압축 풀지말고 다운받은 폴더 그대로 eclipse.exe 폴더 밑에 같이 두면 된다.(하... 30분 날렷네)
+C:\Users\user\.m2\repository\org\projectlombok\lombok\1.18.30\lombok-1.18.30.jar
+
+★tomcat start -> 500 error page(can't find page) 폴더가 없어서..
+/WEB-INF/spring/appServlet/security-context.xml
+
+★No qualifying bean of type 'com.joo.mapper.MemberMapper' available:
+ㄴroot-context.xml, mapper.xml namespace 경로 설정 잘못햇을 경우.
+
+★HTTP Status 405 - Request method 'GET/POST' not supported
+ㄴform 과 Controller의 method 방식이 다르기 때문.
+ㄴmethod = {RequestMethod.GET,RequestMethod.POST} 수정하면 해결.
+
+★이클립스 빨간색 엑스 표시 없애는 방법
+ㄴ프로젝트 마우스 오른쪽 클릭 후 Spring > Remove Spring Project Nature 클릭 후 
+ㄴ다시 프로젝트 마우스 오른쪽 클릭 후 Spring > Add Spring Project Nature 클릭하면 Spring에서 에러표시 나는 버그 현상들이 사라진다.
+
+★ 이클립스 작동시, js 파일 흑백 에러 발생 
+ㄴ해결법으로 install market으로 add 하고 적용하려고 했는데? 플러그인 설치 애러 발생 
+ㄴ해결법으로 제어판 -> 방화벽 -> 이클립스 허용 -> 에러 해결
+
+----------------------------------------DB & Query----------------------------------------
+
+★ java.lang.ClassNotFoundException: com.mysql.cj.jdbc.Driver
+★에러 : yml 클래스의 com.mysql.cj.jdbc.Driver 못 찾는다는 에러 발생
+	ㄴ원인 : 띄어쓰기, 오타, java version 에러 없었는데, 구글링 결과 mysql version 에러, upgrade 후 해결
+	ㄴ해결 : '8.0.29' -> '8.0.33' version up
+
+★ table doesn't exists Error
+ㄴdb table 명을 바꾸고, xml class query에 변경 table 을 적용해줘야 한다.
+
+★ Access denied for user 'root'@'localhost'
+ㄴ환경변수시스템에서 path 새로 만들기 -> mysql or oracle path 생성
+
+★ org.apache.ibatis.binding.BindingException: Invalid bound statement (not found)
+ㄴ 거즌 path or spelling error /  xml파일 위치와 namespaces, query 확인 잘하기 
+
+★ you have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near
+ㄴmapper.xml query grammer 에러 띄어쓰기 콤마(,) 단어철자 등등 잘 살펴보기.
+
+★ cannot add or update a child row: a foreign key constraint fails
+ㄴforeing key에 값을 삽입할 때, 참조하는 테이블의 PK에 해당하는 값만 삽입해야 하지만 이를 어길시 에러.
+ㄴ외래 키는 참조하는 테이블의 기본 키와 동일한 데이터 유형과 길이를 가져야 합니다.
+ㄴ12/15 한번 더 에러 발생 똑같은 에러 메시지, 해결 방법, 기존 테이블들을 삭제하고 다시 생성해주었는데..
+ㄴ실무에서는 이렇게 하면 큰일이 날 텐데.. 참조 무결성이 이제 감은 잡히는데 어떻게 좋은 방향으로 해결햐?
+
+★jdbc.exceptions.MysqlDataTruncation: Data truncation: Data too long for column
+ㄴ내 상황을 기준으로 nationId type = varchar(2) 였다. 타입이 int가 아닌 String였는데, 너무 짧았음.
+ㄴalter table joo_nation modify nationId varchar(10); 로 길이를 변경해주었다.
+
+★/WEB-INF/views/admin/authorManage.jsp (행: [130], 열: [0]) 종료되지 않은 [&lt;c:out] 태그
+ㄴ엔드 태그를 확인했고 에러 없는 코드였는데, 계속 같은 에러 메시지 발생,
+ㄴJSTL 태그 안에는 JSP 스크립트 주석을 사용 -> 해결  <%--JSP 주석 --> or </c:if/forEach> end tag.
+
+★is not valid at this position expecting an identifier 
+ㄴ'column name' 구글링 결과론 esc 밑에 있는 ``이 문자를 사용했더니 해결(MySQL version up Error) 
+
+★invalid use of null value error
+ㄴ컬럼을 추가하거나 수정하여서 해당 컬럼이 null 값이 발생함.
+ㄴupdate [테이블명] set [컬럼명]=[값] where [컬럼명] is null
+ㄴalter table [테이블명] modify column [컬럼명][컬러타입] not null;
+
+★ 에러 - goodsDetail 상품 상세 페이지에서 상품 가격 값이 보이지 않음 (0으로 표기 됨.)
+★에러 :해결을 위한 시도 : 개발자도구 console.log("${goodsInfo.bookPrice}"); 결과 = 0 
+	ㄴ 로컬에서 상품 등록을 하고, db 확인 해보면 정상적으로 값이 들어옴
+		ㄴclient -> server  정상적으로 데이터가 이동, 반대로 server -> client가 에러라는 것.
+ㄴ그래서 AdminMapper.xml 의 쿼리 확인 했는데, 상품 조회 페이지 select 문에 'bookPrice' 빠져 있었음.
+
+★Column 'cateCode' in where clause is ambiguous
+★에러 : xml query 부분에서 cateCode가 어디 테이블인지 명시 안 해서 발생
+	ㄴ해결 : cateCode ~~ ->>>> a.cateCode like ~~
+
+★ERROR 1366 (HY000): Incorrect string value:
+★에러 : 원래는 3780 error 발생 (FK 대상 테이블 타입이 참조 대상과 타입이 맞지 않아서 발생)
+	ㄴ해결 : 그런데 column type을 modify 해서 3780 해결 하려는데, 이번에는 1366 발생 
+		ㄴ해결2 : 일단 1366부터 해결코자, "DEFAULT CHARSET=utf8;" 를 테이블 마지막에 입력하자 모두 해결
+
+★Error Code: 1452. Cannot add or update a child row: a foreign key constraint fails (`bookshop`.`joo_cart`, CONSTRAINT `joo_cart_ibfk_2` FOREIGN KEY (`bookId`) REFERENCES `joo_book` (`bookId`))	0.015 sec
+★에러 : 참조키가 있을 때 부모 테이블에서 키와 매칭되는 로우가 없을 때 발생.
+	ㄴ원인 : insert into joo_cart values(1,"test", 46, 29); bookId(46) -> bookId(6)
+			joo_book 테이블에 bookId(46) 이 없었다. insert여서 45까지있어서 추가하려고 46을 했다.
+	ㄴ해결 : 매칭이 안됐다는 뜻이기에 기존에 있는 bookId(6)으로 바꾸어주었다.
+
+★Error Code: 3780. Referencing column 'memberId' and referenced column 'memberId' in foreign key constraint 'joo_order_ibfk_1' are incompatible.	
+★에러 : 테이블 생성에서 에러 발생
+	ㄴ원인 : 1)외래키를 맺으려고 하는 두 개의 컬럼의 타입이 맞지 않은 경우.
+		    2)타입도 맞았는데 계속된 에러 발생이면, 'character set'이 동일하지 않기 때문에 발생하는 에러.
+			utfmb4_unicode_ci 로 보이는 부분이 테이블의 character set 설정이다. 
+			varchar, char 의 타입을 가진 컬럼에만 나온다. 따라서 varchar, char 로 외래키를 엮으려고 하는데 			에러가 난다면 Collation 값이 동일한지 확인.
+	ㄴ해결 : 테이블 끝에 character set=utf8 입력.
+
+★Cannot add or update a child row: a foreign key constraint fails (`bookshop`.`joo_orderitem`, CONSTRAINT 	`joo_orderitem_ibfk_2` FOREIGN KEY (`bookId`) REFERENCES `joo_book` (`bookId`))
+★에러 : mapper test 도중 발생 enroll 메서드 관련 insert into 쿼리문에서 발생
+	ㄴ원인 : 없는 bookId 를 넣어서 생긴 에러
+	ㄴ해결 : 값이 있는 bookId 데이터를 다시 넣어서 에러 해결.
+★MySQL(1451) error : Cannot delete or update a parent row: a foreign key constraint fails
+★에러 : 삭제할 대상이 부모키에 엮여 있어서 삭제 불가
+	ㄴ 해결 : 부모키로 엮여져있던 해당 테이블 delete
+	ㄴ 고찰 : 이렇게 하면 안된다고 생각 고객의 데이터를 함부로 삭제하면 안되기 때문에.
+
+★Parameter index out of range (1 > number of parameters, which is 0).
+★에러 : DAO/XML 에서 쿼리문 error 발생.
+	ㄴ원인 : 쿼리문 오타, ?/parameter 매핑 불일치.
+	ㄴ해결 : 쿼리문 오타.
+
+★No qualifying bean of type 'service.CartService' available : expected at least 1 been which qualifies as autowire
+	candidate. dependenc annotations
+★에러 : 어노테이션 적용 에러 
+	ㄴ원인 : service class 의 interface, Implemnets 에 해당 로직의 @Service 라는 것을 알려줘야 한다. 
+	ㄴ해결 : CasrtServiceImpl.java class에 @Servcie 어노테이션 붙임.
+
+★Unreachable code
+★에러 : 구조 상 도달할 수 없는 코드
+	ㄴ해결 : 위치 수정.
+
+★Failed to convert property value of type 'java.lang.String' to required type 'int' for property 'cartId'
+★에러 : jquery 버튼 기능이 작동이 안됨.
+	ㄴ원인1 : const cartId = $(this).data("cartId"); / HTML data 속성 값을 가져올때, 소문자로 받아야한다.(약속)
+	ㄴ원인2 : <a class="quantity_modify_btn" data-cartid="${ci.cartId}">변경</button> 인데, 
+		      <button 태그를 사용하니까 에러 발생
+	ㄴ해결1 : data("cartid"); 로 대분자 -> 소문자로 바꾸어 주면서 해결.
+	ㄴ해결2 : 다시 a 태그로 원복.
+
+★ javax.el.ELException: Failed to parse the expression [${this}]
+★에러 : 갑자기 위에 에러 문구와 함께 특정 페이지 500 ERROR
+	ㄴ해결 : Server 프로젝트의 catalina.properties 맨 밑에 org.apache.el.parser.SKIP_IDENTIFIER_CHECK=true 추가.
+
+★ Error updating database.  Cause: java.sql.SQLIntegrityConstraintViolationException: Duplicate entry 
+★에러 : 주문 테이블의 고유키(pk) orderId 중복 에러 
+	ㄴ원인 : orderId의 구조는 {memberId}_yyyyMMmmss 임 그래서 초단위로 pk를 구분하는데도 불구 에러 발생
+	ㄴ해결 : 몇 초 뒤에 주문하면 정상 작동...?
+
+★ NullPointerExceptino 은 보통 객체가 초기화되지 않은 상태에서 해당 객체의 메서드나 속성을 사용하려고 할 때,
+
+★
+com.mysql.cj.jdbc.exceptions.MysqlDataTruncation: Incorrect datetime value: '0000-00-00 00:00:00' 오류는 MySQL에서 유효하지 않은 날짜 값인 '0000-00-00 00:00:00'을 DATETIME 또는 TIMESTAMP 컬럼에 삽입하려고 시도할 때 발생합니다.
+
+★ Cannot be accessed from outside package
+★에러 : test 클래스에서 Dto 클래스 선언 시, 위 에러 발생
+	ㄴ원인 : 해당 dto 클래스에는 변환 메서드가 있고, 해당 메서드 기능을 위해, @Builder 를 적용하였다.
+			@Builder 는 내부적으로 빌더 클래스와 해당 클래스의 생성자를 사용하여 객체를 생성.
+
+
+ㄴ추가 : @RequiredArgsConstructor 를 사용해서 생성자를 생성하고, 디버깅을 시도해보았지만 에러 발생
+	ㄴ원인 : @RequiredArgConstructor = final field & @NonNull 이 붙은 필드를 포함하는 생성자를 생성해주는 어노
+			접근 제어자와 초기화 필드 범위가 제한적, 빌더 패턴이나 외부 사용에 적합하지 않다.
+
+★ 3780. Referencing column 'board_id' and referenced column 'id' ind foreign key constraint 'comment_ibfk_1' are incompatible.
+★에러 : int 타입의 id column 을 FK 로 설정하는 과정에서 발생한 에러이다.
+	ㄴ원인 : id column 은 unsigned 속성이지만, 참조하는 board 테이블의 id 컬럼은 unsigned 속성을 갖고 있지 않기 때문에 발생한 에러, mysql에서UNSIGNED는 음수로 저장되면 안되는 필드에 걸어주는 옵션입니다.
+	ㄴ원인2 : 참조 칼럼과 참조 당하는 칼럼의 타입이 맞지 않을 때,
+	ㄴ 해결 : ALTER TABLE board MODIFY COLUMN id int UNSIGNED; (usigned 속성 부여)
+
+★ Caused by: java.sql.SQLSyntaxErrorException: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'type=MyISAM' at line 6
+★에러 : SQL syntax error
+	ㄴ원인 : mysql version error, MySQL 8.0 이상에서는 'type' -> 'engine' 키워드로 바꿔주어야 한다.
+	ㄴ해결 : application.yml 'type' -> 'engine' 키워드로 바꿔주었다.
+
+★ 포스트맨 io.jsonwebtoken.MalformedJwtException: Compact JWT strings may not contain whitespace.
+★에러 : JWT 토큰에 공백(whitespace) 이 포함되어 있어서, jjwt 라이브러리가 이를 올바른 JWT 문자열로 인식 못함.
+	ㄴ원인 : JWT는 "헤더.페이로드.서명" 형태의 compact string 이어야 하며, 공백이 있으면 파싱할 수 없다.
+	ㄴ해결 : 
+String token = request.getHeader("Authorization");
+if (token != null && token.startsWith("Bearer ")) {
+    token = token.substring(7).trim(); // trim() 추가!
+}
+
+★ 포스트맨 io.jsonwebtoken.io.DecodingException: Illegal base64url character: ' '
+★에러 : resposne 로 받은 응답은 500 에러 (gpt 디버깅 시, 공백 에러라는 헛소리)
+	ㄴ원인 :  postman test 도중 에러, 동적이 아닌, 수동 토큰 설정 중이였다.  
+	ㄴ해결 :  Authorization 탭이 아닌, Header 탭에서 key 컬럼에 입력을 하고, value 컬럼에 로그인에서 생성한 JWT 토큰을 입력
+
+★ 포스트맨 401 Authorization error
+★에러 : postman api request 시, 403 forbbiden error
+	ㄴ원인 : api project 는 view(client) 없이 test 하는 경우, 똑같이 과정을 같게하여 순차적으로 url request 를 보내야 한다. (로그인 후 발급된 accessToken 을 사용하여 인증해야 된다. ex) 게시물 조회..)
+	ㄴ해결 : localhost://8080/auth/signIn 으로 얻은 accessToken 을 postman Header 에 동적으로 자동 저장해주는 방식을 설정해준다.
+		ㄴ 
+			pm.test("Save accessToken", function () {
+			    var jsonData = pm.response.json();
+			    pm.environment.set("accessToken", jsonData.accessToken);
+			});
+
+			Header = Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI...
+
+★ 포스트맨 환경변수 에러
+★에러 : JWT strings must contain exactly 2 period characters. Found: 0
+	ㄴ원인 : Authorization: Bearer {{accessToken}} 으로 console 로그가 찍히고 있었다. 원래는 Bearer <JWT token> 이 찍혀야 했다. 구글링 결과, 포스트맨에서 내가 설정한 환경변수를 저장하지 않고 요청을 보내 에러가 발생한 것이 였다.
+	ㄴ해결 : 환경변수 저장, 끝..
+
+★★★ 시크릿 키 불일치
+★에러 : io.jsonwebtoken.security.SignatureException: JWT signature does not match locally computed signature. JWT validity cannot be asserted and should not be trusted.
+
+자주 발생하는 원인 :
+1. 시크릿 키 불일치
+	ㄴ해결 : .env or yml 값으로 검증 -> 오타, 공백 포함 여부, 인코딩 처리 여부 확인 
+
+2. SecretKey는 Base64 인코딩되어야 정상 동작하는데, 인코딩 없이 plain string으로 설정한 경우
+	ㄴ해결 : String secret = Base64.getEncoder().encodeToString("my-plain-secret".getBytes()); 사용
+
+3. 환경변수로 지정한 secret이 바뀌었는데 서버를 재시작 안 함
+	ㄴ해결 : 개발 중이라면, .env or yml 수정 후, ./gradlew bootRun or 서버 재시작
+
+4. 헤더에서 Bearer 없이 토큰만 잘못 들어간 경우
+	ㄴ해결 : 클라이언트에서 JWT 전송 시 Bearer {token} 형식인지 확인, 디코딩 사이트에서 확인
+
+★★ 보너스: 자주 점검할 체크리스트 ★★
+1. 시크릿 키 일치 여부 : JWTUtil, SecurityConfig, .env 모두 비교
+2. 환경변수 변경 후, 서버 재시작 여부 : 변경 후 ./gradlew bootRun 수행
+3. JWT 토큰 정상 전송 여부 : Postman 에서 Authorization 헤더 확인
+4. 토큰 손상 여부 확인 : jwt.io 에 디코딩하여 3단 구조 확인
+
+★★★ (3일을 앗아간 에러)
+★에러 : JWT validity cannot be asserted and should not be trusted, GPT 가 제공해준 해결법
+	1. secretKey 불일치, (토큰생성 때 != 토큰검증 때)
+	2. 환경변수 설정 에러 (application.yml 공백 에러)
+	3. 서명 알고리즘 불일치 (HS512 사용, 클라이언트 & 서버 동일한 알고리즘을 사용해야 한다.)
+		ㄴ JWT 를 디코딩해서 형태를 찾아서 비교 (클라이언트), TokenProvider class 설정 (서버)
+	4. JWT 파싱 및 검증 과정에서 에러 발생 (parseClaims(), ExpiredJwtException 처리 때, token expired)
+
+	ㄴ원인 = 3번 (포스트맨에서는 HS256 사용, 서버에서는 HS512 사용, 불일치)
+			[Postman :  "alg": "HS256"] != [Server : .signWith(key, SignatureAlgorithm.HS512)]
+	ㄴ해결 : SignatureAlgorithm.HS512 - > HS256 변경
+
+★★★★★★★ (7일을 앗아간 에러)
+@Override
+protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
+
+        // 1. Request Header 에서 토큰을 꺼냄
+        String jwt = resolveToken(request);
+
+        // 2. validateToken 으로 토큰 유효성 검사
+        // 정상 토큰이면 해당 토큰으로 Authentication 을 가져와서 SecurityContext 에 저장.
+        if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
+            Authentication authentication = tokenProvider.getAuthentication(jwt);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            filterChain.doFilter(request, response); // 유효성 검증 실패 시, jwtHandler 로 넘겨진다.
+        }
+}
+
+★에러 : postman 테스트 시, response Body 에 아무 로그도 찍히지 않았다. 200OK 만 응답이 오고, context-length=0 으로 테스트 불가.
+ㄴ원인 : filterChain.doFilter(request, response); 이 if문 안에 있으면 안됨. 밖으로 빼야됨
+ㄴ해결 : 처음에는 GPT 와 질의응답으로 SecurityConfig, WebConfig .. 등 Security 관련 클래스에서 에러점을 찾으려고 했다. 그러다가 방도가 없어서 yml 클래스에 
+logging:
+  level:
+    org.springframework.security: TRACE
+    org.springframework.web: TRACE
+
+를 적용하고 로그를 추적해서 알아낸 부분이, "SecurityContextHolder가 요청 종료 시 비워지고 아무 인증 정보도 설정되지 않는다는 점입니다. 이는 인증 과정에서 에러가 발생했음을 나타냅니다." 였다.
+
+그래서 JwtFilter 클래스 관련 에러인 것을 알고, doFilter 메소드를 확인해본 결과, 
+
+잘못된 코드: filterChain.doFilter(request, response);가 if문 안에 있기 때문에 유효한 토큰이 있을 때만 요청을 처리하고, 유효하지 않으면 필터 체인이 실행되지 않아서 응답이 오지 않음.
+
+정상적 코드: filterChain.doFilter(request, response);가 if문 밖에 있어 토큰이 유효한지 여부와 관계없이 필터 체인은 항상 실행되며, 응답이 정상적으로 전달됨.

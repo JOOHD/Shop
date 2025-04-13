@@ -81,10 +81,6 @@ dependencies {
 
 }
 
-tasks.withType(JavaCompile) {
-    options.compilerArgs << "-Xlint:deprecation" << "-Xlint:unchecked"
-}
-
 test{
     useJUnitPlatform()
     jvmArgs '-Xshare:off'

@@ -58,19 +58,19 @@ public class ProductApiControllerV1 {
      */
     @GetMapping("/products")
     public Page<ProductListDto> getFilteredAndSortedProducts(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) Condition condition,
-            @RequestParam(required = false) Long category,
-            @RequestParam(required = false) OrderBy order,
-            @RequestParam(required = false) String keyword
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(name = "condition", required = false) Condition condition,
+            @RequestParam(name = "category", required = false) Long category,
+            @RequestParam(name = "order", required = false) OrderBy order,
+            @RequestParam(name = "keyword", required = false) String keyword
     ) {
         return productOrderService.getFilteredAndSortedProducts(page, size, condition, order, category, keyword);
     }
 
     /**
      * 상품 등록
-     * @param requestDto
+     * @param requestDtoStr
      * @return productId, productName, price
      *
      * 문제 1
