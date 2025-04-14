@@ -42,8 +42,9 @@ public class ProductThumbnailControllerV1 {
     }
 
     // 상품 id로 썸네일 조회 (경로 리스트)
-    @GetMapping("/{productId}")
+    @GetMapping("/product/{productId}")
     public ResponseEntity<List<String>> getProductThumbnails(@PathVariable("productId") Long productId) {
+        System.out.println("*****************GET 요청 진입 확인 : productId = " + productId);
         List<ProductThumbnail> thumbnails = productThumbnailService.getProductThumbnails(productId);
         if (!thumbnails.isEmpty()) {
             List<String> thumbnailPaths = thumbnails.stream()

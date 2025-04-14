@@ -86,7 +86,7 @@ public class ProductApiControllerV1 {
     @PostMapping("/products/new")
     public ResponseEntity<String> createProduct(
             @Valid @RequestPart("requestDto") String requestDtoStr,
-            @RequestPart(value = "thumbnailImgs", required = false) List<MultipartFile> thumbnailImgs,
+            @RequestPart(value = "ㅑthumbnailImgs", required = false) List<MultipartFile> thumbnailImgs,
             @RequestPart(value = "contentImgs", required = false) List<MultipartFile> contentImgs)throws JsonProcessingException {
 
         ProductCreateDto requestDto = objectMapper.readValue(requestDtoStr, ProductCreateDto.class);
