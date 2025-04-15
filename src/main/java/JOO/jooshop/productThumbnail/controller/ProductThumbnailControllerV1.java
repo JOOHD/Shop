@@ -3,14 +3,19 @@ package JOO.jooshop.productThumbnail.controller;
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.repository.ProductRepositoryV1;
 import JOO.jooshop.productThumbnail.entity.ProductThumbnail;
-import JOO.jooshop.productThumbnail.repository.ProductThumbnailRepositoryV1;
 import JOO.jooshop.productThumbnail.service.ProductThumbnailServiceV1;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -19,7 +24,7 @@ import static JOO.jooshop.global.ResponseMessageConstants.DELETE_SUCCESS;
 import static JOO.jooshop.global.ResponseMessageConstants.PRODUCT_NOT_FOUND;
 
 @RestController
-@RequestMapping("/api/v1/thumbnail")
+@RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
 public class ProductThumbnailControllerV1 {
 
@@ -27,7 +32,7 @@ public class ProductThumbnailControllerV1 {
     private final ProductRepositoryV1 productRepository;
 
     // 썸네일 업로드
-    @PostMapping("/upload")
+    @PostMapping("/{productId}/thumbnails")
     public ResponseEntity<String> uploadThumbnail(@RequestParam("productId") Long productId, @RequestParam("image") List<MultipartFile> images) {
         Product product = productRepository.findByProductId(productId).orElseThrow(() -> new NoSuchElementException(PRODUCT_NOT_FOUND));
         productThumbnailService.uploadThumbnail(product, images);
@@ -42,17 +47,18 @@ public class ProductThumbnailControllerV1 {
     }
 
     // 상품 id로 썸네일 조회 (경로 리스트)
-    @GetMapping("/product/{productId}")
-    public ResponseEntity<List<String>> getProductThumbnails(@PathVariable("productId") Long productId) {
-        System.out.println("*****************GET 요청 진입 확인 : productId = " + productId);
+    @GetMapping("/{productId}/thumbnails")
+    public ResponseEntity<List<String>> getProductThumbnailUrls(@PathVariable("productId") Long productId) {
         List<ProductThumbnail> thumbnails = productThumbnailService.getProductThumbnails(productId);
-        if (!thumbnails.isEmpty()) {
-            List<String> thumbnailPaths = thumbnails.stream()
-                    .map(ProductThumbnail::getImagePath)
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok().body(thumbnailPaths);
-        } else {
+
+        if (thumbnails.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+
+        List<String> urls = thumbnails.stream()
+                .map(t -> "/uploads/thumbnails/" + t.getImagePath()) // 이미 /uploads/thumbnails/ 로 시작된다.
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(urls);
     }
 }

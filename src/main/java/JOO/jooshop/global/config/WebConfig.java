@@ -1,8 +1,11 @@
 package JOO.jooshop.global.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.io.File;
 
 @Configuration // spring 설정 클래스임을 명시
 public class WebConfig implements WebMvcConfigurer {
@@ -16,11 +19,16 @@ public class WebConfig implements WebMvcConfigurer {
      *
      * @param registry the registry to which the resource handler is added
      */
+    @Value("${file.upload-dir}")
+    private String uploadDir;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // "/uploads/**" 경로로 시작하는 요청이 "src/main/resources/static/uploads/" 디렉토리에서 정적 파일을 제공할 수 있다.
+        // src/main/resources/static/uploads/thumbnails/ 에 저장하면 JAR 빌드 후, 변경사항 반영 안 됨
+        // 클래스패스(static 디렉토리)는 읽기 전용이다. 이미지를 resources/static 에 저장하는 건 개발 중만 가능한 트릭이다.
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:src/main/resources/static/uploads/");
+                .addResourceLocations("file:" + uploadDir); // 끝에 "/" 자동으로 붙여짐
     }
 }
+
+// 25.04.15 브라우저에서 안 열림 오눌은 여기까지

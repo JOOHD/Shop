@@ -1,3 +1,5 @@
+file:
+  upload-dir: C:/Users/user/OneDrive/바탕 화면/Joo_Shop/jooshop/uploads/
 spring:
   servlet:
     multipart:

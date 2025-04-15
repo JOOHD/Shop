@@ -6,6 +6,7 @@ import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.productThumbnail.entity.ProductThumbnail;
 import JOO.jooshop.productThumbnail.repository.ProductThumbnailRepositoryV1;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,17 +31,20 @@ public class ProductThumbnailServiceV1 {
      */
     private final ProductThumbnailRepositoryV1 productThumbnailRepository;
 
+    @Value("${file.upload-dir}")
+    private String uploadDir;
+
     /* 썸네일 등록(저장) */
     public void uploadThumbnail(Product product, List<MultipartFile> images) {
         try {
             // 이미지 파일 저장을 위한 경로 설정
-            String uploadsDir = "src/main/resources/static/uploads/thumbnails/";
+            String thumbnailsDir = uploadDir + "thumbnails/";
 
             // 각 이미지 파일에 대해 업로드 및 DB 저장 수행
             for (MultipartFile image : images) {
 
                 // 이미지 파일 경로를 저장
-                String dbFilePath = saveImage(image, uploadsDir);
+                String dbFilePath = saveImage(image, thumbnailsDir);
 
                 // ProductThumbnail 엔티티 생성 및 저장
                 ProductThumbnail thumbnail = new ProductThumbnail(product, dbFilePath);
@@ -57,8 +61,8 @@ public class ProductThumbnailServiceV1 {
         // 같은 이름의 파일을 업로드 하게 되면 덮어쓰게 된다. 따라서 랜덤 값을 생성해 기존 파일 이름과 합쳐 새 파일 이름 생성.
         String fileName = UUID.randomUUID().toString().replace("-", "") + "_" + image.getOriginalFilename();
         // 실제 파일이 저장될 경로
-        String filePath = uploadsDir + fileName;
-        // DB에 저장할 경로 문자열
+        String filePath = "src/main/resources/static/uploads/thumbnails/" + fileName;
+        // DB에 저장할 경로 (클라이언트가 요청 시, 사용할 경로)
         String dbFilePath = "/uploads/thumbnails/" + fileName;
 
         // Path 는 Java NIO 패키지에서 제공하는 클래스, get() 으로 객체 생성, 문자열 경로를 Path로 변환.
@@ -78,7 +82,7 @@ public class ProductThumbnailServiceV1 {
                 .orElseThrow(() -> new NoSuchElementException("해당 사진을 찾을 수 없습니다."));
 
         // 썸네일 파일 경로 가져오기
-        String imagePath = "src/main/resources/static" + thumbnail.getImagePath();
+        String imagePath = uploadDir + thumbnail.getImagePath().replace("/uploads", "");
 
         // 썸네일 데이터베이스에서 삭제
         productThumbnailRepository.delete(thumbnail);
