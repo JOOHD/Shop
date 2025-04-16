@@ -5,6 +5,7 @@ import JOO.jooshop.product.repository.ProductRepositoryV1;
 import JOO.jooshop.productThumbnail.entity.ProductThumbnail;
 import JOO.jooshop.productThumbnail.service.ProductThumbnailServiceV1;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,8 +24,9 @@ import java.util.stream.Collectors;
 import static JOO.jooshop.global.ResponseMessageConstants.DELETE_SUCCESS;
 import static JOO.jooshop.global.ResponseMessageConstants.PRODUCT_NOT_FOUND;
 
+@Slf4j
 @RestController
-@RequestMapping("/api/v1/products")
+@RequestMapping("/api/v1/thumbnail")
 @RequiredArgsConstructor
 public class ProductThumbnailControllerV1 {
 
@@ -32,7 +34,7 @@ public class ProductThumbnailControllerV1 {
     private final ProductRepositoryV1 productRepository;
 
     // 썸네일 업로드
-    @PostMapping("/{productId}/thumbnails")
+    @PostMapping("/upload")
     public ResponseEntity<String> uploadThumbnail(@RequestParam("productId") Long productId, @RequestParam("image") List<MultipartFile> images) {
         Product product = productRepository.findByProductId(productId).orElseThrow(() -> new NoSuchElementException(PRODUCT_NOT_FOUND));
         productThumbnailService.uploadThumbnail(product, images);
@@ -47,18 +49,16 @@ public class ProductThumbnailControllerV1 {
     }
 
     // 상품 id로 썸네일 조회 (경로 리스트)
-    @GetMapping("/{productId}/thumbnails")
-    public ResponseEntity<List<String>> getProductThumbnailUrls(@PathVariable("productId") Long productId) {
+    @GetMapping("/{productId}")
+    public ResponseEntity<List<String>> getProductThumbnails(@PathVariable Long productId) {
         List<ProductThumbnail> thumbnails = productThumbnailService.getProductThumbnails(productId);
-
-        if (thumbnails.isEmpty()) {
+        if (!thumbnails.isEmpty()) {
+            List<String> thumbnailPaths = thumbnails.stream()
+                    .map(ProductThumbnail::getImagePath)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok().body(thumbnailPaths);
+        } else {
             return ResponseEntity.notFound().build();
         }
-
-        List<String> urls = thumbnails.stream()
-                .map(t -> "/uploads/thumbnails/" + t.getImagePath()) // 이미 /uploads/thumbnails/ 로 시작된다.
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(urls);
     }
 }

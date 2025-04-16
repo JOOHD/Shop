@@ -6,6 +6,8 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.io.File;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Configuration // spring 설정 클래스임을 명시
 public class WebConfig implements WebMvcConfigurer {
@@ -19,16 +21,13 @@ public class WebConfig implements WebMvcConfigurer {
      *
      * @param registry the registry to which the resource handler is added
      */
-    @Value("${file.upload-dir}")
-    private String uploadDir;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // src/main/resources/static/uploads/thumbnails/ 에 저장하면 JAR 빌드 후, 변경사항 반영 안 됨
         // 클래스패스(static 디렉토리)는 읽기 전용이다. 이미지를 resources/static 에 저장하는 건 개발 중만 가능한 트릭이다.
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:" + uploadDir); // 끝에 "/" 자동으로 붙여짐
+                .addResourceLocations("file:src/main/resources/static/uploads/");
     }
 }
 
-// 25.04.15 브라우저에서 안 열림 오눌은 여기까지
