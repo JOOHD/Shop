@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 import static JOO.jooshop.global.ResponseMessageConstants.DELETE_SUCCESS;
 
 @RestController
-@RequestMapping("/api/v1/category")
+@RequestMapping("/api/v1/categorys")
 @RequiredArgsConstructor
 public class CategoryControllerV1 {
 
@@ -78,12 +78,12 @@ public class CategoryControllerV1 {
         2. 서버는 parentId 를 꺼내서, 이걸 FK 로 저장하고 자식 카테고리를 저장
         3. 저장하면서 생성된 자식의 categoryId 를 반환
      */
-    @PostMapping("/child") // 부모 카테고리 id를 바디로 보냄
-    public ResponseEntity<Long> createChildCategory(@RequestBody Category category) {
-        Long parentId = category.getParent().getCategoryId(); // 요청 바디에 있는 부모 카테고리의 ID를 가져옵니다.
-        Long categoryId = categoryService.createCategory(category, parentId); // 부모 카테고리의 ID를 parentId로 전달하여 자식 카테고리 생성
-        return ResponseEntity.ok(categoryId);
-    }
+//    @PostMapping("/child") // 부모 카테고리 id를 바디로 보냄
+//    public ResponseEntity<Long> createChildCategory(@RequestBody Category category) {
+//        Long parentId = category.getParent().getCategoryId(); // 요청 바디에 있는 부모 카테고리의 ID를 가져옵니다.
+//        Long categoryId = categoryService.createCategory(category, parentId); // 부모 카테고리의 ID를 parentId로 전달하여 자식 카테고리 생성
+//        return ResponseEntity.ok(categoryId);
+//    }
 
     /**
      * 카테고리 삭제

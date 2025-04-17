@@ -6,11 +6,10 @@ import JOO.jooshop.product.entity.ProductColor;
 import JOO.jooshop.productManagement.entity.ProductManagement;
 import JOO.jooshop.productManagement.entity.enums.Size;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class InventoryCreateDto {
@@ -30,37 +29,18 @@ public class InventoryCreateDto {
     private Boolean isRestocked = false;
     private Boolean isSoldOut = false;
 
-    public InventoryCreateDto(ProductManagement productManagement) {
-        this(
-                productManagement.getProduct().getProductId(),
-                productManagement.getColor().getColorId(),
-                productManagement.getCategory().getCategoryId(),
-                productManagement.getSize(),
-                productManagement.getInitialStock(),
-                productManagement.getAdditionalStock(),
-                productManagement.isRestockAvailable(),
-                productManagement.isRestocked(),
-                productManagement.isSoldOut()
-        );
+    public ProductManagement toEntity(Product product, ProductColor color, Category category, String size) {
+        return ProductManagement.builder()
+                .product(product)
+                .color(color)
+                .category(category)
+                .size(Size.fromDescription(size))
+                .initialStock(initialStock)
+                .additionalStock(0L) // 초기 추가재고 없음
+                .productStock(initialStock)
+                .isRestockAvailable(isRestockAvailable)
+                .isRestocked(false) // 재입고 X
+                .isSoldOut(false) // 품절 X
+                .build();
     }
-
-    public static ProductManagement newRequestManagementForm(InventoryCreateDto request) {
-        Product product = Product.createProductById(request.getProductId());
-        ProductColor color = ProductColor.createProductColorById(request.getColorId());
-        Category category = Category.createCategoryById(request.getCategoryId());
-
-        return new ProductManagement(
-                product,
-                color,
-                category,
-                request.getSize(),
-                request.getInitialStock(),
-                request.getInitialStock(), // 상품 재고는 초기재고로 자동 설정
-                request.getIsRestockAvailable(),
-                request.getIsRestocked(),
-                request.getIsSoldOut()
-        );
-    }
-
-
 }

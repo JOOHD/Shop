@@ -55,7 +55,7 @@ public class ProductManagementController {
      * @return
      */
     @GetMapping("/{inventoryId}")
-    public ResponseEntity<ProductManagementDto> getInventoryById(@PathVariable Long inventoryId) {
+    public ResponseEntity<ProductManagementDto> getInventoryById(@PathVariable("inventoryId") Long inventoryId) {
         ProductManagement inventoryDetail = managementService.inventoryDetail(inventoryId);
         ProductManagementDto productManagementDto = new ProductManagementDto(inventoryDetail);
         return new ResponseEntity<>(productManagementDto, HttpStatus.OK);

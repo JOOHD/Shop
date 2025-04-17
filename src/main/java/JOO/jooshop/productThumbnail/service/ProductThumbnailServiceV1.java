@@ -60,12 +60,26 @@ public class ProductThumbnailServiceV1 {
             e.printStackTrace();
         }
     }
-    // 이미지 파일을 저장하는 메서드
+
+    /**
+     * @param image
+     * @param uploadsDir
+     * @return
+     * @throws IOException
+     * 
+     * 지금 코드는 상대경로로 지정하였지만, JAR로 패키징 후엔 디렉토리가 읽기 전용이 되기 때문에 업로드 실패
+     * -> file: upload-dir : C:/jooshop/uploads/ (절대경로) 외부 저장
+     * -> file: upload-dir : src/main/resources/static.. (상대경로) 프로젝트 내부 저장, 읽기 전용
+     */
+    
     private String saveImage(MultipartFile image, String uploadsDir) throws IOException {
         // 파일 이름 생성
         String fileName = UUID.randomUUID().toString().replace("-", "") + "_" + image.getOriginalFilename();
+        log.info("*************OriginFileName check" + image.getOriginalFilename());
+        log.info("*************fileName check" + fileName);
         // 실제 파일이 저장될 경로
         String filePath = uploadsDir + fileName;
+        log.info("*************filePath check" + filePath);
         // DB에 저장할 경로 문자열
         String dbFilePath = "/uploads/thumbnails/" + fileName;
 

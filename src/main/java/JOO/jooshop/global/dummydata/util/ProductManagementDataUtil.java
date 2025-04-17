@@ -131,6 +131,4 @@ public class ProductManagementDataUtil {
 
         return new ProductManagement(initialStock, additionalStock, categoryById, productById, productStock, size, color, isRestockAvailable, isRestocked, isSoldOut);
     }
-
-
 }
