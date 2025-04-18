@@ -1,6 +1,5 @@
 package JOO.jooshop.global.dummydata.util;
 
-
 import JOO.jooshop.categorys.entity.Category;
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.entity.ProductColor;
@@ -84,7 +83,18 @@ public class ProductManagementDataUtil {
         // Preset color selection
 //        ProductColor productColor = new ProductColor(color);
 
-        return new ProductManagement(initialStock, additionalStock, matchedCategory, product, productStock, size, color, isRestockAvailable, isRestocked, isSoldOut);
+        return ProductManagement.builder()
+                .initialStock(initialStock)
+                .additionalStock(additionalStock)
+                .category(matchedCategory)
+                .product(product)
+                .productStock(productStock)
+                .size(size)
+                .color(color)
+                .isRestockAvailable(isRestockAvailable)
+                .isRestocked(isRestocked)
+                .isSoldOut(isSoldOut)
+                .build();
     }
 
     public ProductColor getRandomColor() {
@@ -123,12 +133,24 @@ public class ProductManagementDataUtil {
         long category_id = random.nextInt(34) + 1; // generate random category id between 1 and 34
         long product_id = random.nextInt(500) + 1; // generate random product id between 1 and 500
         // category_id 만을 가지고 있는 Category
-        Category categoryById = Category.createCategoryById(category_id);
+        Category category = Category.createCategoryById(category_id);
         // product_id 만을 가지고 있는 Product
-        Product productById = Product.createProductById(product_id);
+        Product product = Product.createProductById(product_id);
         // product color 를 1번부터 14번까지 색상중 랜덤하게 들고옵니다.
         ProductColor color = getRandomColor();
 
-        return new ProductManagement(initialStock, additionalStock, categoryById, productById, productStock, size, color, isRestockAvailable, isRestocked, isSoldOut);
+        // Builder에 넘기는 필드 이름이랑 변수명이 같도록
+        return ProductManagement.builder()
+                .initialStock(initialStock)
+                .additionalStock(additionalStock)
+                .category(category)
+                .product(product)
+                .productStock(productStock)
+                .size(size)
+                .color(color)
+                .isRestockAvailable(isRestockAvailable)
+                .isRestocked(isRestocked)
+                .isSoldOut(isSoldOut)
+                .build();
     }
 }

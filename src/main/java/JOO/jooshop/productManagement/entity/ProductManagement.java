@@ -13,19 +13,16 @@ import java.util.List;
 
 @Getter
 @Entity
+@Builder(toBuilder = true)
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "product_management")
 public class ProductManagement {
-    /*@Id
-    @SequenceGenerator(
-            name = "product_management_sequence",
-            sequenceName = "product_management_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "product_management_sequence"
-    )*/
+    /*
+        inventoryId는 @GeneratedValue에 의해 자동 생성되기 때문에,
+        builder()에는 포함하지 않는 게 자연스럽고 안전
+     */
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "inventory_id" )
@@ -65,40 +62,6 @@ public class ProductManagement {
     @ManyToMany(mappedBy = "productManagements")
     private List<Orders> orders = new ArrayList<>();
 
-    public ProductManagement(Product product, ProductColor color, Category category, Size size, Long initialStock, Long initialStock1, Boolean isRestockAvailable, Boolean isRestocked, Boolean isSoldOut) {
-        this.product = product;
-        this.color = color;
-        this.category = category;
-        this.size = size;
-        this.initialStock = initialStock;
-        this.productStock = initialStock1;
-    }
-
-    public ProductManagement(Long initialStock, Long additionalStock, Category categoryById, Product productById, Long productStock, Size size, ProductColor color, boolean isRestockAvailable, boolean isRestocked, boolean isSoldOut) {
-        this.initialStock = initialStock;
-        this.additionalStock = additionalStock;
-        this.category = categoryById;
-        this.product = productById;
-        this.productStock = productStock;
-        this.isRestockAvailable = isRestockAvailable;
-        this.isRestocked = isRestocked;
-        this.isSoldOut = isSoldOut;
-        this.size = size;
-        this.color = color;
-    }
-
-    public ProductManagement(long initialStock, long additionalStock, Category subCategory, Product product, long productStock, Size size, ProductColor productColor, boolean isRestockAvailable, boolean isRestocked, boolean isSoldOut) {
-        this.initialStock = initialStock;
-        this.additionalStock = additionalStock;
-        this.category = subCategory;
-        this.product = product;
-        this.productStock = productStock;
-        this.isRestockAvailable = isRestockAvailable;
-        this.isRestocked = isRestocked;
-        this.isSoldOut = isSoldOut;
-        this.size = size;
-        this.color = productColor;
-    }
 
     public void updateInventory(Category category, Long additionalStock, Long productStock, Boolean isRestockAvailable, Boolean isRestocked, Boolean isSoldOut) {
         this.category = category;

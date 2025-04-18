@@ -1,6 +1,9 @@
 package JOO.jooshop.productManagement.service;
 
 import JOO.jooshop.categorys.repository.CategoryRepository;
+import JOO.jooshop.product.entity.Product;
+import JOO.jooshop.product.entity.ProductColor;
+import JOO.jooshop.productManagement.model.InventoryCreateDto;
 import JOO.jooshop.productManagement.repository.ProductManagementRepository;
 import JOO.jooshop.categorys.entity.Category;
 import JOO.jooshop.global.authorization.RequiresRole;
@@ -29,17 +32,23 @@ public class ProductManagementService {
      * @param request
      * @return
      */
+    @Transactional
     @RequiresRole({MemberRole.ADMIN, MemberRole.SELLER})
-    public Long createInventory(ProductManagement request) {
+    public Long createInventory(InventoryCreateDto request) {
+        ProductManagement entity = InventoryCreateDto.newRequestManagementForm(request);
 
-        ProductManagement existingInventory = productManagementRepository.findByProductAndColorAndCategoryAndSize(request.getProduct(), request.getColor(), request.getCategory(), request.getSize()).orElse(null);
+        // 중복 체크, 저장
+        ProductManagement existingInventory = productManagementRepository
+                .findByProductAndColorAndCategoryAndSize(
+                        entity.getProduct(), entity.getColor(), entity.getCategory(), entity.getSize()
+                ).orElse(null);
 
         if (existingInventory != null) {
             throw new IllegalArgumentException("이미 존재하는 상품입니다.");
         }
 
-        productManagementRepository.save(request);
-        return request.getInventoryId();
+        productManagementRepository.save(entity);
+        return entity.getInventoryId();
     }
 
     /**

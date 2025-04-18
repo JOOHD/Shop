@@ -69,7 +69,7 @@ public class ProductManagementController {
     @PostMapping("/new")
     public ResponseEntity<ProductManagementDto> createInventory(@Valid @RequestBody InventoryCreateDto requestDto) {
         ProductManagement request = InventoryCreateDto.newRequestManagementForm(requestDto);
-        Long createdId = managementService.createInventory(request);
+        Long createdId = managementService.createInventory(requestDto);
 
         // Location 헤더 생성
         URI location = URI.create("/api/v1/inventory/" + createdId);
