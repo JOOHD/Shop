@@ -3,10 +3,12 @@ package JOO.jooshop.productManagement.model;
 import JOO.jooshop.productManagement.entity.ProductManagement;
 import JOO.jooshop.productManagement.entity.enums.Size;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import JOO.jooshop.product.entity.enums.ProductType;
 
 @Data
+@Builder
 @AllArgsConstructor
 public class ProductManagementDto {
 
@@ -60,5 +62,31 @@ public class ProductManagementDto {
                 productManagement.isRestocked()
 
         );
+    }
+
+    /* Entity -> dto */
+    public static ProductManagementDto from(ProductManagement productManagement) {
+        return ProductManagementDto.builder()
+                .productType(productManagement.getProduct().getProductType())
+                .productName(productManagement.getProduct().getProductName())
+                .price(productManagement.getProduct().getPrice())
+                .productInfo(productManagement.getProduct().getProductInfo())
+                .manufacturer(productManagement.getProduct().getManufacturer())
+                .isDiscount(productManagement.getProduct().getIsDiscount())
+                .isRecommend(productManagement.getProduct().getIsRecommend())
+                .inventoryId(productManagement.getInventoryId())
+                .productId(productManagement.getProduct().getProductId())
+                .colorId(productManagement.getColor().getColorId())
+                .color(productManagement.getColor().getColor())
+                .categoryId(productManagement.getCategory().getCategoryId())
+                .category(productManagement.getCategory().getName())
+                .size(productManagement.getSize())
+                .initialStock(productManagement.getInitialStock())
+                .additionalStock(productManagement.getAdditionalStock())
+                .productStock(productManagement.getProductStock())
+                .isSoldOut(productManagement.isSoldOut())
+                .isRestockAvailable(productManagement.isRestockAvailable())
+                .isRestocked(productManagement.isRestocked())
+                .build();
     }
 }

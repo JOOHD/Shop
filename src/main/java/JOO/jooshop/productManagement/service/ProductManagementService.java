@@ -3,6 +3,8 @@ package JOO.jooshop.productManagement.service;
 import JOO.jooshop.categorys.repository.CategoryRepository;
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.entity.ProductColor;
+import JOO.jooshop.product.repository.ProductColorRepositoryV1;
+import JOO.jooshop.product.repository.ProductRepositoryV1;
 import JOO.jooshop.productManagement.model.InventoryCreateDto;
 import JOO.jooshop.productManagement.repository.ProductManagementRepository;
 import JOO.jooshop.categorys.entity.Category;
@@ -25,30 +27,39 @@ import static JOO.jooshop.global.ResponseMessageConstants.PRODUCT_NOT_FOUND;
 public class ProductManagementService {
     public final ProductManagementRepository productManagementRepository;
     public final CategoryRepository categoryRepository;
-
+    public final ProductRepositoryV1 productRepository;
+    public final ProductColorRepositoryV1 productColorRepository;
 
     /**
      * 상품관리 등록
-     * @param request
+     * @param requestDto
      * @return
      */
     @Transactional
     @RequiresRole({MemberRole.ADMIN, MemberRole.SELLER})
-    public Long createInventory(InventoryCreateDto request) {
-        ProductManagement entity = InventoryCreateDto.newRequestManagementForm(request);
+    public ProductManagement createInventory(InventoryCreateDto requestDto) {
+        // 연관 엔팉티 실제 DB에서 조회
+        Product product = productRepository.findById(requestDto.getProductId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 상품이 존재하지 않습니다."));
+        ProductColor color = productColorRepository.findById(requestDto.getColorId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 색상이 존재하지 않습니다."));
+        Category category = categoryRepository.findById(requestDto.getCategoryId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 카테고리가 존재하지 않습니다."));
 
-        // 중복 체크, 저장
+        // DTO -> Entity 변환 (진짜 객체 주입)
+        ProductManagement entity = requestDto.toEntity(product, color, category);
+
+        // 중복 체크
         ProductManagement existingInventory = productManagementRepository
-                .findByProductAndColorAndCategoryAndSize(
-                        entity.getProduct(), entity.getColor(), entity.getCategory(), entity.getSize()
-                ).orElse(null);
+                .findByProductAndColorAndCategoryAndSize(product, color, category, entity.getSize())
+                .orElse(null);
 
         if (existingInventory != null) {
             throw new IllegalArgumentException("이미 존재하는 상품입니다.");
         }
 
-        productManagementRepository.save(entity);
-        return entity.getInventoryId();
+        // 저장
+        return productManagementRepository.save(entity);
     }
 
     /**

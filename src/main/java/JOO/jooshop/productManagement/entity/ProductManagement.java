@@ -14,13 +14,15 @@ import java.util.List;
 @Getter
 @Entity
 @Builder(toBuilder = true)
-@AllArgsConstructor
+@AllArgsConstructor // 오버로딩 된 생성자 예방
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "product_management")
 public class ProductManagement {
     /*
-        inventoryId는 @GeneratedValue에 의해 자동 생성되기 때문에,
-        builder()에는 포함하지 않는 게 자연스럽고 안전
+        inventoryId는 @GeneratedValue 에 의해 자동 생성되기 때문에,
+        builder()에는 포함하지 않는 게 자연스럽고 안전.
+        
+        빌더 패턴 사용
      */
 
     @Id

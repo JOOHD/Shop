@@ -68,14 +68,8 @@ public class ProductManagementController {
      */
     @PostMapping("/new")
     public ResponseEntity<ProductManagementDto> createInventory(@Valid @RequestBody InventoryCreateDto requestDto) {
-        ProductManagement request = InventoryCreateDto.newRequestManagementForm(requestDto);
-        Long createdId = managementService.createInventory(requestDto);
-
-        // Location 헤더 생성
-        URI location = URI.create("/api/v1/inventory/" + createdId);
-
-        return ResponseEntity.created(location) // 201 Created + Location header
-                .body(new ProductManagementDto(request)); // ProductManagement 안되는 이유 = entity class
+        ProductManagement saved = managementService.createInventory(requestDto);
+        return ResponseEntity.ok(ProductManagementDto.from(saved));
     }
 
     /**
@@ -103,3 +97,6 @@ public class ProductManagementController {
     }
 
 }
+
+
+// 아직도 조회 테스트가 에러 발생 (db 에 값이 안 넣어짐,, get 조회는 여러 방식으로 문제가 있네)
