@@ -110,6 +110,5 @@ public class ProductManagementService {
         ProductManagement existingInventory = productManagementRepository.findById(inventoryId)
                 .orElseThrow(() -> new NoSuchElementException(PRODUCT_NOT_FOUND));
         productManagementRepository.delete(existingInventory);
-
     }
 }

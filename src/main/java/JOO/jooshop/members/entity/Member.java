@@ -19,7 +19,7 @@ import java.util.List;
 
 @Builder
 @Entity
-@Getter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "member", uniqueConstraints = {

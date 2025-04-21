@@ -6,6 +6,8 @@ import JOO.jooshop.cart.model.CartRequestDto;
 import JOO.jooshop.cart.model.CartUpdateDto;
 import JOO.jooshop.cart.service.CartService;
 import JOO.jooshop.global.ResponseMessageConstants;
+import JOO.jooshop.members.entity.Member;
+import JOO.jooshop.members.repository.MemberRepositoryV1;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -13,12 +15,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/v1/cart")
 @RequiredArgsConstructor
 public class CartController {
 
+    private final MemberRepositoryV1 memberRepository;
     private final CartService cartService;
     private final ModelMapper modelMapper;
 
@@ -53,10 +57,20 @@ public class CartController {
      */
     @PutMapping("/{cartId}")
     public ResponseEntity<CartDto> updateCart(@PathVariable("cartId") Long cartId, @Valid @RequestBody CartUpdateDto request) {
-        Cart updatedCart = modelMapper.map(request, Cart.class);
-        CartDto updatedCartDto = new CartDto();
-        cartService.updateCart(cartId, updatedCart);
 
+        // 1. Member 직접 주입
+        Member member = memberRepository.findById(request.getMemberId())
+                .orElseThrow(() -> new NoSuchElementException("회원 정보가 없습니다."));
+
+        // 2. DTO -> Entity 매핑 후, Member 주입
+        Cart updatedCart = modelMapper.map(request, Cart.class);
+        updatedCart.setMember(member);
+
+        // 3. 서비스 호출
+        Cart savedCart = cartService.updateCart(cartId, updatedCart);
+
+        // 4. 저장된 Cart -> CartDto 로 변환해서 반환
+        CartDto updatedCartDto = new CartDto(savedCart);
         return ResponseEntity.ok(updatedCartDto);
     }
 

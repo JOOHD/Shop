@@ -28,7 +28,7 @@ public class CartService {
 
     private final CartRepository cartRepository;
     private final MemberRepositoryV1 memberRepository;
-    private ProductManagementRepository productManagementRepository;
+    private final ProductManagementRepository productManagementRepository;
 
     // Cart 조회 메서드 - 중복 코드 리팩토링
     private Cart findCartById(Long cartId) {

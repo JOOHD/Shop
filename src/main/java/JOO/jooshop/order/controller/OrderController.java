@@ -51,6 +51,9 @@ public class OrderController {
         List<Long> cartIds = cartIdsInteger.stream()
                                            .map(Long::valueOf)
                                            .collect(Collectors.toList());
+        if (cartIds.isEmpty()) {
+            throw new IllegalArgumentException("해당 장바구니가 존재하지 않습니다.");
+        }
         Orders temporaryOrder = orderService.createOrder(cartIds);
 
         // 세션에 임시 주문 정보를 저장
@@ -73,7 +76,7 @@ public class OrderController {
         /*
             리플렉션(Reflection)
             자바에서 클래스, 메서드, 필드 등을 런타임에서 동적으로 분석하고 조작할 수 있는 기능을 말합니다.
-            ModelMapper는 내부적으로 리플렉션을 사용하여 다음과 같은 작업을 합니다:
+            ModelMapper 는 내부적으로 리플렉션을 사용하여 다음과 같은 작업을 합니다:
 
             - 클래스의 필드와 타입을 동적으로 읽어옵니다.
             - 객체 간의 필드 값을 자동으로 복사합니다.
@@ -81,7 +84,6 @@ public class OrderController {
          */
 
         // 클라이언트로부터 받은 OrderDto 데이터를 새로 변환하여 매핑
-        // 책임 분리 및 데이터 변환을 명확하게 하기 위해
         OrderDto orders = modelMapper.map(request, OrderDto.class); // 리플랙션 :
 
         // 세션에서 임시 주문 정보를 가져옴

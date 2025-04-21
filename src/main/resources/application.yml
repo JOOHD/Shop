@@ -16,13 +16,13 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+#      ddl-auto: update
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-    show_sql: true
+#    show_sql: true
     properties:
       hibernate:
-        format_sql: true # 줄바꿈 포함
+#        format_sql: true # 줄바꿈 포함
         default_batch_fetch_size: 1000
 
   redis:

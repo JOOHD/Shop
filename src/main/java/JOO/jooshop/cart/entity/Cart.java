@@ -4,10 +4,11 @@ import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.productManagement.entity.ProductManagement;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
+import lombok.Data;
 import lombok.Getter;
 
 @Entity
-@Getter
+@Data
 @Table(name = "cart")
 public class Cart {
 
