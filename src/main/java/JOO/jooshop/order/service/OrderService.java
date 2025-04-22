@@ -5,26 +5,27 @@ import JOO.jooshop.cart.repository.CartRepository;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
 import JOO.jooshop.order.entity.Orders;
+import JOO.jooshop.order.entity.TemporaryOrderRedis;
 import JOO.jooshop.order.model.OrderDto;
 import JOO.jooshop.order.repository.OrderRepository;
+import JOO.jooshop.order.repository.RedisOrderRepository;
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.repository.ProductRepositoryV1;
 import JOO.jooshop.productManagement.entity.ProductManagement;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.UUID;
+import java.util.*;
 
 import static JOO.jooshop.global.ResponseMessageConstants.MEMBER_NOT_FOUND;
 import static JOO.jooshop.global.authorization.MemberAuthorizationUtil.verifyUserIdMatch;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(rollbackFor = Exception.class)
@@ -38,6 +39,7 @@ public class OrderService {
         4. 결제 완료 -> 백엔드에서 결제 완료 진행 -> 결제내역 테이블 저장
      */
 
+    public final RedisOrderRepository redisOrderRepository;
     public final CartRepository cartRepository;
     public final OrderRepository orderRepository;
     public final ProductRepositoryV1 productRepository;
@@ -72,26 +74,32 @@ public class OrderService {
             return null;
         }
 
-        // 주문 반환
-        return new Orders(member, productMgts,member.getUsername(), getProductNames(carts),calculateTotalPrice(carts),getMemberPhoneNumber(carts));
+        // 상품명 리스트 생성
+        String productNames = getProductNames(carts);
+
+        // 주문 객체 생성
+        Orders orders = new Orders(member, productMgts, member.getUsername(), productNames, calculateTotalPrice(carts), getMemberPhoneNumber(carts));
+
+        // 상품명 세팅 (Orders 객체의 setProductName 호출)
+        orders.setProductName(Arrays.asList(productNames.split(",")));
+
+        return orders;
     }
 
     // 주문 상품 이름들을 가져오는 메서드
     private String getProductNames(List<Cart> carts) {
-        StringBuilder productNamesBuilder = new StringBuilder();
+        List<String> productNames = new ArrayList<>();
         for (Cart cart : carts) {
-
             Long productId = cart.getProductManagement().getProduct().getProductId();
             Product product = productRepository.findById(productId).orElse(null);
 
             if (product != null) {
-                if (!productNamesBuilder.isEmpty()) {
-                    productNamesBuilder.append(", ");
-                }
-                productNamesBuilder.append(product.getProductName());
+                productNames.add(product.getProductName());
             }
         }
-        return productNamesBuilder.toString();
+        // List<String>을 콤마로 구분된 문자열로 변환하여 반환
+        return String.join(",", productNames);
+
     }
 
     // 회원 전화번호를 가져오는 메서드
@@ -114,26 +122,62 @@ public class OrderService {
 
     /**
      * 주문 테이블 저장
-     * @param temporaryOrder 세션에 저장된 주문서
-     * @param orders 사용자에게 입력받은 주문 정보
-     * @return 주문 테이블 저장
-     * 
-     * (createOrder) temporaryOrder = 상품 정보/총 금액 같은 자동으로 가져오는 정보만 담아둠
-     * merchantUid = 사용자 직접 입력 정보(이름, 주소, 전화번호 등등)
-     *
-     * temporaryOrder 사용 이유 : 가격/수량을 클라이언트가 직접 수정하지 못 하도록
-       ㄴ html, disable 사용하면 되는거 아님?
-           ㄴ 브라우저 개발자 도구(F12)에서 disabled 속성을 제거하면 사용자가 필드를 수정할 수 있다.
+     * Redis 저장 사용 (임시 주문 저장), HttpSession(기존) 사용 안 함
      */
-    public Orders orderConfirm(Orders temporaryOrder, OrderDto orders) {
-        verifyUserIdMatch(temporaryOrder.getMember().getId()); // 로그인 된 사용자와 요청 사용자 비교
+    public Orders orderConfirm(OrderDto orders) {
+        // 1. 임시 주문 정보 Redis 에 저장
+        saveTemporaryOrder(orders);
 
-        String merchantUid = generationMerchantUid(); // 주문 번호 생성
+        // 2. 실제 주문 객체 생성 (임시 주문 정보 가져오기)
+        String redisKey = "tempOrder:" + orders.getMemberId();
+        TemporaryOrderRedis temporaryOrderRedis = redisOrderRepository.findById(redisKey)
+                .orElseThrow(() -> new IllegalArgumentException("임시 주문 정보를 찾을 수 없습니다."));
 
-        // 세션 주문서와 사용자에게 입력받은 정보 합치기
-        temporaryOrder.orderConfirm(merchantUid, orders);
+        // 3. 주문 생성
+        Orders newOrder = Orders.builder()
+                .member(memberRepository.findById(orders.getMemberId()).orElseThrow())
+                .postCode(orders.getPostCode())
+                .address(orders.getAddress())
+                .detailAddress(orders.getDetailAddress())
+                .ordererName(orders.getOrdererName())
+                .phoneNumber(orders.getPhoneNumber())
+                .payMethod(orders.getPayMethod())
+                .merchantUid(generationMerchantUid())
+                .build();
 
-        return orderRepository.save(temporaryOrder);
+        return orderRepository.save(newOrder);
+    }
+
+    public void saveTemporaryOrder(OrderDto orderDto) {
+        // 1. 사용자의 장바구니 목록 조회
+        List<Cart> cartList = cartRepository.findByMemberId(orderDto.getMemberId());
+
+        // 2. cartId 목록, 상품명 목록, 총 가격 계산
+        List<Long> cartIds = cartList.stream()
+                .map(Cart::getCartId)
+                .toList();
+
+        List<String> productNames = cartList.stream()
+                .map(cart -> cart.getProductManagement().getProduct().getProductName())
+                .toList();
+        log.info("Product Names: {}", productNames);  // 여기에 로그 추가
+
+        long totalPrice = cartList.stream()
+                .mapToLong(cart -> cart.getProductManagement().getProduct().getPrice() * cart.getQuantity())
+                .sum();
+
+        // 3. Redis에 저장할 TemporaryOrderRedis 객체 생성
+        TemporaryOrderRedis tempOrder = TemporaryOrderRedis.builder()
+                .id("tempOrder:" + orderDto.getMemberId()) // Redis 키
+                .memberId(orderDto.getMemberId())
+                .username(orderDto.getOrdererName())
+                .cartIds(cartIds)
+                .productNames(productNames)
+                .totalPrice(totalPrice)
+                .phoneNumber(orderDto.getPhoneNumber())
+                .build();
+
+        redisOrderRepository.save(tempOrder);
     }
 
     // 주문번호 생성 메서드

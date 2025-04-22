@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,7 +25,7 @@ public class OrderResponseDto {
     String ordererName;
     String ordererEmail;
     String ordererPhone;
-    String productName;
+    List<String> productNames;
     PayMethod payMethod;
     String merchantUid;
     BigDecimal totalPrice;
@@ -47,7 +48,7 @@ public class OrderResponseDto {
                 orders.getOrdererName(),
                 orders.getMember().getEmail(),
                 orders.getPhoneNumber(),
-                orders.getProductName(),
+                orders.getProductNames() != null ? orders.getProductNames() : new ArrayList<>(),  // null 체크
                 orders.getPayMethod(),
                 orders.getMerchantUid(),
                 orders.getTotalPrice(),

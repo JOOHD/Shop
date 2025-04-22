@@ -6,17 +6,19 @@ import JOO.jooshop.order.model.OrderDto;
 import JOO.jooshop.payment.entity.PaymentHistory;
 import JOO.jooshop.productManagement.entity.ProductManagement;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-@Getter
+@Data
+@Builder
 @Entity
+@AllArgsConstructor
 @Table(name = "orders")
 public class Orders {
 
@@ -54,8 +56,8 @@ public class Orders {
     @Column(name = "order_name", nullable = false)
     private String ordererName;
 
-    @Column(name = "product_names", nullable = false)
-    private String productName;
+    @Column(name = "product_name", nullable = false)
+    private String productNames;
 
     @Enumerated(EnumType.STRING)
     PayMethod payMethod;
@@ -92,11 +94,11 @@ public class Orders {
         this.orderDay = LocalDateTime.now();
     }
 
-    public Orders(Member member, List<ProductManagement> productManagements, String ordererName, String productName, BigDecimal totalPrice, String phoneNumber) {
+    public Orders(Member member, List<ProductManagement> productManagements, String ordererName, String productNames, BigDecimal totalPrice, String phoneNumber) {
         this.member = member;
         this.productManagements = productManagements;
         this.ordererName = ordererName;
-        this.productName = productName;
+        this.productNames = productNames;
         this.totalPrice = totalPrice;
         this.phoneNumber = phoneNumber;
     }
@@ -114,17 +116,27 @@ public class Orders {
 
     }
 
-/*    public void setMember(Member member) {
+    /*
+    public void setMember(Member member) {
         this.member = member;
-    }
-
-    public void setProductName(String productName) {
-        this.productName = productName;
     }
 
     public void setAddress(String address) {
         this.address = address;
-    }*/
+    }
+    */
+
+    public void setProductName(List<String> productNameList) {
+        if (productNameList != null && !productNameList.isEmpty()) {
+            this.productNames = String.join(",", productNameList);
+        } else {
+            this.productNames = ""; //
+        }
+    }
+
+    public List<String> getProductNames() {
+        return Arrays.asList(this.productNames.split(",")); // String을 다시 List<String>으로 변환
+    }
 
     public void setPaymentStatus(Boolean paymentStatus) {
         this.paymentStatus = paymentStatus;

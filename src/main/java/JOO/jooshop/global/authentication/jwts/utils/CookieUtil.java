@@ -25,12 +25,14 @@ public class CookieUtil {
     public static String getCookieValue(HttpServletRequest request,  String cookieName) {
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
-                try {
-                    // 쿠키는 + 로 인코딩되기 때문에 공백 처리 필요
-                    return URLDecoder.decode(cookie.getValue(), "UTF-8").replace("+", " ");
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                    return null;
+                if (cookie.getName().equals(cookieName)) {
+                    try {
+                        // 쿠키는 + 로 인코딩되기 때문에 공백 처리 필요
+                        return URLDecoder.decode(cookie.getValue(), "UTF-8").replace("+", " ");
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                        return null;
+                    }
                 }
             }
         }

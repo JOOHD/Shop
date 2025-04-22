@@ -3,6 +3,7 @@ package JOO.jooshop.order.controller;
 import JOO.jooshop.cart.entity.Cart;
 import JOO.jooshop.cart.repository.CartRepository;
 import JOO.jooshop.order.entity.Orders;
+import JOO.jooshop.order.entity.TemporaryOrderRedis;
 import JOO.jooshop.order.model.OrderDto;
 import JOO.jooshop.order.model.OrderResponseDto;
 import JOO.jooshop.order.service.OrderService;
@@ -42,15 +43,11 @@ public class OrderController {
 
     /**
      * 주문서에 나타낼 정보
-     * @param payload "cartIds" : [1,2,3]
      * @return
      */
     @PostMapping("/create")
-    public ResponseEntity<String> createOrder(@RequestBody Map<String, Object> payload) {
-        List<Integer> cartIdsInteger = (List<Integer>) payload.get("cartIds");
-        List<Long> cartIds = cartIdsInteger.stream()
-                                           .map(Long::valueOf)
-                                           .collect(Collectors.toList());
+    public ResponseEntity<String> createOrder(@RequestBody OrderDto dto) {
+        List<Long> cartIds = dto.getCartIds();
         if (cartIds.isEmpty()) {
             throw new IllegalArgumentException("해당 장바구니가 존재하지 않습니다.");
         }
@@ -72,31 +69,14 @@ public class OrderController {
      */
     @PostMapping("/done")
     public ResponseEntity<Object> completeOrder(@Valid @RequestBody OrderDto request) {
+        // 클라이언트로부터 받은 OrderDto 데이터를 매핑
+        OrderDto orders = modelMapper.map(request, OrderDto.class);
 
-        /*
-            리플렉션(Reflection)
-            자바에서 클래스, 메서드, 필드 등을 런타임에서 동적으로 분석하고 조작할 수 있는 기능을 말합니다.
-            ModelMapper 는 내부적으로 리플렉션을 사용하여 다음과 같은 작업을 합니다:
+        // 주문 확정 처리
+        Orders completedOrder = orderService.orderConfirm(orders);
 
-            - 클래스의 필드와 타입을 동적으로 읽어옵니다.
-            - 객체 간의 필드 값을 자동으로 복사합니다.
-            - 동적 객체 생성 및 메서드 호출 등을 처리할 수 있습니다.
-         */
-
-        // 클라이언트로부터 받은 OrderDto 데이터를 새로 변환하여 매핑
-        OrderDto orders = modelMapper.map(request, OrderDto.class); // 리플랙션 :
-
-        // 세션에서 임시 주문 정보를 가져옴
-        Orders temporaryOrder = (Orders) httpSession.getAttribute("temporaryOrder");
-
-        if (temporaryOrder == null) {
-            return ResponseEntity.badRequest().body("임시 주문 정보를 찾을 수 없습니다.");
-        }
-
-        Orders completedOrder = orderService.orderConfirm(temporaryOrder, orders);
-
+        // 주문 응답 DTO로 변환
         OrderResponseDto orderResponseDto = new OrderResponseDto(completedOrder);
-
         return ResponseEntity.ok(orderResponseDto);
     }
 

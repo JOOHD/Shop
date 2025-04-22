@@ -48,7 +48,7 @@ public class QOrders extends EntityPathBase<Orders> {
 
     public final ListPath<JOO.jooshop.productManagement.entity.ProductManagement, JOO.jooshop.productManagement.entity.QProductManagement> productManagements = this.<JOO.jooshop.productManagement.entity.ProductManagement, JOO.jooshop.productManagement.entity.QProductManagement>createList("productManagements", JOO.jooshop.productManagement.entity.ProductManagement.class, JOO.jooshop.productManagement.entity.QProductManagement.class, PathInits.DIRECT2);
 
-    public final StringPath productName = createString("productName");
+    public final StringPath productNames = createString("productNames");
 
     public final NumberPath<java.math.BigDecimal> totalPrice = createNumber("totalPrice", java.math.BigDecimal.class);
 

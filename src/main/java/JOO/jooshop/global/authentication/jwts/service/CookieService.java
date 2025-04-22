@@ -7,6 +7,12 @@ import org.springframework.stereotype.Service;
 public class CookieService {
 
     public String getRefreshAuthorization(HttpServletRequest request) {
-        return CookieUtil.getCookieValue(request, "refreshAuthorization");
+        String refreshToken = CookieUtil.getCookieValue(request, "refreshAuthorization");
+
+        if (refreshToken == null || refreshToken.isBlank()) {
+            return null;
+        }
+        // 여기서는 "Bearer " 붙이지 않고, 필터에서 처리
+        return refreshToken;
     }
 }
