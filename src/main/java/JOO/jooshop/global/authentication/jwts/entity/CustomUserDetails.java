@@ -1,10 +1,14 @@
 package JOO.jooshop.global.authentication.jwts.entity;
 
+import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.entity.enums.MemberRole;
+import JOO.jooshop.members.repository.MemberRepositoryV1;
+import JOO.jooshop.members.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,7 +22,6 @@ public class CustomUserDetails implements UserDetails {
         UserDetailsService 가 UserDetails 객체를 반환하고, SecurityContext 에서 인증 정보를 저장할 때 사용됨.
         기존 UserDetails 에서 인증 정보(email, password, role)를 CustomMemberDto 에서 가져옴.
     */
-
     private final CustomMemberDto customMemberDto;
 
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -42,6 +45,13 @@ public class CustomUserDetails implements UserDetails {
     public String getUsername() {
         return customMemberDto.getEmail(); // 사용자의 이메일 반환
     }
+
+    // 이메일을 이용하여 Member 조회 (memberService 대신 repository 사용)
+    public Member getMember(MemberRepositoryV1 memberRepository) {
+        return memberRepository.findByEmail(customMemberDto.getEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    }
+
 
     public Long getMemberId() { return customMemberDto.getMemberId(); }
 

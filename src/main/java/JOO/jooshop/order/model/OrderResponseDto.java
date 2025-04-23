@@ -11,7 +11,9 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Data
@@ -48,7 +50,10 @@ public class OrderResponseDto {
                 orders.getOrdererName(),
                 orders.getMember().getEmail(),
                 orders.getPhoneNumber(),
-                orders.getProductNames() != null ? orders.getProductNames() : new ArrayList<>(),  // null 체크
+                // ProductNames가 null이면 빈 리스트 반환, 아니면 하나의 리스트로 처리
+                Optional.ofNullable(orders.getProductNames())
+                        .map(Collections::singletonList)
+                        .orElse(Collections.emptyList()),
                 orders.getPayMethod(),
                 orders.getMerchantUid(),
                 orders.getTotalPrice(),

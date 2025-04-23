@@ -63,6 +63,12 @@ public class MemberService {
                 () -> new UserNotFoundByEmailException("No user found with this email: " + email));
     }
 
+    // 이메일로 Member 조회
+    public Member findMemberByEmail(String email) {
+        return memberRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Member not found with email: " + email));
+    }
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public static class ExistingMemberException extends IllegalStateException {
         public ExistingMemberException() {

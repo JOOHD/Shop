@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -32,4 +33,10 @@ public class OrderDto {
     private String phoneNumber;
 
     private PayMethod payMethod;
+
+    private String merchantUid;
+
+    private String generateMerchantUid() {
+        return "merchant_" + UUID.randomUUID().toString();
+    }
 }

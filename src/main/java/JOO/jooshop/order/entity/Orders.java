@@ -8,6 +8,7 @@ import JOO.jooshop.productManagement.entity.ProductManagement;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.DynamicInsert;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -16,8 +17,8 @@ import java.util.Arrays;
 import java.util.List;
 
 @Data
-@Builder
 @Entity
+@Builder
 @AllArgsConstructor
 @Table(name = "orders")
 public class Orders {
@@ -56,7 +57,7 @@ public class Orders {
     @Column(name = "order_name", nullable = false)
     private String ordererName;
 
-    @Column(name = "product_name", nullable = false)
+    @Column(name = "product_names", nullable = false)
     private String productNames;
 
     @Enumerated(EnumType.STRING)
@@ -94,53 +95,41 @@ public class Orders {
         this.orderDay = LocalDateTime.now();
     }
 
-    public Orders(Member member, List<ProductManagement> productManagements, String ordererName, String productNames, BigDecimal totalPrice, String phoneNumber) {
+    public Orders(Member member,
+                  List<ProductManagement> productManagements,
+                  String ordererName,
+                  String productNames,
+                  BigDecimal totalPrice,
+                  String phoneNumber,
+                  String postCode,
+                  String address,
+                  String detailAddress,
+                  PayMethod payMethod,
+                  String merchantUid) {
         this.member = member;
         this.productManagements = productManagements;
         this.ordererName = ordererName;
         this.productNames = productNames;
         this.totalPrice = totalPrice;
         this.phoneNumber = phoneNumber;
-    }
-
-
-    public void orderConfirm(String merchantUid, OrderDto orderDto) {
-        this.merchantUid = merchantUid;
-        this.postCode = orderDto.getPostCode();
-        this.address = orderDto.getAddress();
-        this.detailAddress = orderDto.getDetailAddress();
-        this.ordererName = orderDto.getOrdererName();
-        this.phoneNumber = orderDto.getPhoneNumber();
-        this.payMethod = orderDto.getPayMethod();
-        this.orderDay = LocalDateTime.now();
-
-    }
-
-    /*
-    public void setMember(Member member) {
-        this.member = member;
-    }
-
-    public void setAddress(String address) {
+        this.postCode = postCode;
         this.address = address;
-    }
-    */
-
-    public void setProductName(List<String> productNameList) {
-        if (productNameList != null && !productNameList.isEmpty()) {
-            this.productNames = String.join(",", productNameList);
-        } else {
-            this.productNames = ""; //
-        }
+        this.detailAddress = detailAddress;
+        this.payMethod = payMethod;
+        this.merchantUid = merchantUid;
     }
 
-    public List<String> getProductNames() {
-        return Arrays.asList(this.productNames.split(",")); // String을 다시 List<String>으로 변환
+    public void setProductNamesFromList(List<String> productNameList) {
+        this.productNames = (productNameList != null && !productNameList.isEmpty())
+                ? String.join(",", productNameList)
+                : "";
     }
 
-    public void setPaymentStatus(Boolean paymentStatus) {
-        this.paymentStatus = paymentStatus;
+    public List<String> getProductNameList() {
+        return Arrays.asList(this.productNames.split(","));
     }
 
-
+    public void markPaymentComplete() {
+        this.paymentStatus = true;
+    }
 }

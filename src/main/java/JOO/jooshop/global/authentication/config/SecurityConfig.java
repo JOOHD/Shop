@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -40,7 +41,6 @@ import java.util.Collections;
 public class SecurityConfig {
 
     // [LoginFilter] Bean 등록
-
     private final ObjectMapper objectMapper;
 
     private final JWTUtil jwtUtil;
@@ -48,7 +48,6 @@ public class SecurityConfig {
     private final CookieService cookieService;
 
     private final RefreshRepository refreshRepository;
-    // [MemberService] Bean 등록
 
     private final MemberRepositoryV1 memberRepository;
     // [Social 로그인] 을 위한 생성자 주입
