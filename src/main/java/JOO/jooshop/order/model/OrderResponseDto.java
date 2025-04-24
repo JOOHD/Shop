@@ -27,7 +27,7 @@ public class OrderResponseDto {
     String ordererName;
     String ordererEmail;
     String ordererPhone;
-    List<String> productNames;
+    String productName;
     PayMethod payMethod;
     String merchantUid;
     BigDecimal totalPrice;
@@ -50,10 +50,7 @@ public class OrderResponseDto {
                 orders.getOrdererName(),
                 orders.getMember().getEmail(),
                 orders.getPhoneNumber(),
-                // ProductNames가 null이면 빈 리스트 반환, 아니면 하나의 리스트로 처리
-                Optional.ofNullable(orders.getProductNames())
-                        .map(Collections::singletonList)
-                        .orElse(Collections.emptyList()),
+                orders.getProductName(),
                 orders.getPayMethod(),
                 orders.getMerchantUid(),
                 orders.getTotalPrice(),

@@ -73,14 +73,14 @@ public class OrderService {
                 .member(member)
                 .productManagements(productMgts)
                 .ordererName(member.getUsername()) // order_name
-                .productNames(String.join(",", productNames)) // product_names
+                .productName(String.join(",", productNames)) // product_names
                 .totalPrice(calculateTotalPrice(carts)) // total_price
                 .phoneNumber(getMemberPhoneNumber(carts)) // phone_number
                 .postCode(orderDto.getPostCode()) // post_code
                 .address(orderDto.getAddress()) // address
                 .detailAddress(orderDto.getDetailAddress()) // detail_address
                 .merchantUid(orderDto.getMerchantUid()) // merchant_uid
-                .payMethod(PayMethod.valueOf(orderDto.getPayMethod().toString())) // payMethod enum
+                .payMethod(orderDto.getPayMethod()) // payMethod enum
                 .build();
         return orders;
     }
@@ -130,6 +130,7 @@ public class OrderService {
                 .map(cart -> cart.getProductManagement().getProduct().getProductName())
                 .toList();
 
+        log.info("productNames in Redis before save: {}", productNames);
         long totalPrice = cartList.stream()
                 .mapToLong(cart -> cart.getProductManagement().getProduct().getPrice() * cart.getQuantity())
                 .sum();
@@ -161,6 +162,7 @@ public class OrderService {
         TemporaryOrderRedis temporaryOrderRedis = redisOrderRepository.findById(redisKey)
                 .orElseThrow(() -> new IllegalArgumentException("임시 주문 정보를 찾을 수 없습니다."));
 
+        log.info("productNames from Redis: {}", temporaryOrderRedis.getProductNames());
         // 2. 실제 주문 생성
         Orders newOrder = Orders.builder()
                 .member(memberRepository.findById(orderDto.getMemberId()).orElseThrow())
@@ -171,9 +173,10 @@ public class OrderService {
                 .phoneNumber(orderDto.getPhoneNumber())
                 .payMethod(orderDto.getPayMethod())
                 .merchantUid(generationMerchantUid())
-                .productNames(String.join(",", temporaryOrderRedis.getProductNames()))
+                .productName(String.join(",", temporaryOrderRedis.getProductNames()))
                 .totalPrice(BigDecimal.valueOf(temporaryOrderRedis.getTotalPrice()))
                 .build();
+        log.info("Orders.productNames: {}", String.join(",", temporaryOrderRedis.getProductNames()));
 
         // 3. 주문 저장
         Orders savedOrder = orderRepository.save(newOrder);

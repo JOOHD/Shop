@@ -53,12 +53,12 @@ public class Orders {
     )
     private List<ProductManagement> productManagements = new ArrayList<>();
 
-
     @Column(name = "order_name", nullable = false)
     private String ordererName;
 
-    @Column(name = "product_names", nullable = false)
-    private String productNames;
+    // 문자열로 저장, 쉼표로 구분된 형태로 저장
+    @Column(name = "product_name", nullable = false)
+    private String productName;
 
     @Enumerated(EnumType.STRING)
     PayMethod payMethod;
@@ -98,7 +98,7 @@ public class Orders {
     public Orders(Member member,
                   List<ProductManagement> productManagements,
                   String ordererName,
-                  String productNames,
+                  String productName,
                   BigDecimal totalPrice,
                   String phoneNumber,
                   String postCode,
@@ -109,7 +109,7 @@ public class Orders {
         this.member = member;
         this.productManagements = productManagements;
         this.ordererName = ordererName;
-        this.productNames = productNames;
+        this.productName = productName;
         this.totalPrice = totalPrice;
         this.phoneNumber = phoneNumber;
         this.postCode = postCode;
@@ -117,16 +117,6 @@ public class Orders {
         this.detailAddress = detailAddress;
         this.payMethod = payMethod;
         this.merchantUid = merchantUid;
-    }
-
-    public void setProductNamesFromList(List<String> productNameList) {
-        this.productNames = (productNameList != null && !productNameList.isEmpty())
-                ? String.join(",", productNameList)
-                : "";
-    }
-
-    public List<String> getProductNameList() {
-        return Arrays.asList(this.productNames.split(","));
     }
 
     public void markPaymentComplete() {

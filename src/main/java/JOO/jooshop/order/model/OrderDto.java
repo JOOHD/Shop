@@ -17,7 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class OrderDto {
     private Long memberId; // 추가 25.04.22
-    private List<Long> cartIds;
+    private List<Long> cartIds; // 추가 25.04.22
 
     @NotNull(message = "우편번호는 필수입니다.")
     private String postCode;
