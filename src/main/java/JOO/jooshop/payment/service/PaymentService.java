@@ -1,6 +1,8 @@
 package JOO.jooshop.payment.service;
 
+import JOO.jooshop.cart.entity.Cart;
 import JOO.jooshop.cart.repository.CartRepository;
+import JOO.jooshop.global.Exception.PaymentCancelFailureException;
 import JOO.jooshop.global.Exception.PaymentHistoryNotFoundException;
 import JOO.jooshop.global.ResponseMessageConstants;
 import JOO.jooshop.members.entity.Member;
@@ -10,6 +12,7 @@ import JOO.jooshop.order.entity.enums.PayMethod;
 import JOO.jooshop.order.repository.OrderRepository;
 import JOO.jooshop.payment.entity.PaymentHistory;
 import JOO.jooshop.payment.entity.PaymentRefund;
+import JOO.jooshop.payment.entity.PaymentStatus;
 import JOO.jooshop.payment.entity.Status;
 import JOO.jooshop.payment.model.PaymentCancelDto;
 import JOO.jooshop.payment.model.PaymentHistoryDto;
@@ -17,13 +20,21 @@ import JOO.jooshop.payment.model.PaymentRequestDto;
 import JOO.jooshop.payment.repository.PaymentRefundRepository;
 import JOO.jooshop.payment.repository.PaymentRepository;
 import JOO.jooshop.product.entity.Product;
+import JOO.jooshop.product.repository.ProductRepositoryV1;
 import JOO.jooshop.productManagement.entity.ProductManagement;
 import JOO.jooshop.productManagement.repository.ProductManagementRepository;
+import com.siot.IamportRestClient.IamportClient;
+import com.siot.IamportRestClient.exception.IamportResponseException;
+import com.siot.IamportRestClient.request.CancelData;
+import com.siot.IamportRestClient.response.IamportResponse;
 import com.siot.IamportRestClient.response.Payment;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +58,7 @@ public class PaymentService {
         철수는 내 결제 내역 조회 가능!
      */
 
+    private final ProductRepositoryV1 productRepository;
     private final OrderRepository orderRepository;
     private final MemberRepositoryV1 memberRepository;
     private final PaymentRepository paymentRepository;
@@ -54,241 +66,193 @@ public class PaymentService {
     private final PaymentRefundRepository paymentRefundRepository;
     private final CartRepository cartRepository;
 
-    private static final String PAYMENT_STATUS_COMPLETE = "완료";
-    private static final String PAYMENT_STATUS_CANCELED = "취소";
-
     /**
-     * 결제 완료 후 처리(주문 상태를 업데이트하고, 결제 내역을 생성하여 DB에 저장)
-     * @param response 아임포트 결제 완료 응답 객체 (결제 관련 정보가 포함)
-     * @param request 결제 요청 DTO (주문 ID, 회원 ID, 결제 금액 등의 요청 데이터 포함)
+     * 결제 완료 시, 주문 상태를 '결제 완료'로 변경하고
+     * 결제 내역(PaymentHistory)을 생성하여 저장한다.
      */
     public void processPaymentDone(Payment response, PaymentRequestDto request) {
+        // 로그인된 사용자가 요청한 사용자와 일치하는지 확인
+        verifyUserIdMatch(request.getMemberId());
 
-        Long orderId = request.getOrderId();
-        Long memberId = request.getMemberId();
+        // 주문과 회원 정보를 가져옴
+        Orders order = getOrderById(request.getOrderId());
+        Member member = getMemberById(request.getMemberId());
 
-        verifyUserIdMatch(memberId); // 로그인 된 사용장와 요청 사용자 비교
+        // 주문 상태 변경 (결제 완료)
+        order.updatePayStatus(PaymentStatus.COMPLETE);
 
-        Orders order = getOrderById(orderId);
-        updatePaymentStatus(order);  // 주문 상태 -> 결제 완룔 변경
+        // 결제 응답에서 필요한 정보 추출 (예시)
+        String impUid = response.getImpUid();
+        String payMethod = response.getPayMethod();
+        int totalPrice = response.getTotalPrice();
 
-        Member member = getMemberById(memberId);
+        // 상품 ID들 (결제에 포함된 상품들)
+        List<Long> inventoryIds = getInventoryIdsFromOrder(order); // order에서 상품 정보 가져오기
+
+        // 상품 정보 (각 상품에 대한 세부 정보)
+        List<Product> products = getProductsFromInventoryIds(inventoryIds); // inventoryIds를 통해 상품 정보 가져오기
+
+        // 각 상품의 수량 정보 (여기선 주문에서의 상품 수량 정보 필요)
+        List<Long> quantities = getQuantitiesFromOrder(order); // 주문에서 상품 수량 가져오기
 
         // 결제내역 생성 및 저장 (상품별)
-        createPaymentHistory(response, request.getInventoryIdList(), order, member, request.getPrice().intValue());
+        createPaymentHistories(response, inventoryIds, order, member, products, quantities, totalPrice);
     }
+
+    /**
+     * 결제 완료 후 세션에 저장된 장바구니 ID를 이용해
+     * 장바구니를 삭제하고, 세션을 정리한다.
+     */
+    public void clearPaymentSession(HttpSession session) {
+        List<Long> cartIds = (List<Long>) session.getAttribute("cartIds");
+        if (cartIds == null || cartIds.isEmpty()) {
+            throw new NoSuchElementException("장바구니가 비어 있습니다.");
+        }
+
+        Long memberId = cartRepository.findById(cartIds.get(0))
+                .orElseThrow(() -> new NoSuchElementException("삭제할 장바구니를 찾지 못했습니다."))
+                .getMember().getId();
+
+        verifyUserIdMatch(memberId);
+
+        cartIds.forEach(cartId -> {
+            Cart cart = cartRepository.findById(cartId)
+                    .orElseThrow(() -> new NoSuchElementException("삭제할 장바구니를 찾을 수 없습니다."));
+            cartRepository.delete(cart);
+        });
+
+        session.removeAttribute("temporaryOrder");
+        session.removeAttribute("cartIds");
+    }
+
+    /**
+     * 회원 ID를 기반으로 결제 이력을 조회하여 반환
+     */
+    public List<PaymentHistoryDto> paymentHistoryList(Long memberId) {
+        verifyUserIdMatch(memberId);
+        List<PaymentHistory> paymentHistories = paymentRepository.findAllByMemberId(memberId);
+        return paymentHistories.stream()
+                .map(PaymentHistoryDto::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 결제 추소 요청을 수행하고,
+     * 성공 시, 환불 이력 (PaymentRefund)을 저장.
+     */
+    public IamportResponse<Payment> cancelPayment(
+            Long paymentHistoryId,
+            PaymentCancelDto requestDto,
+            IamportClient iamportClient) throws IamportResponseException, IOException {
+        PaymentHistory paymentHistory = paymentRepository.findById(paymentHistoryId)
+                .orElseThrow(() -> new PaymentHistoryNotFoundException(ResponseMessageConstants.PAYMENT_HISTORY_NOT_FOUND));
+
+        PaymentRefund refundInfo = createRefundInfo(paymentHistory);
+
+        CancelData cancelData = new CancelData(paymentHistory.getImpUid(), true, new BigDecimal(refundInfo.getAmount()));
+        IamportResponse<Payment> cancelResponse = iamportClient.cancelPaymentByImpUid(cancelData);
+
+        if (cancelResponse.getCode() != 0) {
+            throw new PaymentCancelFailureException("환불 실패 : " + cancelResponse.getMessage());
+        }
+
+        saveRefundInfo(requestDto, paymentHistory, refundInfo);
+
+        return cancelResponse;
+    }
+
+    /////////// private 메서드 모음 (서비스 내부 로직 보조용) ///////////
+
+    /**
+     * 주문 ID로 주문 정보를 조회한다.
+     */
     private Orders getOrderById(Long orderId) {
         return orderRepository.findById(orderId)
                 .orElseThrow(() -> new NoSuchElementException(ResponseMessageConstants.ORDER_NOT_FOUND));
     }
 
+    /**
+     * 회원 ID로 회원 정보를 조회한다.
+     */
     private Member getMemberById(Long memberId) {
         return memberRepository.findById(memberId)
                 .orElseThrow(() -> new NoSuchElementException(ResponseMessageConstants.MEMBER_NOT_FOUND));
     }
 
-    private void updatePaymentStatus(Orders order) {
-        order.setPaymentStatus(true); // 결제 완료 상태로 업데이트
-    }
-
     /**
-     * createPaymentHistory : 주문한 상품들에 대해 각각 결제 내역을 생성하고 DB에 저장
-     * ProductManagement : 결제내역에서 쓰임 -> 재고 차감을 위함
-     * @param response         아임포트 결제 완료 응답 객체
-     * @param productMgtIdList 주문한 상품의 상품관리 ID 리스트
-     * @param order            주문 엔티티 (주문정보)
-     * @param member           결제한 회원 엔티티 (회원정보)
-     * @param totalPrice       결제 총 금액
+     * 결제내역 생성 및 저장 (상품별)
      */
-    private void createPaymentHistory(Payment response, List<Long> productMgtIdList, Orders order, Member member, Integer totalPrice) {
-        // 결제 응답으로부터 필요한 결제 정보를 추출한다.
-        String impUid = response.getImpUid();
-        String payMethod = response.getPayMethod();
-        BigDecimal payAmount = response.getAmount();
-        String bankCode = response.getBankCode();
-        String bankName = response.getBankName();
-        String buyerAddr = response.getBuyerAddr();
-        String buyerEmail = response.getBuyerEmail();
+    private void createPaymentHistories(Payment response,
+                                        List<Long> inventoryIds,
+                                        Orders order,
+                                        Member member,
+                                        List<Product> products,
+                                        List<Long> quantities,
+                                        int totalPrice) {
+        // inventoryIds, products, quantities를 이용하여 각각의 결제 내역을 저장
+        for (int i = 0; i < inventoryIds.size(); i++) {
+            Product product = products.get(i);
+            Long quantity = quantities.get(i);
 
-        for (Long productMgtId : productMgtIdList) {
-            ProductManagement productMgt = productMgtRepository.findById(productMgtId)
-                    .orElseThrow(() -> new NoSuchElementException(ResponseMessageConstants.PRODUCT_NOT_FOUND));
-            Long quantity = cartRepository.findByProductManagement(productMgt)
-                    .orElseThrow(() -> new NoSuchElementException(ResponseMessageConstants.CART_NOT_FOUND))
-                    .getQuantity();
-
-            Product product = productMgt.getProduct();
-            String option = productMgt.getColor().getColor() + ", " + productMgt.getSize();
-
-            // PaymentHistory 빌더 사용 시 모든 필수 값을 전달
             PaymentHistory paymentHistory = PaymentHistory.builder()
-                    .impUid(impUid)
-                    .member(member)
                     .orders(order)
-                    .product(product)
-                    .productName(product.getProductName())
-                    .productOption(option)
-                    .quantity(quantity)
-                    .price(product.getPrice())
-                    .totalPrice(totalPrice)
-                    .statusType(Status.COMPLETE_PAYMENT)
-                    .payMethod(payMethod)
-                    .bankCode(bankCode)
-                    .bankName(bankName)
-                    .buyerAddr(buyerAddr)
-                    .buyerEmail(buyerEmail)
+                    .member(member)
+                    .impUid(response.getImpUid())
+                    .payMethod(response.getPayMethod())   // 결제 수단 추가
+                    .totalPrice(totalPrice)               // 전체 결제 금액
+                    .product(product)                     // 상품 정보
+                    .productName(product.getProductName()) // 상품 이름
+                    .quantity(quantity)                   // 상품 수량
                     .build();
 
-            // 생성한 결제 내역을 DB에 저장한다.
             paymentRepository.save(paymentHistory);
         }
     }
-
     /**
-     * paymentHistoryList : 내 결제내역 전부 조회
-     * @param memberId 사용자 ID
-     * @return 결제내역 DTO 리스트
+     * 주문에서 상품 ID들 가져오기
      */
-    public List<PaymentHistoryDto> paymentHistoryList(Long memberId) {
-
-        // 로그인된 사용자와 요청 사용자가 일치하는지 검증
-        verifyUserIdMatch(memberId);
-
-        // 해당 사용자의 결제 내역을 DB 에서 전부 조회
-        List<PaymentHistory> paymentHistories = getFindByMemberId(memberId);
-
-        /*
-        List<PaymentHistoryDto> paymentHistoryDtos = new ArrayList<>();
-        for (PaymentHistory paymentHistory : paymentHistories) {
-            PaymentHistoryDto paymentHistoryDto = new PaymentHistoryDto(paymentHistory);
-            paymentHistoryDtos.add(paymentHistoryDto);
-        }*/
-
-        List<PaymentHistoryDto> paymentHistoryDtos = paymentHistories.stream()
-                .map(PaymentHistoryDto::new)   // PaymentHistory -> PaymentHistoryDto 변환
-                .collect(Collectors.toList()); // 리스트로 반환
-        
-        // 결제내역 응답 반환
-        return paymentHistoryDtos;
-    }
-
-    private List<PaymentHistory> getFindByMemberId(Long memberId) {
-        return Optional.ofNullable(paymentRepository.findByMemberId(memberId))
-                .filter(paymentHistories -> !paymentHistories.isEmpty())
-                .orElseThrow(() -> new PaymentHistoryNotFoundException(ResponseMessageConstants.PAYMENT_HISTORY_NOT_FOUND_BY_MEMBER));
+    private List<Long> getInventoryIdsFromOrder(Orders order) {
+        // 주문에서 상품 ID를 가져오는 로직을 작성
+        // 예시: order.getItems() -> inventoryId를 포함한 List
+        return order.getItems().stream()
+                .map(item -> item.getProduct().getId()) // 각 상품의 ID를 추출
+                .collect(Collectors.toList());
     }
 
     /**
-     * getRefundInfo : 결제 취소 정보 검증
-     * (환불 전에 검증하고 환불에 필요한 정보 추출)
-     * @param paymentHistory 결제 내역 엔티티
-     * @return 환불에 필요한 정보가 담긴 PaymentRefund 객체
+     * 주문에서 상품 정보 가져오기 (상품 ID로)
      */
-    public PaymentRefund getRefundInfo(PaymentHistory paymentHistory) {
-        // PG사와 연동되는 결제 식별값
-        String impUid = paymentHistory.getImpUid();
-        // 현재 남아있는 전체 결제 금액 (환불 가능 금액의 기준)
-        Integer beforeChecksum = paymentHistory.getTotalPrice();
-        // 이번에 환불하고자 하는 금액 (상품 단위일 수도 있음)
-        Integer refundAmount = paymentHistory.getPrice();
-        // 전액 환불이 이미 끝난 경우 예외 발생
-        if (beforeChecksum == 0) {
-            throw new IllegalArgumentException("이미 전액 환불 완료된 주문건입니다.");
-        }
-        // 환불 요청에 필요한 정보를 묶어서 반환
-        return new PaymentRefund(impUid, refundAmount, beforeChecksum);
+    private List<Product> getProductsFromInventoryIds(List<Long> inventoryIds) {
+        return inventoryIds.stream()
+                .map(id -> productRepository.findById(id).orElseThrow(() -> new NoSuchElementException("상품을 찾을 수 없습니다.")))
+                .collect(Collectors.toList());
     }
 
     /**
-     * setRefundInfo : 결제 취소 진행 후 정보 저장
-     * (실제 환불 처리를 수행하고 DB에 상태 반영)
-     * @param request 클라이언트에서 전송한 환불 요청 정보
-     * @param paymentHistory 환불하려는 결제 내역
-     * @param paymentInfo 환불 전 검증 후 얻은 환불 정보(PG사 UID, 금액 등)
-     * @return 저장된 환불 정보
-     *
-     * 메서드 흐름
-     * [Client] -> 환불 요청 (DTO) -> [PaymentService.setRefundInfo()]
-     *   -> paymentHistory 조회 (verifyUserIdMatch)
-     *   -> 부분/전체 환불 계산
-     *   -> afterChecksum 계산
-     *   -> PaymentRefund 생성
-     *      -> paymentHistory, impUid, refundAmount, etc...
-     *   -> paymentRefundRepository.save(refund)
-     *   -> paymentHistory 상태 변경 및 checksum 동기화
-     *   -> 아임포트 API로 실제 환불 처리
+     * 주문에서 상품 수량 정보 가져오기
      */
-    public PaymentRefund setRefundInfo(PaymentCancelDto request, PaymentHistory paymentHistory, PaymentRefund paymentInfo) {
-
-        // 결제 고유번호(아임포트 UID), 환불 금액, 현재 checksum 조회
-        String impUid = paymentInfo.getImpUid(); // impUid 는 String 문자열 형식이다.
-        Integer amount = paymentInfo.getAmount();
-        Integer checksum = paymentInfo.getChecksum();
-
-        // 같은 impUid 를 가진 결제 내역들을 전부 조회(여러 주문이 하나의 결제로 묶여있을 수 있다)
-        List<PaymentHistory> paymentHistoriesWithSameUid = getPaymentHistoriesWithSameUid(impUid);
-
-        // 환불 후 남은 금액 계산 (기존 checksum - 환불금액)
-        Integer afterChecksum = checksum - amount;
-
-        // 같은 impUid를 가진 모든 결제 내역에 대해 남은 금액 업데이트
-        for (PaymentHistory history : paymentHistoriesWithSameUid) {
-            history.setTotalPrice(afterChecksum);
-        }
-
-        // 현재 환불 대상 결제 상태를 'CANCELED'로 변경
-        paymentHistory.setStatusType(Status.CANCELED);
-
-        // 환불 정보를 생성 (vbank일 경우와 일반 결제일 경우를 구분하여 생성)
-        PaymentRefund paymentRefund = buildRefund(paymentHistory, request, paymentInfo);
-
-        // 생성된 환불 내역을 DB에 저장
-        paymentRefundRepository.save(paymentRefund);
-
-        // 저장된 환불 내역 반환
-        return paymentRefund;
-    }
-    private List<PaymentHistory> getPaymentHistoriesWithSameUid(String impUid) {
-        return Optional.ofNullable(paymentRepository.findByImpUid(impUid))
-                .filter(paymentHistory -> !paymentHistory.isEmpty())
-                .orElseThrow(() -> new PaymentHistoryNotFoundException(ResponseMessageConstants.PAYMENT_HISTORY_NOT_FOUND_BY_IMPUID));
+    private List<Long> getQuantitiesFromOrder(Orders order) {
+        return order.getItems().stream()
+                .map(item -> item.getQuantity())  // 주문된 수량
+                .collect(Collectors.toList());
     }
 
     /**
-     * 환불 정보를 생성하는 메서드
-     * - 가상계좌(vbank) 결제일 경우 환불 계좌 정보 포함
-     * - 일반 결제일 경우 환불 사유만 포함
-     *
-     * @param paymentHistory 환불할 결제 내역
-     * @param request        클라이언트로부터 전달받은 결제 취소 요청 정보(DTO)
-     * @param paymentInfo    기존 결제 정보(impUid, 환불금액, checksum 등 포함)
-     * @return 생성된 환불 내역 엔티티 반환
+     * 결제 취소 시 사용할 환불 정보(PaymentRefund)를 생성한다.
      */
-    private PaymentRefund buildRefund(PaymentHistory paymentHistory, PaymentCancelDto request, PaymentRefund paymentInfo) {
-
-        // 가상계좌 환불일 경우 추가적인 정보(환불 계좌 정보 등)를 포함하여 PaymentRefund 생성
-        if (request.getPayMethod() == PayMethod.vbank) {
-            return new PaymentRefund(
-                    paymentHistory,                        // 환불할 결제 내역 엔티티
-                    paymentInfo.getImpUid(),               // 아임포트 고유 결제번호
-                    paymentInfo.getAmount(),               // 환불 금액
-                    paymentHistory.getOrders().getPhoneNumber(), // 주문자의 연락처
-                    paymentInfo.getChecksum(),             // 환불 후 남은 금액 (checksum)
-                    request.getReason(),                   // 환불 사유
-                    request.getRefundHolder(),             // 환불 받을 계좌 예금주
-                    request.getRefundBank(),               // 환불 받을 은행명
-                    request.getRefundAccount()             // 환불 받을 계좌번호
-            );
-        }
-
-        // 일반 결제 환불일 경우 기본 환불 정보만 포함하여 PaymentRefund 생성
-        return new PaymentRefund(
-                paymentHistory,                        // 환불할 결제 내역 엔티티
-                paymentInfo.getImpUid(),               // 아임포트 고유 결제번호
-                paymentInfo.getAmount(),               // 환불 금액
-                paymentHistory.getOrders().getPhoneNumber(), // 주문자의 연락처
-                paymentInfo.getChecksum(),             // 환불 후 남은 금액 (checksum)
-                request.getReason()                    // 환불 사유
-        );
+    private PaymentRefund createRefundInfo(PaymentHistory paymentHistory) {
+        return PaymentRefund.builder()
+                .paymentHistory(paymentHistory)
+                .amount(paymentHistory.getTotalPrice()) // "결제된 총 금액"
+                .build();
     }
+
+    /**
+     * 결제 취소 완료 후, 환불 정보를 저장하고 결제 상태를 취소로 변경한다.
+     */
+    private void saveRefundInfo(PaymentCancelDto requestDto, PaymentHistory paymentHistory, PaymentRefund refundInfo) {
+        paymentHistory.updateStatus(PaymentStatus.CANCELED);  // String -> Enum , getDiscription() 제거
+        paymentRefundRepository.save(refundInfo);
+    }
+
 }

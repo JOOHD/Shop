@@ -9,6 +9,7 @@ import java.util.List;
 @Repository
 public interface PaymentRepository extends JpaRepository<PaymentHistory, Long> {
     List<PaymentHistory> findByMemberId(Long memberId);
+    List<PaymentHistory> findAllByMemberId(Long memberId);
     List<PaymentHistory> findByImpUid(String ImpUid);
 
 }

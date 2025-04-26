@@ -2,11 +2,11 @@ package JOO.jooshop.order.service;
 
 import JOO.jooshop.cart.entity.Cart;
 import JOO.jooshop.cart.repository.CartRepository;
+import JOO.jooshop.global.Exception.MemberNotMatchException;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
 import JOO.jooshop.order.entity.Orders;
 import JOO.jooshop.order.entity.TemporaryOrderRedis;
-import JOO.jooshop.order.entity.enums.PayMethod;
 import JOO.jooshop.order.model.OrderDto;
 import JOO.jooshop.order.repository.OrderRepository;
 import JOO.jooshop.order.repository.RedisOrderRepository;
@@ -31,6 +31,20 @@ import static JOO.jooshop.global.authorization.MemberAuthorizationUtil.verifyUse
 @RequiredArgsConstructor
 @Transactional(rollbackFor = Exception.class)
 public class OrderService {
+    /**
+     * createOrder(List<Long> cartIds, OrderDto orderDto)
+     * - 장바구니를 받아 주문 생성 준비, (장바구니 여러 개를 받아서 하나의 주문으로 만듦)
+     *
+     * saveTemporaryOrder(OrderDto orderDto)
+     * - Redis 에 임시 주문 저장, (장바구니로 부터 필요한 정보 수집 후 저장)
+     *
+     * confirmOrder(OrderDto orderDto)
+     * - Redis 에서 임시 주문 꺼내 실제 DB 에 저장, (저장된 임시 데이터로 실제 Orders entity 생성 및 저장)
+     *
+     * generationMerchantUid()
+     * - 주문번호(merchantUid) 생성, ("날짜 + UUID" 형태로 고유한 주문번호 부여)
+     */
+
     public final RedisOrderRepository redisOrderRepository;
     public final CartRepository cartRepository;
     public final OrderRepository orderRepository;
@@ -59,7 +73,7 @@ public class OrderService {
         boolean sameMember = carts.stream()
                 .allMatch(cart -> cart.getMember().getId().equals(memberId));
         if (!sameMember || member == null) {
-            return null; // 동일한 회원이 아닌 경우 주문 생성 실패
+            throw new MemberNotMatchException("주문 생성에 실패했습니다. 회원 정보가 일치하지 않습니다.");
         }
 
         // 상품명 리스트 생성

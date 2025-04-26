@@ -16,4 +16,6 @@ public class ResponseMessageConstants {
     public static final String PAYMENT_HISTORY_NOT_FOUND_BY_MEMBER = "회원 ID에 해당하는 결제 내역을 찾을 수 없습니다."; // 25.03.12
     public static final String PAYMENT_HISTORY_NOT_FOUND_BY_IMPUID = "결제 고유 ID에 해당하는 결제 내역을 찾을 수 없습니다."; // 25.03.12
     public static final String PAYMENT_CANCEL_FAILURE = "결제 취소 실패 하였습니다."; // 25.03.12
+
+    public static final String MEMBER_NOT_MATCH = "회원 정보가 일치하지 않습니다."; // 25.04.26
 }

@@ -1,12 +1,15 @@
 package JOO.jooshop.payment.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Getter
+@Data
+@Builder
 @Table(name = "payment_refund")
 public class PaymentRefund {
     @Id

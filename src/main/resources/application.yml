@@ -31,8 +31,8 @@ spring:
 
   data:
     redis:
-      host: 127.0.0.1
-      port: 6379
+      host: 127.0.0.1  # 로컬호스트 = 내 PC
+      port: 6379       # Redis 기본 포트
       time-to-live: 600000  # 60분 TTL 설정 (이미지 캐싱용)
 
   cache:

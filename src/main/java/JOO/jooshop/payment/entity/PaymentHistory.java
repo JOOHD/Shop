@@ -38,6 +38,10 @@ public class PaymentHistory {
     @Column(name = "pay_method")
     private String payMethod;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_status", nullable = false)
+    private PaymentStatus paymentStatus = PaymentStatus.COMPLETE; // 기본값 설정도 가능
+
     private String bankCode;
     private String bankName;
     private String buyerAddr;
@@ -96,6 +100,10 @@ public class PaymentHistory {
 
     public void setReview(Boolean review) {
         this.review = review;
+    }
+
+    public void updateStatus(PaymentStatus paymentStatus) {
+        this.paymentStatus = paymentStatus;
     }
 
     public void setStatusType(Status statusType) {

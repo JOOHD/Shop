@@ -39,7 +39,6 @@ public class PaymentHistoryDto {
 
 
     public PaymentHistoryDto(PaymentHistory paymentHistory) {
-
         this(
                 paymentHistory.getId(),
                 paymentHistory.getMember().getId(),
@@ -52,6 +51,32 @@ public class PaymentHistoryDto {
                 paymentHistory.getQuantity(),
                 paymentHistory.getProductOption(),
                 // payment field
+                paymentHistory.getOrders().getMerchantUid(),
+                paymentHistory.getOrders().getOrdererName(),
+                paymentHistory.getOrders().getPhoneNumber(),
+                paymentHistory.getProduct().getIsDiscount(),
+                paymentHistory.getBuyerAddr(),
+                paymentHistory.getOrders().getOrderDay(),
+                paymentHistory.getTotalPrice(),
+                paymentHistory.getPayMethod(),
+                paymentHistory.getBankName(),
+                paymentHistory.getPaidAt(),
+                paymentHistory.getStatusType(),
+                paymentHistory.getReview()
+        );
+    }
+
+    public static PaymentHistoryDto fromEntity(PaymentHistory paymentHistory) {
+        return new PaymentHistoryDto(
+                paymentHistory.getId(),
+                paymentHistory.getMember().getId(),
+                paymentHistory.getOrders().getOrderId(),
+                paymentHistory.getProduct().getProductId(),
+                paymentHistory.getProduct().getProductName(),
+                paymentHistory.getFirstThumbnailImagePath(),
+                paymentHistory.getProduct().getPrice(),
+                paymentHistory.getQuantity(),
+                paymentHistory.getProductOption(),
                 paymentHistory.getOrders().getMerchantUid(),
                 paymentHistory.getOrders().getOrdererName(),
                 paymentHistory.getOrders().getPhoneNumber(),

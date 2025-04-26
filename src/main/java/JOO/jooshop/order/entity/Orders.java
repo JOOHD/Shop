@@ -4,6 +4,7 @@ import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.order.entity.enums.PayMethod;
 import JOO.jooshop.order.model.OrderDto;
 import JOO.jooshop.payment.entity.PaymentHistory;
+import JOO.jooshop.payment.entity.PaymentStatus;
 import JOO.jooshop.productManagement.entity.ProductManagement;
 import jakarta.persistence.*;
 import lombok.*;
@@ -63,6 +64,10 @@ public class Orders {
     @Enumerated(EnumType.STRING)
     PayMethod payMethod;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_status", nullable = false)
+    private PaymentStatus paymentStatus = PaymentStatus.COMPLETE; // 기본값 설정도 가능
+
     @Column(length = 100, name = "merchant_uid")
     private String merchantUid;
 
@@ -85,8 +90,6 @@ public class Orders {
     @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime orderDay;
 
-    @Column(name = "payment_status")
-    private Boolean paymentStatus = false;
 
     @OneToMany(mappedBy = "orders")
     private List<PaymentHistory> paymentHistories = new ArrayList<>();
@@ -119,7 +122,8 @@ public class Orders {
         this.merchantUid = merchantUid;
     }
 
-    public void markPaymentComplete() {
-        this.paymentStatus = true;
+    public void updatePayStatus(PaymentStatus paymentStatus) {
+        this.paymentStatus = paymentStatus;
     }
+
 }
