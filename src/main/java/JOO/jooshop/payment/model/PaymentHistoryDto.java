@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -20,7 +21,7 @@ public class PaymentHistoryDto {
     private Long productId;
     private String productName;
     private String imagePath;
-    private Integer productPrice;
+    private BigDecimal productPrice;
     private Long productQuantity;
     private String option;
     // Order 관련 field
@@ -30,7 +31,7 @@ public class PaymentHistoryDto {
     private boolean isDiscount;
     private String buyerAddr;
     private LocalDateTime orderedAt;
-    private Integer totalPrice;
+    private BigDecimal totalPrice;
     private String payMethod;
     private String bankName;
     private LocalDateTime paiedAt;

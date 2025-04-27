@@ -67,7 +67,7 @@ public class CartController {
         updatedCart.setMember(member);
 
         // 3. 서비스 호출
-        Cart savedCart = cartService.updateCart(cartId, updatedCart);
+        Cart savedCart = cartService.updateCart(cartId, updatedCart, request);
 
         // 4. 저장된 Cart -> CartDto 로 변환해서 반환
         CartDto updatedCartDto = new CartDto(savedCart);

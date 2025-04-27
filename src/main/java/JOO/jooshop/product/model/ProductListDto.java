@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -17,7 +18,7 @@ public class ProductListDto {
     private Long productId;
     private ProductType productType;
     private String productName;
-    private Integer price;
+    private BigDecimal price;
     private LocalDateTime createdAt;
     private Long wishListCount;
     private Boolean isDiscount;

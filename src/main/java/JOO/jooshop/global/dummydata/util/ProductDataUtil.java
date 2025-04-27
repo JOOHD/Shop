@@ -9,6 +9,7 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -70,7 +71,7 @@ public class ProductDataUtil {
         int[] prices = {200, 300, 400, 500};
         int[] discountRates = {10, 20, 30, 40, 50};
 
-        int price = prices[rand.nextInt(prices.length)];
+        BigDecimal price = BigDecimal.valueOf(prices[rand.nextInt(prices.length)]);
 
         boolean isDiscount = rand.nextBoolean();
         // isDiscount 여부에 따라, discountRate 를 정해주도록 리펙토링 [24.06.03]

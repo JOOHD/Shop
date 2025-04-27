@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import JOO.jooshop.product.entity.enums.ProductType;
 
+import java.math.BigDecimal;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -15,7 +17,7 @@ public class ProductManagementDto {
     // Product 엔티티의 필드들
     private ProductType productType;
     private String productName;
-    private Integer price;
+    private BigDecimal price;
     private String productInfo;
     private String manufacturer;
     private Boolean isDiscount;

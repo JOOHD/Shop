@@ -3,6 +3,7 @@ package JOO.jooshop.cart.service;
 import JOO.jooshop.cart.entity.Cart;
 import JOO.jooshop.cart.model.CartDto;
 import JOO.jooshop.cart.model.CartRequestDto;
+import JOO.jooshop.cart.model.CartUpdateDto;
 import JOO.jooshop.cart.repository.CartRepository;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -80,15 +82,18 @@ public class CartService {
         Cart existingCart = cartRepository.findByProductManagementAndMember(productMgt, member).orElse(null);
 
         // 장바구니에 동일 상품이 존재하면 수량·가격 수정, 없으면 새 상품 추가
-        if (existingCart != null) { // 이미 담은 상품과 옵션인 경우 수량, 가격을 수정
-            // 현재 수량 + 담은 수량
+        if (existingCart != null) {
+            // 이미 담은 상품과 옵션인 경우 수량, 가격을 수정
             existingCart.setQuantity(existingCart.getQuantity() + request.getQuantity());
+
             // 현재 가격 + 담은 가격
-            existingCart.setPrice(existingCart.getPrice() + productMgt.getProduct().getPrice() * request.getQuantity());
+            BigDecimal priceToAdd = productMgt.getProduct().getPrice().multiply(BigDecimal.valueOf(request.getQuantity())); // 수정된 부분
+            existingCart.setPrice(existingCart.getPrice().add(priceToAdd)); // 수정된 부분
+
             cartRepository.save(existingCart);
             return existingCart.getCartId();
         } else {
-            Long price = productMgt.getProduct().getPrice() * request.getQuantity();
+            BigDecimal price = productMgt.getProduct().getPrice().multiply(BigDecimal.valueOf(request.getQuantity())); // 수정된 부분
             Cart cart = new Cart(member, productMgt, request.getQuantity(), price);
             cartRepository.save(cart);
             return cart.getCartId();
@@ -114,12 +119,12 @@ public class CartService {
      * @param updatedCart
      * @return
      */
-    public Cart updateCart(Long cartId, Cart updatedCart) {
+    public Cart updateCart(Long cartId, Cart updatedCart, CartUpdateDto request) {
         verifyMember(cartId, updatedCart.getMember().getId()); // 사용자 검증
 
         Cart existingCart = findCartById(cartId);
         existingCart.setQuantity(updatedCart.getQuantity());
-        Long price = existingCart.getProductManagement().getProduct().getPrice() * updatedCart.getQuantity();
+        BigDecimal price = existingCart.getProductManagement().getProduct().getPrice().multiply(BigDecimal.valueOf(request.getQuantity()));
         existingCart.setPrice(price);
 
         return cartRepository.save(existingCart);
@@ -151,29 +156,3 @@ public class CartService {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

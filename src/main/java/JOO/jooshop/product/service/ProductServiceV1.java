@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Nullable;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -53,7 +54,7 @@ public class ProductServiceV1 {
             throw new IllegalArgumentException("가격은 필수 항목입니다.");
         }
 
-        if (requestDto.getPrice() < 0) {
+        if (requestDto.getPrice().compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("가격은 0 이상이어야 합니다.");
         }
         Product product = new Product(requestDto);

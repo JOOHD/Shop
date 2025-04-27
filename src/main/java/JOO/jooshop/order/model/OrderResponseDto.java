@@ -37,29 +37,4 @@ public class OrderResponseDto {
     LocalDateTime orderDay;
     Boolean paymentStatus;
 
-    public OrderResponseDto(Orders orders) {
-        this(
-                orders.getOrderId(),
-                orders.getMember().getId(),
-                orders.getProductManagements().stream()
-                        .map(ProductManagement::getInventoryId)
-                        .collect(Collectors.toList()),
-                orders.getProductManagements().stream()
-                        .map(pm -> pm.getProduct().getProductId())
-                        .collect(Collectors.toList()),
-                orders.getOrdererName(),
-                orders.getMember().getEmail(),
-                orders.getPhoneNumber(),
-                orders.getProductName(),
-                orders.getPayMethod(),
-                orders.getMerchantUid(),
-                orders.getTotalPrice(),
-                orders.getPostCode(),
-                orders.getAddress(),
-                orders.getDetailAddress(),
-                orders.getOrderDay(),
-                orders.getPaymentStatus()
-        );
-    }
-
 }

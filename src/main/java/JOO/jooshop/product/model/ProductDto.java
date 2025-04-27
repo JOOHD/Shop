@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -20,7 +21,7 @@ public class ProductDto {
     private Long productId;                 // 상품 PK
     ProductType productType;                // 성별
     private String productName;             // 상품명
-    private Integer price;                  // 상품 가격
+    private BigDecimal price;               // 상품 가격
     private String productInfo;             // 상품 정보
     private LocalDateTime createdAt;        // 생성일
     private LocalDateTime updatedAt;        // 수정일

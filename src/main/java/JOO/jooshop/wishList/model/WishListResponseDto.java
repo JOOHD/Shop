@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -17,7 +18,7 @@ public class WishListResponseDto {
     private Long productId;
     private ProductType productType;
     private String productName;
-    private Integer price;
+    private BigDecimal price;
     private String productInfo;
     private Boolean isDiscount;
     private Boolean isRecommend;
