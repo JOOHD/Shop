@@ -54,6 +54,10 @@ public class Orders {
     )
     private List<ProductManagement> productManagements = new ArrayList<>();
 
+    // 주문 상품들
+    @OneToMany(mappedBy = "orders", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderProduct> orderProducts = new ArrayList<>();
+
     @Column(name = "order_name", nullable = false)
     private String ordererName;
 
@@ -125,5 +129,6 @@ public class Orders {
     public void updatePayStatus(PaymentStatus paymentStatus) {
         this.paymentStatus = paymentStatus;
     }
+
 
 }

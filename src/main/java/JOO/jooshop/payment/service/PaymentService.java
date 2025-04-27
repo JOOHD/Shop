@@ -7,6 +7,7 @@ import JOO.jooshop.global.Exception.PaymentHistoryNotFoundException;
 import JOO.jooshop.global.ResponseMessageConstants;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
+import JOO.jooshop.order.entity.OrderProduct;
 import JOO.jooshop.order.entity.Orders;
 import JOO.jooshop.order.entity.enums.PayMethod;
 import JOO.jooshop.order.repository.OrderRepository;
@@ -30,6 +31,8 @@ import com.siot.IamportRestClient.response.IamportResponse;
 import com.siot.IamportRestClient.response.Payment;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.query.Order;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -56,21 +59,29 @@ public class PaymentService {
         주문 상태 변경 → 결제 내역 생성 → 결제 내역 저장
            ↓
         철수는 내 결제 내역 조회 가능!
+
+        주요 변경 사항
+        1. Redis 저장소에 주문 임시 저장
+        - 세션에서 장바구니 ID를 가져와 임시 주문 정보를 Redis에 저장,
+            결제 완료 후, Redis 에서 해당 정보를 조회해 OrderProduct 를 생성
+        2. OrderProduct 저장
+        - 주문 완료 시, 각 상품에 대한 OrderProduct 를 생성하고 이를 DB에 저장
+        3. 장바구니 처리
+        - Redis 에 저장된 데이터를 기반으로 실제 OrderProduct 를 생성하여 주문을 확정
      */
 
-    private final ProductRepositoryV1 productRepository;
+    private final RedisTemplate redisTemplate;
+    private final CartRepository cartRepository;
     private final OrderRepository orderRepository;
     private final MemberRepositoryV1 memberRepository;
     private final PaymentRepository paymentRepository;
-    private final ProductManagementRepository productMgtRepository;
     private final PaymentRefundRepository paymentRefundRepository;
-    private final CartRepository cartRepository;
 
     /**
      * 결제 완료 시, 주문 상태를 '결제 완료'로 변경하고
      * 결제 내역(PaymentHistory)을 생성하여 저장한다.
      */
-    public void processPaymentDone(Payment response, PaymentRequestDto request) {
+    public void processPaymentDone(OrderProduct orderProduct, Payment response, PaymentRequestDto request) {
         // 로그인된 사용자가 요청한 사용자와 일치하는지 확인
         verifyUserIdMatch(request.getMemberId());
 
@@ -81,69 +92,59 @@ public class PaymentService {
         // 주문 상태 변경 (결제 완료)
         order.updatePayStatus(PaymentStatus.COMPLETE);
 
-        // 결제 응답에서 필요한 정보 추출 (예시)
-        String impUid = response.getImpUid();
-        String payMethod = response.getPayMethod();
-        int totalPrice = response.getTotalPrice();
+        // 장바구니에서 주문된 상품 정보 처리
+        List<OrderProduct> orderProducts = getOrderProductsFromRedis(orderProduct, order, member);
 
-        // 상품 ID들 (결제에 포함된 상품들)
-        List<Long> inventoryIds = getInventoryIdsFromOrder(order); // order에서 상품 정보 가져오기
-
-        // 상품 정보 (각 상품에 대한 세부 정보)
-        List<Product> products = getProductsFromInventoryIds(inventoryIds); // inventoryIds를 통해 상품 정보 가져오기
-
-        // 각 상품의 수량 정보 (여기선 주문에서의 상품 수량 정보 필요)
-        List<Long> quantities = getQuantitiesFromOrder(order); // 주문에서 상품 수량 가져오기
-
-        // 결제내역 생성 및 저장 (상품별)
-        createPaymentHistories(response, inventoryIds, order, member, products, quantities, totalPrice);
+        // 결제 내역 생성 및 저장 (상품별)
+        createPaymentHistories(response, orderProducts, order, member);
     }
 
     /**
-     * 결제 완료 후 세션에 저장된 장바구니 ID를 이용해
-     * 장바구니를 삭제하고, 세션을 정리한다.
+     * Redis 에서 임시 주문 데이터를 가져와 OrderProduct 생성
      */
-    public void clearPaymentSession(HttpSession session) {
-        List<Long> cartIds = (List<Long>) session.getAttribute("cartIds");
+    private List<OrderProduct> getOrderProductsFromRedis(OrderProduct orderProduct, Orders order, Member member) {
+        List<Long> cartIds = (List<Long>) redisTemplate.opsForValue().get("cartIds:" + member.getId());
         if (cartIds == null || cartIds.isEmpty()) {
             throw new NoSuchElementException("장바구니가 비어 있습니다.");
         }
 
-        Long memberId = cartRepository.findById(cartIds.get(0))
-                .orElseThrow(() -> new NoSuchElementException("삭제할 장바구니를 찾지 못했습니다."))
-                .getMember().getId();
+        // 장바구니의 각 아이템을 OrderProduct 로 변환
+        return cartIds.stream()
+                .map(cartId -> {
+                    // 장바구니 항목을 조회
+                    Cart cart = cartRepository.findById(cartId)
+                            .orElseThrow(() -> new NoSuchElementException("장바구니가 비어 있습니다."));
 
-        verifyUserIdMatch(memberId);
-
-        cartIds.forEach(cartId -> {
-            Cart cart = cartRepository.findById(cartId)
-                    .orElseThrow(() -> new NoSuchElementException("삭제할 장바구니를 찾을 수 없습니다."));
-            cartRepository.delete(cart);
-        });
-
-        session.removeAttribute("temporaryOrder");
-        session.removeAttribute("cartIds");
-    }
-
-    /**
-     * 회원 ID를 기반으로 결제 이력을 조회하여 반환
-     */
-    public List<PaymentHistoryDto> paymentHistoryList(Long memberId) {
-        verifyUserIdMatch(memberId);
-        List<PaymentHistory> paymentHistories = paymentRepository.findAllByMemberId(memberId);
-        return paymentHistories.stream()
-                .map(PaymentHistoryDto::fromEntity)
+                    BigDecimal priceAtOrder = orderProduct.getPriceAtOrder(); // OrderProduct 내에서 처리된 가격
+                    return orderProduct.createOrderProduct(order, cart.getProductManagement(), priceAtOrder, cart.getQuantity());
+                })
                 .collect(Collectors.toList());
     }
 
     /**
-     * 결제 추소 요청을 수행하고,
-     * 성공 시, 환불 이력 (PaymentRefund)을 저장.
+     * 결제 완료 후, 각 상품에 대한 결제 내역을 생성하여 저장
      */
-    public IamportResponse<Payment> cancelPayment(
-            Long paymentHistoryId,
-            PaymentCancelDto requestDto,
-            IamportClient iamportClient) throws IamportResponseException, IOException {
+    private void createPaymentHistories(Payment response, List<OrderProduct> orderProducts, Orders order, Member member) {
+        for (OrderProduct orderProduct : orderProducts) {
+            PaymentHistory paymentHistory = PaymentHistory.builder()
+                    .orders(order)
+                    .member(member)
+                    .impUid(response.getImpUid())
+                    .payMethod(response.getPayMethod())   // 결제 수단 추가
+                    .totalPrice(order.getTotalPrice())    // 전체 결제 금액
+                    .product(orderProduct.getProductManagement().getProduct()) // 상품 정보
+                    .productName(orderProduct.getProductName()) // 상품 이름
+                    .quantity(orderProduct.getQuantity()) // 상품 수량
+                    .build();
+
+            paymentRepository.save(paymentHistory);
+        }
+    }
+
+    // 결제 취소 및 환불 관련 로직
+    public IamportResponse<Payment> cancelPayment(Long paymentHistoryId,
+                                                  PaymentCancelDto requestDto,
+                                                  IamportClient iamportClient) throws IamportResponseException, IOException {
         PaymentHistory paymentHistory = paymentRepository.findById(paymentHistoryId)
                 .orElseThrow(() -> new PaymentHistoryNotFoundException(ResponseMessageConstants.PAYMENT_HISTORY_NOT_FOUND));
 
@@ -180,70 +181,12 @@ public class PaymentService {
     }
 
     /**
-     * 결제내역 생성 및 저장 (상품별)
-     */
-    private void createPaymentHistories(Payment response,
-                                        List<Long> inventoryIds,
-                                        Orders order,
-                                        Member member,
-                                        List<Product> products,
-                                        List<Long> quantities,
-                                        int totalPrice) {
-        // inventoryIds, products, quantities를 이용하여 각각의 결제 내역을 저장
-        for (int i = 0; i < inventoryIds.size(); i++) {
-            Product product = products.get(i);
-            Long quantity = quantities.get(i);
-
-            PaymentHistory paymentHistory = PaymentHistory.builder()
-                    .orders(order)
-                    .member(member)
-                    .impUid(response.getImpUid())
-                    .payMethod(response.getPayMethod())   // 결제 수단 추가
-                    .totalPrice(totalPrice)               // 전체 결제 금액
-                    .product(product)                     // 상품 정보
-                    .productName(product.getProductName()) // 상품 이름
-                    .quantity(quantity)                   // 상품 수량
-                    .build();
-
-            paymentRepository.save(paymentHistory);
-        }
-    }
-    /**
-     * 주문에서 상품 ID들 가져오기
-     */
-    private List<Long> getInventoryIdsFromOrder(Orders order) {
-        // 주문에서 상품 ID를 가져오는 로직을 작성
-        // 예시: order.getItems() -> inventoryId를 포함한 List
-        return order.getItems().stream()
-                .map(item -> item.getProduct().getId()) // 각 상품의 ID를 추출
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * 주문에서 상품 정보 가져오기 (상품 ID로)
-     */
-    private List<Product> getProductsFromInventoryIds(List<Long> inventoryIds) {
-        return inventoryIds.stream()
-                .map(id -> productRepository.findById(id).orElseThrow(() -> new NoSuchElementException("상품을 찾을 수 없습니다.")))
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * 주문에서 상품 수량 정보 가져오기
-     */
-    private List<Long> getQuantitiesFromOrder(Orders order) {
-        return order.getItems().stream()
-                .map(item -> item.getQuantity())  // 주문된 수량
-                .collect(Collectors.toList());
-    }
-
-    /**
      * 결제 취소 시 사용할 환불 정보(PaymentRefund)를 생성한다.
      */
     private PaymentRefund createRefundInfo(PaymentHistory paymentHistory) {
         return PaymentRefund.builder()
                 .paymentHistory(paymentHistory)
-                .amount(paymentHistory.getTotalPrice()) // "결제된 총 금액"
+                .amount(paymentHistory.getTotalPrice().intValue()) // BigDecimal을 int로 변환하여 저장
                 .build();
     }
 

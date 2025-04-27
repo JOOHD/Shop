@@ -40,9 +40,11 @@ public class QPaymentHistory extends EntityPathBase<PaymentHistory> {
 
     public final DateTimePath<java.time.LocalDateTime> paidAt = createDateTime("paidAt", java.time.LocalDateTime.class);
 
+    public final EnumPath<PaymentStatus> paymentStatus = createEnum("paymentStatus", PaymentStatus.class);
+
     public final StringPath payMethod = createString("payMethod");
 
-    public final NumberPath<Integer> price = createNumber("price", Integer.class);
+    public final NumberPath<java.math.BigDecimal> price = createNumber("price", java.math.BigDecimal.class);
 
     public final JOO.jooshop.product.entity.QProduct product;
 
@@ -56,7 +58,7 @@ public class QPaymentHistory extends EntityPathBase<PaymentHistory> {
 
     public final EnumPath<Status> statusType = createEnum("statusType", Status.class);
 
-    public final NumberPath<Integer> totalPrice = createNumber("totalPrice", Integer.class);
+    public final NumberPath<java.math.BigDecimal> totalPrice = createNumber("totalPrice", java.math.BigDecimal.class);
 
     public QPaymentHistory(String variable) {
         this(PaymentHistory.class, forVariable(variable), INITS);

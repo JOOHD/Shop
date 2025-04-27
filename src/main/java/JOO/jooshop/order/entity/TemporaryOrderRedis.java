@@ -6,6 +6,7 @@ import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -31,7 +32,7 @@ public class TemporaryOrderRedis implements Serializable {
     private String username;
     private List<Long> cartIds;
     private List<String> productNames;
-    private Long totalPrice;
+    private BigDecimal totalPrice;
     private String phoneNumber;
 
     @TimeToLive(unit = TimeUnit.MINUTES)

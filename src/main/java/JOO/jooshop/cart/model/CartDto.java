@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,12 +30,12 @@ public class CartDto {
     private String productName;
     private String color;
     private String size;
-    private Integer productPrice;
+    private BigDecimal productPrice;
+    private BigDecimal totalPrice;
     private String productInfo;
     private Boolean isDiscount;
     private Boolean isSoldOut;
     private Long quantity;
-    private Long totalPrice;
     private String productThumbnail;
 
     public CartDto(Cart cart) {
@@ -50,12 +51,12 @@ public class CartDto {
                 cart.getProductManagement().getProduct().getProductName(),
                 cart.getProductManagement().getColor().getColor(),
                 cart.getProductManagement().getSize().toString(),
+                cart.getPrice(),
                 cart.getProductManagement().getProduct().getPrice(),
                 cart.getProductManagement().getProduct().getProductInfo(),
                 cart.getProductManagement().getProduct().getIsDiscount(),
                 cart.getProductManagement().isSoldOut(),
                 cart.getQuantity(),
-                cart.getPrice(),
                 cart.getProductManagement().getProduct().getProductThumbnails().get(0).getImagePath()
         );
     }

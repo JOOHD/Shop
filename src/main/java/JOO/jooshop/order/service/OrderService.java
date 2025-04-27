@@ -5,6 +5,7 @@ import JOO.jooshop.cart.repository.CartRepository;
 import JOO.jooshop.global.Exception.MemberNotMatchException;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
+import JOO.jooshop.order.entity.OrderProduct;
 import JOO.jooshop.order.entity.Orders;
 import JOO.jooshop.order.entity.TemporaryOrderRedis;
 import JOO.jooshop.order.model.OrderDto;
@@ -15,143 +16,98 @@ import JOO.jooshop.product.repository.ProductRepositoryV1;
 import JOO.jooshop.productManagement.entity.ProductManagement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
-import static JOO.jooshop.global.ResponseMessageConstants.MEMBER_NOT_FOUND;
 import static JOO.jooshop.global.authorization.MemberAuthorizationUtil.verifyUserIdMatch;
 
 @Slf4j
-@Service
+@RestController
+@RequestMapping("/api/v1/order")
 @RequiredArgsConstructor
-@Transactional(rollbackFor = Exception.class)
 public class OrderService {
+
     /**
-     * createOrder(List<Long> cartIds, OrderDto orderDto)
-     * - 장바구니를 받아 주문 생성 준비, (장바구니 여러 개를 받아서 하나의 주문으로 만듦)
-     *
-     * saveTemporaryOrder(OrderDto orderDto)
-     * - Redis 에 임시 주문 저장, (장바구니로 부터 필요한 정보 수집 후 저장)
-     *
-     * confirmOrder(OrderDto orderDto)
-     * - Redis 에서 임시 주문 꺼내 실제 DB 에 저장, (저장된 임시 데이터로 실제 Orders entity 생성 및 저장)
-     *
-     * generationMerchantUid()
-     * - 주문번호(merchantUid) 생성, ("날짜 + UUID" 형태로 고유한 주문번호 부여)
+     * createOrder는 Redis 저장까지 끝낸다.
+     * confirmOrder는 Redis 꺼내서 Orders 저장만 담당.
+     * generationMerchantUid()는 주문 고유번호 생성용으로 별도 유지.
      */
+    private final RedisOrderRepository redisOrderRepository;
+    private final CartRepository cartRepository;
+    private final OrderRepository orderRepository;
+    private final ProductRepositoryV1 productRepository;
+    private final MemberRepositoryV1 memberRepository;
 
-    public final RedisOrderRepository redisOrderRepository;
-    public final CartRepository cartRepository;
-    public final OrderRepository orderRepository;
-    public final ProductRepositoryV1 productRepository;
-    public final MemberRepositoryV1 memberRepository;
-
+    /**
+     * 장바구니에서 주문 준비
+     */
     public Orders createOrder(List<Long> cartIds, OrderDto orderDto) {
-        // 장바구니 조회
-        List<Cart> carts = cartRepository.findByCartIdIn(cartIds);
-
-        // 첫 번째 장바구니에서 회원 ID 추출
+        List<Cart> carts = cartRepository.findAllById(cartIds);
         Long memberId = carts.get(0).getMember().getId();
-        verifyUserIdMatch(memberId);
+        verifyUserIdMatch(memberId); // 사용자 검증
 
-        // 회원 조회
+        // 회원 정보 조회 및 검증
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new NoSuchElementException(MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new NoSuchElementException("회원 정보를 찾을 수 없습니다."));
 
-        // 상품 목록을 관리하는 리스트
-        List<ProductManagement> productMgts = new ArrayList<>();
-        for (Cart cart : carts) {
-            productMgts.add(cart.getProductManagement());
-        }
-
-        // 모든 장바구니의 memberId 가 동일한지 확인
+        // 장바구니가 동일 회원인지 확인
         boolean sameMember = carts.stream()
                 .allMatch(cart -> cart.getMember().getId().equals(memberId));
-        if (!sameMember || member == null) {
+        if (!sameMember) {
             throw new MemberNotMatchException("주문 생성에 실패했습니다. 회원 정보가 일치하지 않습니다.");
         }
 
-        // 상품명 리스트 생성
-        List<String> productNames = getProductNames(carts);
-        if (productNames.isEmpty()) {
-            throw new IllegalArgumentException("상품명이 비어 있을 수 없습니다.");
-        }
+        // 주문 상품 목록 생성
+        List<OrderProduct> orderProducts = createOrderProducts(carts);
 
-        // 주문 객체 생성
+        // 상품명 목록 및 총 가격 계산
+        List<String> productNames = orderProducts.stream()
+                .map(OrderProduct::getProductName)
+                .collect(Collectors.toList());
+
+        // 총 가격 계산
+        BigDecimal totalPrice = orderProducts.stream()
+                .map(op -> op.getPriceAtOrder().multiply(BigDecimal.valueOf(op.getQuantity())))  // priceAtOrder 사용
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // Orders 객체 생성
         Orders orders = Orders.builder()
                 .member(member)
-                .productManagements(productMgts)
-                .ordererName(member.getUsername()) // order_name
-                .productName(String.join(",", productNames)) // product_names
-                .totalPrice(calculateTotalPrice(carts)) // total_price
-                .phoneNumber(getMemberPhoneNumber(carts)) // phone_number
-                .postCode(orderDto.getPostCode()) // post_code
-                .address(orderDto.getAddress()) // address
-                .detailAddress(orderDto.getDetailAddress()) // detail_address
-                .merchantUid(orderDto.getMerchantUid()) // merchant_uid
-                .payMethod(orderDto.getPayMethod()) // payMethod enum
+                .phoneNumber(getMemberPhoneNumber(carts))
+                .ordererName(member.getUsername())
+                .productName(String.join(",", productNames))
+                .productManagements(getProductManagements(orderProducts))
+                .postCode(orderDto.getPostCode())
+                .address(orderDto.getAddress())
+                .detailAddress(orderDto.getDetailAddress())
+                .merchantUid(orderDto.getMerchantUid())
+                .payMethod(orderDto.getPayMethod())
+                .totalPrice(totalPrice)
                 .build();
+
+        // 임시 주문 정보 Redis에 저장
+        saveTemporaryOrder(orderDto, carts);
+
         return orders;
     }
 
-    // 장바구니 상품명 가져오기
-    private List<String> getProductNames(List<Cart> carts) {
-        List<String> productNames = new ArrayList<>();
-        for (Cart cart : carts) {
-            Long productId = cart.getProductManagement().getProduct().getProductId();
-            Product product = productRepository.findById(productId).orElse(null);
-            if (product != null) {
-                productNames.add(product.getProductName());
-            }
-        }
-        return productNames;
-    }
-
-    // 회원 전화번호 가져오기
-    private String getMemberPhoneNumber(List<Cart> carts) {
-        Long memberId = carts.get(0).getMember().getId();
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new NoSuchElementException(MEMBER_NOT_FOUND));
-        return member != null && member.getPhone() != null ? member.getPhone() : null;
-    }
-
-    // 총 가격 계산
-    private BigDecimal calculateTotalPrice(List<Cart> carts) {
-        BigDecimal totalPrice = BigDecimal.ZERO;
-        for (Cart cart : carts) {
-            BigDecimal cartPrice = BigDecimal.valueOf(cart.getPrice());
-            totalPrice = totalPrice.add(cartPrice);
-        }
-        return totalPrice;
-    }
-
-    /**
-     * 임시 주문 정보 Redis에 저장
-     *
-     * @param orderDto 주문 DTO
-     */
-    public void saveTemporaryOrder(OrderDto orderDto) {
-        List<Cart> cartList = cartRepository.findByMemberId(orderDto.getMemberId());
-
-        // cartId 목록, 상품명 목록, 총 가격 계산
-        List<Long> cartIds = cartList.stream().map(Cart::getCartId).toList();
-        List<String> productNames = cartList.stream()
+    private void saveTemporaryOrder(OrderDto orderDto, List<Cart> carts) {
+        List<Long> cartIds = carts.stream().map(Cart::getCartId).collect(Collectors.toList());
+        List<String> productNames = carts.stream()
                 .map(cart -> cart.getProductManagement().getProduct().getProductName())
-                .toList();
+                .collect(Collectors.toList());
 
-        log.info("productNames in Redis before save: {}", productNames);
-        long totalPrice = cartList.stream()
-                .mapToLong(cart -> cart.getProductManagement().getProduct().getPrice() * cart.getQuantity())
-                .sum();
+        BigDecimal totalPrice = carts.stream()
+                .map(cart -> this.calculateTotalPrice(cart))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Redis에 저장할 임시 주문 객체 생성
         TemporaryOrderRedis tempOrder = TemporaryOrderRedis.builder()
-                .id("tempOrder:" + orderDto.getMemberId()) // Redis 키
+                .id("tempOrder:" + orderDto.getMemberId())
                 .memberId(orderDto.getMemberId())
                 .username(orderDto.getOrdererName())
                 .cartIds(cartIds)
@@ -165,19 +121,13 @@ public class OrderService {
     }
 
     /**
-     * 주문을 Redis에서 임시 주문 정보를 기반으로 실제 주문으로 저장
-     *
-     * @param orderDto 주문 DTO
-     * @return 실제 주문 객체
+     * 임시 주문 정보를 기반으로 실제 주문 생성
      */
     public Orders confirmOrder(OrderDto orderDto) {
-        // 1. Redis에서 임시 주문 정보 가져오기
         String redisKey = "tempOrder:" + orderDto.getMemberId();
         TemporaryOrderRedis temporaryOrderRedis = redisOrderRepository.findById(redisKey)
                 .orElseThrow(() -> new IllegalArgumentException("임시 주문 정보를 찾을 수 없습니다."));
 
-        log.info("productNames from Redis: {}", temporaryOrderRedis.getProductNames());
-        // 2. 실제 주문 생성
         Orders newOrder = Orders.builder()
                 .member(memberRepository.findById(orderDto.getMemberId()).orElseThrow())
                 .postCode(orderDto.getPostCode())
@@ -188,27 +138,76 @@ public class OrderService {
                 .payMethod(orderDto.getPayMethod())
                 .merchantUid(generationMerchantUid())
                 .productName(String.join(",", temporaryOrderRedis.getProductNames()))
-                .totalPrice(BigDecimal.valueOf(temporaryOrderRedis.getTotalPrice()))
+                .totalPrice(temporaryOrderRedis.getTotalPrice())
                 .build();
-        log.info("Orders.productNames: {}", String.join(",", temporaryOrderRedis.getProductNames()));
 
-        // 3. 주문 저장
         Orders savedOrder = orderRepository.save(newOrder);
         log.info("주문이 생성되었습니다. 주문 번호: {}", savedOrder.getOrderId());
 
         return savedOrder;
     }
 
-    // 주문번호 생성 메서드
+    /**
+     * 주문 상품의 가격과 수량을 기반으로 총 금액을 계산하는 메서드
+     *   1. 여기서는 Cart Entity 에 OrderProduct 가 없어서, Management 사용(Cart 와 연관)
+     *   2. Management 에 quantity 가 없어서, Cart 를 사용해 가져옴
+     *
+     *   OrderProduct -> ProductManagement -> Cart
+      */
+    public BigDecimal calculateTotalPrice(Cart cart) {
+        Product product = cart.getProductManagement().getProduct();
+        return product.getPrice().multiply(BigDecimal.valueOf(cart.getQuantity()));
+    }
+
+    /**
+     * 주문 번호 생성 (날짜 + UUID)
+     */
     private String generationMerchantUid() {
-        String uniqueString = UUID.randomUUID().toString().replace("-", "");
-        LocalDateTime today = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-        String formattedDay = today.format(formatter);
-        return formattedDay + '-' + uniqueString;
+        return LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
+                + "-" + UUID.randomUUID().toString().substring(0, 8);
+    }
+
+    /**
+     * 장바구니 목록에서 상품명, 가격, 수량 등을 기반으로 OrderProduct 리스트 생성
+     */
+    private List<OrderProduct> createOrderProducts(List<Cart> carts) {
+        List<OrderProduct> orderProducts = new ArrayList<>();
+        for (Cart cart : carts) {
+            ProductManagement pm = cart.getProductManagement();
+            Product product = pm.getProduct();
+
+            OrderProduct orderProduct = OrderProduct.builder()
+                    .orders(null)  // 주문이 아직 없으므로 null (나중에 주문이 확정되면 세팅)
+                    .productManagement(pm)
+                    .productName(product.getProductName())
+                    .priceAtOrder((product.getPrice()))
+                    .quantity(cart.getQuantity())
+                    .build();
+
+            orderProducts.add(orderProduct);
+        }
+        return orderProducts;
+    }
+
+    /**
+     * OrderProduct 객체들로부터 ProductManagement만 추출
+     */
+    private List<ProductManagement> getProductManagements(List<OrderProduct> orderProducts) {
+        return orderProducts.stream()
+                .map(OrderProduct::getProductManagement)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 첫 번째 장바구니의 회원 전화번호 가져오기
+     */
+    private String getMemberPhoneNumber(List<Cart> carts) {
+        Long memberId = carts.get(0).getMember().getId();
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NoSuchElementException("회원 정보를 찾을 수 없습니다."));
+        return member.getPhone();
     }
 }
-
 
 
 

@@ -1,12 +1,7 @@
 package JOO.jooshop.payment.controller;
 
-import JOO.jooshop.cart.entity.Cart;
-import JOO.jooshop.cart.repository.CartRepository;
-import JOO.jooshop.global.Exception.PaymentCancelFailureException;
-import JOO.jooshop.global.ResponseMessageConstants;
-import JOO.jooshop.order.repository.OrderRepository;
+import JOO.jooshop.order.entity.OrderProduct;
 import JOO.jooshop.payment.entity.PaymentHistory;
-import JOO.jooshop.payment.entity.PaymentRefund;
 import JOO.jooshop.payment.model.PaymentCancelDto;
 import JOO.jooshop.payment.model.PaymentHistoryDto;
 import JOO.jooshop.payment.model.PaymentRequestDto;
@@ -14,27 +9,20 @@ import JOO.jooshop.payment.repository.PaymentRepository;
 import JOO.jooshop.payment.service.PaymentService;
 import com.siot.IamportRestClient.IamportClient;
 import com.siot.IamportRestClient.exception.IamportResponseException;
-import com.siot.IamportRestClient.request.CancelData;
 import com.siot.IamportRestClient.response.IamportResponse;
 import com.siot.IamportRestClient.response.Payment;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.stream.Collectors;
-
-import static JOO.jooshop.global.authorization.MemberAuthorizationUtil.verifyUserIdMatch;
 
 @RestController
 @RequestMapping("api/v1")
@@ -43,17 +31,28 @@ import static JOO.jooshop.global.authorization.MemberAuthorizationUtil.verifyUse
 public class PaymentController {
 
     /** 25.04.26, 2차 리팩토링
-     * Controller 는 "요청 받고, 서비스에 위임만" -> 비즈니스 로직은 Service
-     * 예외처리 문구 통일, 세션 처리 로직 Service 분리
-     * String 값이였던 상태 값은, Enum 으로 따로 관리 추천 (PaymentStatus)
+     *  Controller 는 "요청 받고, 서비스에 위임만" -> 비즈니스 로직은 Service
+     *  예외처리 문구 통일, 세션 처리 로직 Service 분리
+     *  String 값이였던 상태 값은, Enum 으로 따로 관리 추천 (PaymentStatus)
+     * 
+     *  25.04.27 3차 리팩토링
+     *  1. Redis 사용
+     *     - RedisTemplate 을 이용해 Redis 에 데이터 저장, 삭제 로직 추가
+     *     - order:products 라는 키로 주문한 상품 정보를 Redis 에 저장 (매번 주문 때 마다)
+     *     - 결제 완료 후, Redis 에 저장된 장바구니 정보 삭제 로직 구현 (validateIamport)
+     *  2. OrderProduct 엔티티 연결
+     *     - 주문 확정 후 생성되는 상품 정보로, Redis 에 저장되는 상품 데이터 관리
+     *  3. processPaymentDone service method
+     *     - 결제가 완료된 후 해당 결제 내역을 처리하는 비즈니스 로직을
+     *          paymentService.processPaymentDone 메서드로 위임
+     *     - 이 메서드는 주문 상태 변경 및 주문한 상품에 대한 처리를 담당
+     *  4. 세션 삭제
+     *     - 결제 완료 후 세션에서 임시 주문 정보(temporaryOrder & cartIds)를 삭제 기능 추가.
      */
-
     private final PaymentService paymentService;
-    private final CartRepository cartRepository;
     private final PaymentRepository paymentRepository;
-    public final OrderRepository orderRepository;
-
-    private final StringRedisTemplate redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final HttpSession httpSession;
     private IamportClient iamportClient;
 
     @Value("${IMP_API_KEY}")
@@ -78,13 +77,21 @@ public class PaymentController {
     @PostMapping("/order/payment/{imp_uid}")
     public ResponseEntity<IamportResponse<Payment>> validateIamport(
             @PathVariable("imp_uid") String imp_uid,
-            @RequestBody PaymentRequestDto request) throws IamportResponseException, IOException {
+            @RequestBody PaymentRequestDto request,
+            OrderProduct orderProduct) throws IamportResponseException, IOException {
 
+        // 결제 정보 검증
         IamportResponse<Payment> paymentResponse = iamportClient.paymentByImpUid(imp_uid);
         log.info("결제 요청 응답. 결제 내역 - 주문 번호: {}", paymentResponse.getResponse().getMerchantUid());
 
         // 결제 완료 후 비즈니스 로직 처리
-        paymentService.processPaymentDone(paymentResponse.getResponse(), request);
+        paymentService.processPaymentDone(orderProduct, paymentResponse.getResponse(), request);
+
+        // Redis 에서 장바구니 정보 삭제 (결제 완료 후)
+        Set<String> cartKeys = redisTemplate.keys("cart:*");
+        if (cartKeys != null) {
+            redisTemplate.delete(cartKeys);
+        }
 
         return ResponseEntity.ok(paymentResponse);
     }
@@ -95,7 +102,10 @@ public class PaymentController {
      */
     @GetMapping("/order/paymentConfirm")
     public ResponseEntity<String> deleteSession() {
-        paymentService.clearPaymentSession(httpSession);
+        // 세션에서 임시 주문 정보 삭제
+        httpSession.removeAttribute("temporaryOrder");
+        httpSession.removeAttribute("cartIds");
+
         return ResponseEntity.ok("주문 및 세션 정리 완료");
     }
 
@@ -103,9 +113,11 @@ public class PaymentController {
      * 사용자 결제 내역 조회
      * - 자신의 결제 내역만 조회 가능 (서버에서 ID 검증)
      */
-    @GetMapping("/paymentHistory/{memberId}")
-    public ResponseEntity<List<PaymentHistoryDto>> paymentList(@PathVariable("memberId") Long memberId) {
-        return ResponseEntity.ok(paymentService.paymentHistoryList(memberId));
+    public List<PaymentHistoryDto> createPaymentHistories(Long memberId) {
+        List<PaymentHistory> paymentHistories = paymentRepository.findByMemberId(memberId);
+        return paymentHistories.stream()
+                .map(paymentHistory -> new PaymentHistoryDto(paymentHistory)) // PaymentHistory를 PaymentHistoryDto로 변환
+                .collect(Collectors.toList());
     }
 
     /**
@@ -120,37 +132,17 @@ public class PaymentController {
         IamportResponse<Payment> cancelResponse = paymentService.cancelPayment(paymentHistoryId, requestDto, iamportClient);
         return ResponseEntity.ok(cancelResponse);
     }
-    
-    /*
-    - HttpSession 사용
-    @GetMapping("/order/paymentConfirm")
-    public ResponseEntity<String> deleteSession() {
-        // 세션에서 cartIds 가져오기 (결제 완료된 장바구니)
-        List<Long> cartIds = (List<Long>) httpSession.getAttribute("cartIds");
-        if (cartIds == null || cartIds.isEmpty()) {
-            throw new NoSuchElementException("장바구니가 비어 있습니다.");
-        }
 
-        // 첫 번째 장바구니에서 사용자 ID 추출 및 검증
-        Long cartMemberId = cartRepository.findById(cartIds.get(0))
-                .orElseThrow(() -> new NoSuchElementException("삭제할 장바구니를 찾을 수 없습니다."))
-                .getMember().getId();
-        verifyUserIdMatch(cartMemberId); // 로그인 된 사용자와 요청 사용자 비교
-
-        // 장바구니 개별 삭제
-        cartIds.forEach(cartId -> {
-            Cart cart = cartRepository.findById(cartId)
-                    .orElseThrow(() -> new NoSuchElementException("삭제할 장바구니를 찾을 수 없습니다."));
-            cartRepository.delete(cart);
-        });
-
-        // 세션에서 임시 주문 정보 삭제
-        httpSession.removeAttribute("temporaryOrder");
-        httpSession.removeAttribute("cartIds");
-
-        return ResponseEntity.ok("주문 및 세션 정리 완료");
-    }
+    /**
+     * 주문 상품을 Redis에 저장
+     * - 결제 성공 시 주문한 상품 정보를 Redis에 저장
      */
+    private void saveOrderProductsToRedis(List<OrderProduct> orderProducts) {
+        for (OrderProduct orderProduct : orderProducts) {
+            // Redis에 주문 정보 저장
+            redisTemplate.opsForHash().put("order:products", orderProduct.getId().toString(), orderProduct);
+        }
+    }
 }
 
 

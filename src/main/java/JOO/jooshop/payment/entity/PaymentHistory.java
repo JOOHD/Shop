@@ -6,6 +6,7 @@ import JOO.jooshop.product.entity.Product;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -54,10 +55,10 @@ public class PaymentHistory {
     private String productOption;
 
     @Column(name = "product_price", nullable = false)
-    private Integer price;
+    private BigDecimal price;
 
     @Column(name = "total_price", nullable = false)
-    private Integer totalPrice;
+    private BigDecimal totalPrice;
 
     @Column(name = "paid_at", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     @Builder.Default
@@ -77,7 +78,7 @@ public class PaymentHistory {
     // 빌더에서 호출할 생성자 수정
     public PaymentHistory(String impUid, Member member, Orders orders, Product product,
                           String productName, String productOption, Long quantity,
-                          Integer price, Integer totalPrice, Status statusType,
+                          BigDecimal price, BigDecimal totalPrice, Status statusType,
                           String payMethod, String bankCode, String bankName,
                           String buyerAddr, String buyerEmail) {
         this.impUid = impUid;
@@ -106,13 +107,6 @@ public class PaymentHistory {
         this.paymentStatus = paymentStatus;
     }
 
-    public void setStatusType(Status statusType) {
-        this.statusType = statusType;
-    }
-
-    public void setTotalPrice(Integer totalPrice) {
-        this.totalPrice = totalPrice;
-    }
 
     // 첫 번째 썸네일 경로를 가져오는 헬퍼 메서드 추가
     // 썸네일 > 상품 이미지 (성능, UX 이유)

@@ -36,9 +36,11 @@ public class QOrders extends EntityPathBase<Orders> {
 
     public final NumberPath<Long> orderId = createNumber("orderId", Long.class);
 
+    public final ListPath<OrderProduct, QOrderProduct> orderProducts = this.<OrderProduct, QOrderProduct>createList("orderProducts", OrderProduct.class, QOrderProduct.class, PathInits.DIRECT2);
+
     public final ListPath<JOO.jooshop.payment.entity.PaymentHistory, JOO.jooshop.payment.entity.QPaymentHistory> paymentHistories = this.<JOO.jooshop.payment.entity.PaymentHistory, JOO.jooshop.payment.entity.QPaymentHistory>createList("paymentHistories", JOO.jooshop.payment.entity.PaymentHistory.class, JOO.jooshop.payment.entity.QPaymentHistory.class, PathInits.DIRECT2);
 
-    public final BooleanPath paymentStatus = createBoolean("paymentStatus");
+    public final EnumPath<JOO.jooshop.payment.entity.PaymentStatus> paymentStatus = createEnum("paymentStatus", JOO.jooshop.payment.entity.PaymentStatus.class);
 
     public final EnumPath<JOO.jooshop.order.entity.enums.PayMethod> payMethod = createEnum("payMethod", JOO.jooshop.order.entity.enums.PayMethod.class);
 

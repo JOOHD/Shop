@@ -6,9 +6,13 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
 
 @Entity
 @Data
+@NoArgsConstructor
 @Table(name = "cart")
 public class Cart {
 
@@ -40,18 +44,15 @@ public class Cart {
     private Long quantity; // 수량
 
     @Column(name = "price", nullable = false)
-    private Long price; // 가격
+    private BigDecimal price; // 가격
 
-    public Cart(Member member, ProductManagement productManagement, Long quantity, Long price) {
+    public Cart(Member member, ProductManagement productManagement, Long quantity, BigDecimal price) {
         this.member = member;
         this.productManagement = productManagement;
         this.quantity = quantity;
         this.price = price;
     }
 
-    public Cart() {
-
-    }
 
     // 수량 입력
     public void setQuantity(Long quantity) {
@@ -59,7 +60,7 @@ public class Cart {
     }
 
     // 가격 입력
-    public void setPrice(Long price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 

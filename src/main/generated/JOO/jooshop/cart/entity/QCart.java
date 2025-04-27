@@ -26,7 +26,7 @@ public class QCart extends EntityPathBase<Cart> {
 
     public final JOO.jooshop.members.entity.QMember member;
 
-    public final NumberPath<Long> price = createNumber("price", Long.class);
+    public final NumberPath<java.math.BigDecimal> price = createNumber("price", java.math.BigDecimal.class);
 
     public final JOO.jooshop.productManagement.entity.QProductManagement productManagement;
 

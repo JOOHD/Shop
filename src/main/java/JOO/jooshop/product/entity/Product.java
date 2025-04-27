@@ -13,6 +13,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +43,7 @@ public class Product {
 
     @Column(name = "price", nullable = false, columnDefinition = "INT CHECK (price >= 0)")
     @NotNull(message = "상품 가격은 필수입니다.")
-    private Integer price;
+    private BigDecimal price;
 
     @Column(name = "product_info")
     private String productInfo;
@@ -107,7 +108,8 @@ public class Product {
     public Product(
             String productName,
             ProductType productType,
-            int price, String productInfo,
+            BigDecimal price,
+            String productInfo,
             String manufacturer,
             boolean isDiscount,
             Integer discountRate,
@@ -127,7 +129,8 @@ public class Product {
     public Product(
             String productName,
             ProductType productType,
-            int price, String productInfo,
+            BigDecimal price,
+            String productInfo,
             String manufacturer,
             boolean isDiscount,
             boolean isRecommend) {
