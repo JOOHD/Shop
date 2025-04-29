@@ -4,6 +4,7 @@ public enum PaymentStatus {
 
     // 상태 코드(COMPLETE, CANCELED) + 설명 텍스트("완료", "취소")를 한 번에 관리하는 구조
 
+    PENDING("대기"),
     COMPLETE("완료"),
     CANCELED("취소");
 

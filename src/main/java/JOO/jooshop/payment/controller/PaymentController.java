@@ -90,29 +90,17 @@ public class PaymentController {
         // Redis 에서 장바구니 정보 삭제 (결제 완료 후)
         Set<String> cartKeys = redisTemplate.keys("cart:*");
         if (cartKeys != null) {
-            redisTemplate.delete(cartKeys);
+            redisTemplate.delete(cartKeys); // Redis 에서 삭제, httpSessiion.remove.. 필요 x
         }
 
         return ResponseEntity.ok(paymentResponse);
     }
 
     /**
-     * 주문 완료 후 세션 정보 삭제
-     * - 장바구니 삭제 및 임시 주문정보 세션 제거
-     */
-    @GetMapping("/order/paymentConfirm")
-    public ResponseEntity<String> deleteSession() {
-        // 세션에서 임시 주문 정보 삭제
-        httpSession.removeAttribute("temporaryOrder");
-        httpSession.removeAttribute("cartIds");
-
-        return ResponseEntity.ok("주문 및 세션 정리 완료");
-    }
-
-    /**
      * 사용자 결제 내역 조회
      * - 자신의 결제 내역만 조회 가능 (서버에서 ID 검증)
      */
+    @GetMapping("/paymentHistory/{memberId}")
     public List<PaymentHistoryDto> createPaymentHistories(Long memberId) {
         List<PaymentHistory> paymentHistories = paymentRepository.findByMemberId(memberId);
         return paymentHistories.stream()
@@ -133,16 +121,6 @@ public class PaymentController {
         return ResponseEntity.ok(cancelResponse);
     }
 
-    /**
-     * 주문 상품을 Redis에 저장
-     * - 결제 성공 시 주문한 상품 정보를 Redis에 저장
-     */
-    private void saveOrderProductsToRedis(List<OrderProduct> orderProducts) {
-        for (OrderProduct orderProduct : orderProducts) {
-            // Redis에 주문 정보 저장
-            redisTemplate.opsForHash().put("order:products", orderProduct.getId().toString(), orderProduct);
-        }
-    }
 }
 
 

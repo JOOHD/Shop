@@ -9,40 +9,28 @@ import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
 import JOO.jooshop.order.entity.OrderProduct;
 import JOO.jooshop.order.entity.Orders;
-import JOO.jooshop.order.entity.enums.PayMethod;
 import JOO.jooshop.order.repository.OrderRepository;
 import JOO.jooshop.payment.entity.PaymentHistory;
 import JOO.jooshop.payment.entity.PaymentRefund;
 import JOO.jooshop.payment.entity.PaymentStatus;
-import JOO.jooshop.payment.entity.Status;
 import JOO.jooshop.payment.model.PaymentCancelDto;
-import JOO.jooshop.payment.model.PaymentHistoryDto;
 import JOO.jooshop.payment.model.PaymentRequestDto;
 import JOO.jooshop.payment.repository.PaymentRefundRepository;
 import JOO.jooshop.payment.repository.PaymentRepository;
-import JOO.jooshop.product.entity.Product;
-import JOO.jooshop.product.repository.ProductRepositoryV1;
-import JOO.jooshop.productManagement.entity.ProductManagement;
-import JOO.jooshop.productManagement.repository.ProductManagementRepository;
 import com.siot.IamportRestClient.IamportClient;
 import com.siot.IamportRestClient.exception.IamportResponseException;
 import com.siot.IamportRestClient.request.CancelData;
 import com.siot.IamportRestClient.response.IamportResponse;
 import com.siot.IamportRestClient.response.Payment;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.query.Order;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static JOO.jooshop.global.authorization.MemberAuthorizationUtil.verifyUserIdMatch;
@@ -52,12 +40,26 @@ import static JOO.jooshop.global.authorization.MemberAuthorizationUtil.verifyUse
 public class PaymentService {
 
     /*
-        사용자 철수 → 장바구니 상품 선택 → 결제 요청 → Iamport 응답 수신
-           ↓
+        사용자 철수
+            ↓
+        장바구니 상품 선택
+            ↓
+        결제 요청
+            ↓
+        Iamport 응답 수신
+            ↓
         PaymentService.processPaymentDone()
-           ↓
-        주문 상태 변경 → 결제 내역 생성 → 결제 내역 저장
-           ↓
+            ↓
+        Redis에서 cartIds 조회 → 장바구니 상품 정보 가져오기
+            ↓
+        OrderProduct 리스트 생성
+            ↓
+        주문 상태 변경
+            ↓
+        결제 내역 생성
+            ↓
+        결제 내역 저장
+            ↓
         철수는 내 결제 내역 조회 가능!
 
         주요 변경 사항
@@ -68,9 +70,16 @@ public class PaymentService {
         - 주문 완료 시, 각 상품에 대한 OrderProduct 를 생성하고 이를 DB에 저장
         3. 장바구니 처리
         - Redis 에 저장된 데이터를 기반으로 실제 OrderProduct 를 생성하여 주문을 확정
+
+         @Qualifier("redisTemplate") 적용
+         Spring Boot 의 spring-boot-starter-data-redis 의존성을 추가하면,
+         Spring 이 내부적으로 아래와 같이 자동 구서을 해주기 때문에,
+         내가 등록한 RedisTemplate 와 StringRedisTemplate 가 "자동 주입 중복 충돌" 된다.
+         그래서 @Qualifier "여러 개의 Bean 중에서 정확히 어떤 Bean을 사용할지 선택"으로 충돌 방지
+         
      */
 
-    private final RedisTemplate redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
     private final CartRepository cartRepository;
     private final OrderRepository orderRepository;
     private final MemberRepositoryV1 memberRepository;
@@ -103,9 +112,15 @@ public class PaymentService {
      * Redis 에서 임시 주문 데이터를 가져와 OrderProduct 생성
      */
     private List<OrderProduct> getOrderProductsFromRedis(OrderProduct orderProduct, Orders order, Member member) {
-        List<Long> cartIds = (List<Long>) redisTemplate.opsForValue().get("cartIds:" + member.getId());
-        if (cartIds == null || cartIds.isEmpty()) {
-            throw new NoSuchElementException("장바구니가 비어 있습니다.");
+        Object object = redisTemplate.opsForValue().get("cartIds:" + member.getId());
+        List<Long> cartIds;
+
+        if (object instanceof List<?>) {
+            cartIds = ((List<?>) object).stream()
+                    .map(o -> Long.valueOf(o.toString())) // toString 후 Long 으로 변환
+                    .collect(Collectors.toList());
+        } else {
+            throw new IllegalStateException("Redis 에 저장된 cartIds 데이터 형식이 List 가 아닙니다.");
         }
 
         // 장바구니의 각 아이템을 OrderProduct 로 변환
