@@ -14,6 +14,7 @@ import JOO.jooshop.payment.entity.PaymentHistory;
 import JOO.jooshop.payment.entity.PaymentRefund;
 import JOO.jooshop.payment.entity.PaymentStatus;
 import JOO.jooshop.payment.model.PaymentCancelDto;
+import JOO.jooshop.payment.model.PaymentHistoryDto;
 import JOO.jooshop.payment.model.PaymentRequestDto;
 import JOO.jooshop.payment.repository.PaymentRefundRepository;
 import JOO.jooshop.payment.repository.PaymentRepository;
@@ -137,26 +138,18 @@ public class PaymentService {
     }
 
     /**
-     * 결제 완료 후, 각 상품에 대한 결제 내역을 생성하여 저장
+     * 사용자 결제 내역 조회
      */
-    private void createPaymentHistories(Payment response, List<OrderProduct> orderProducts, Orders order, Member member) {
-        for (OrderProduct orderProduct : orderProducts) {
-            PaymentHistory paymentHistory = PaymentHistory.builder()
-                    .orders(order)
-                    .member(member)
-                    .impUid(response.getImpUid())
-                    .payMethod(response.getPayMethod())   // 결제 수단 추가
-                    .totalPrice(order.getTotalPrice())    // 전체 결제 금액
-                    .product(orderProduct.getProductManagement().getProduct()) // 상품 정보
-                    .productName(orderProduct.getProductName()) // 상품 이름
-                    .quantity(orderProduct.getQuantity()) // 상품 수량
-                    .build();
-
-            paymentRepository.save(paymentHistory);
-        }
+    public List<PaymentHistoryDto> getPaymentHistoriesByMemberId(Long memberId) {
+        List<PaymentHistory> paymentHistories = paymentRepository.findByMemberId(memberId);
+        return paymentHistories.stream()
+                .map(PaymentHistoryDto::new)
+                .collect(Collectors.toList());
     }
 
-    // 결제 취소 및 환불 관련 로직
+    /**
+     * 결제 취소 및 환불 관련 로직
+      */
     public IamportResponse<Payment> cancelPayment(Long paymentHistoryId,
                                                   PaymentCancelDto requestDto,
                                                   IamportClient iamportClient) throws IamportResponseException, IOException {
@@ -193,6 +186,26 @@ public class PaymentService {
     private Member getMemberById(Long memberId) {
         return memberRepository.findById(memberId)
                 .orElseThrow(() -> new NoSuchElementException(ResponseMessageConstants.MEMBER_NOT_FOUND));
+    }
+
+    /**
+     * 결제 완료 후, 각 상품에 대한 결제 내역을 생성하여 저장
+     */
+    private void createPaymentHistories(Payment response, List<OrderProduct> orderProducts, Orders order, Member member) {
+        for (OrderProduct orderProduct : orderProducts) {
+            PaymentHistory paymentHistory = PaymentHistory.builder()
+                    .orders(order)
+                    .member(member)
+                    .impUid(response.getImpUid())
+                    .payMethod(response.getPayMethod())   // 결제 수단 추가
+                    .totalPrice(order.getTotalPrice())    // 전체 결제 금액
+                    .product(orderProduct.getProductManagement().getProduct()) // 상품 정보
+                    .productName(orderProduct.getProductName()) // 상품 이름
+                    .quantity(orderProduct.getQuantity()) // 상품 수량
+                    .build();
+
+            paymentRepository.save(paymentHistory);
+        }
     }
 
     /**

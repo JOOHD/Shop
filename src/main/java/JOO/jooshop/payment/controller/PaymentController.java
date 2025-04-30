@@ -101,11 +101,8 @@ public class PaymentController {
      * - 자신의 결제 내역만 조회 가능 (서버에서 ID 검증)
      */
     @GetMapping("/paymentHistory/{memberId}")
-    public List<PaymentHistoryDto> createPaymentHistories(Long memberId) {
-        List<PaymentHistory> paymentHistories = paymentRepository.findByMemberId(memberId);
-        return paymentHistories.stream()
-                .map(paymentHistory -> new PaymentHistoryDto(paymentHistory)) // PaymentHistory를 PaymentHistoryDto로 변환
-                .collect(Collectors.toList());
+    public List<PaymentHistoryDto> getPaymentHistories(@PathVariable Long memberId) {
+        return paymentService.getPaymentHistoriesByMemberId(memberId);
     }
 
     /**
