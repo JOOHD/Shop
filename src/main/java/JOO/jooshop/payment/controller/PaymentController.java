@@ -1,18 +1,15 @@
 package JOO.jooshop.payment.controller;
 
 import JOO.jooshop.order.entity.OrderProduct;
-import JOO.jooshop.payment.entity.PaymentHistory;
 import JOO.jooshop.payment.model.PaymentCancelDto;
 import JOO.jooshop.payment.model.PaymentHistoryDto;
 import JOO.jooshop.payment.model.PaymentRequestDto;
-import JOO.jooshop.payment.repository.PaymentRepository;
 import JOO.jooshop.payment.service.PaymentService;
 import com.siot.IamportRestClient.IamportClient;
 import com.siot.IamportRestClient.exception.IamportResponseException;
 import com.siot.IamportRestClient.response.IamportResponse;
 import com.siot.IamportRestClient.response.Payment;
 import jakarta.annotation.PostConstruct;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("api/v1")
@@ -30,15 +26,16 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PaymentController {
 
-    /** 25.04.26, 2차 리팩토링
-     *  Controller 는 "요청 받고, 서비스에 위임만" -> 비즈니스 로직은 Service
-     *  예외처리 문구 통일, 세션 처리 로직 Service 분리
-     *  String 값이였던 상태 값은, Enum 으로 따로 관리 추천 (PaymentStatus)
+    /**
+     *  25.04.26, 2차 리팩토링
+     *  - Controller 는 "요청 받고, 서비스에 위임만" -> 비즈니스 로직은 Service
+     *      예외처리 문구 통일, 세션 처리 로직 Service 분리
+     *  - String 값이였던 상태 값은, Enum 으로 따로 관리 추천 (PaymentStatus)
      * 
      *  25.04.27 3차 리팩토링
      *  1. Redis 사용
      *     - RedisTemplate 을 이용해 Redis 에 데이터 저장, 삭제 로직 추가
-     *     - order:products 라는 키로 주문한 상품 정보를 Redis 에 저장 (매번 주문 때 마다)
+     *     - orderProducts 라는 키로 주문한 상품 정보를 Redis 에 저장 (매번 주문 때 마다)
      *     - 결제 완료 후, Redis 에 저장된 장바구니 정보 삭제 로직 구현 (validateIamport)
      *  2. OrderProduct 엔티티 연결
      *     - 주문 확정 후 생성되는 상품 정보로, Redis 에 저장되는 상품 데이터 관리
@@ -50,9 +47,7 @@ public class PaymentController {
      *     - 결제 완료 후 세션에서 임시 주문 정보(temporaryOrder & cartIds)를 삭제 기능 추가.
      */
     private final PaymentService paymentService;
-    private final PaymentRepository paymentRepository;
     private final RedisTemplate<String, Object> redisTemplate;
-    private final HttpSession httpSession;
     private IamportClient iamportClient;
 
     @Value("${IMP_API_KEY}")

@@ -136,6 +136,7 @@ public class Member {
         return new Member(email, password, null, nickname, MemberRole.ADMIN, SocialType.GENERAL, socialId, token, true);
     }
 
+    // 구현 예정 25.05 ~
     public static Member createProfileMember(Member member) {
         return new Member(member.getEmail(), member.getUsername(), member.getNickname(), member.getMemberRole(), member.getSocialType(), member.getSocialId(), member.isCertifyByMail);
     }

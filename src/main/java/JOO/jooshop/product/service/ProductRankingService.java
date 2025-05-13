@@ -39,23 +39,6 @@ public class ProductRankingService {
     public final ModelMapper modelMapper;
     private final RedisTemplate<String, Object> redisTemplate;
 
-    // 상품 조회수 증가 메서드
-    public void increaseProductViews(Long productId) {
-        String key = "product_views"; // Redis 매핑
-        // ProductServiceV1 class 의 productDetail 메서드에 호출
-        redisTemplate.opsForZSet().incrementScore(key, String.valueOf(productId), 1);
-    }
-
-    // 랭킹을 위한 상품 조회수 가져오는 메서드
-    public Set<String> getTopProductIds(int limit) {
-        String key = "product_views";
-        // Redis 에 있는 key 값을 ZSet 에서 '조회수가 높은 순서'로 상품 ID를 가져온다.
-        return redisTemplate.opsForZSet().reverseRange(key, 0, limit - 1)
-                .stream()
-                .map(String::valueOf) // Object -> String
-                .collect(Collectors.toSet());
-    }
-
     // 랭킹순으로 상품 리스트를 조회하는 메서드
     public List<ProductRankResponseDto> getProductListByRanking(int limit) {
 
@@ -84,6 +67,24 @@ public class ProductRankingService {
                     return dto;
                 })
                 .toList();
+    }
+
+    // 랭킹을 위한 상품 조회수 가져오는 메서드
+    public Set<String> getTopProductIds(int limit) {
+        String key = "product_views";
+        // Redis 에 있는 key 값을 ZSet 에서 '조회수가 높은 순서'로 상품 ID를 가져온다.
+        return redisTemplate.opsForZSet().reverseRange(key, 0, limit - 1)
+                .stream()
+                .map(String::valueOf) // Object -> String
+                .collect(Collectors.toSet());
+    }
+
+
+    // 상품 조회수 증가 메서드 (ProductServiceV1 메서드)
+    public void increaseProductViews(Long productId) {
+        String key = "product_views"; // Redis 매핑
+        // ProductServiceV1 class 의 productDetail 메서드에 호출
+        redisTemplate.opsForZSet().incrementScore(key, String.valueOf(productId), 1);
     }
 }
 

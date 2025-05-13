@@ -63,22 +63,10 @@ public class MemberService {
                 () -> new UserNotFoundByEmailException("No user found with this email: " + email));
     }
 
-    // 이메일로 Member 조회
-    public Member findMemberByEmail(String email) {
-        return memberRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Member not found with email: " + email));
-    }
-
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public static class ExistingMemberException extends IllegalStateException {
         public ExistingMemberException() {
             super("이미 존재하는 회원입니다.");
-        }
-    }
-
-    public static class MultipleUsersFoundException extends RuntimeException {
-        public MultipleUsersFoundException(String message) {
-            super(message);
         }
     }
 
@@ -90,42 +78,6 @@ public class MemberService {
 }
 
 
-/*
-    @Transactional
-    public Member memberLogin(LoginRequest loginRequest) throws UserPrincipalNotFoundException, CredentialNotFoundException {
-        List<Member> members = memberRepository.findAllByEmail(loginRequest.getEmail());
-
-        // 이메일 중복 확인
-        if (members.size() > 1) {
-            log.info("Multiple users found with email:" + loginRequest.getEmail());
-            throw new IllegalStateException("Multiple users found with email:" + loginRequest.getEmail());
-        } else if (members.size() == 1) {
-            Member member = members.get(0);
-            if (passwordEncoder.matches(loginRequest.getPassword(), member.getPassword())) {
-                return member;
-            } else {
-                log.info("Invalid password");
-                throw new CredentialNotFoundException("Invalid password");
-            }
-        } else { // (members.size == 0)
-            log.info("User not found with email: " + loginRequest.getEmail());
-            throw new UserPrincipalNotFoundException("User not found with email: " + loginRequest.getEmail());
-        }
-    }
-
-    @Transactional
-    public Member validateDuplicatedEmail(String email) {
-        List<Member> members = memberRepository.findAllByEmail(email);
-
-        if (members.size() > 1) {
-            throw new MultipleUsersFoundException("There are multiple users associated with this email: " + email);
-        } else if (members.size() == 1) {
-            return members.get(0);
-        } else {
-            throw new UserNotFoundByEmailException("No user found with this email: " + email);
-        }
-    }
-    */
 
 
 

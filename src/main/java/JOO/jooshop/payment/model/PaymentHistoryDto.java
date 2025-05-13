@@ -1,7 +1,7 @@
 package JOO.jooshop.payment.model;
 
 import JOO.jooshop.payment.entity.PaymentHistory;
-import JOO.jooshop.payment.entity.Status;
+import JOO.jooshop.payment.entity.PaymentStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,7 +35,7 @@ public class PaymentHistoryDto {
     private String payMethod;
     private String bankName;
     private LocalDateTime paiedAt;
-    private Status statusType; // 취소여부
+    private PaymentStatus statusType; // 취소여부
     private Boolean review;
 
 

@@ -133,7 +133,6 @@ public class ProductServiceV1 {
 
     /**
      * 색상 등록
-     *
      * @param request
      * @return
      */
@@ -146,7 +145,6 @@ public class ProductServiceV1 {
 
     /**
      * 색상 삭제
-     *
      * @param colorId
      */
     @RequiresRole({MemberRole.ADMIN, MemberRole.SELLER})

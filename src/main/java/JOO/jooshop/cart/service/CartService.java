@@ -54,7 +54,7 @@ public class CartService {
      *
      * 사용자 정보와 상품 정보를 가져온다. 그 후 상품 + 사용자 정보로 장바구니에 이미 존재하는지 찾는다.
      * 동일 사용자가 (같은 상품/옵션) 선택 시, 수량과 가격을 올리고,
-    (같은 상품, 다른 옵션) or (다른 상품) 선택 시, 따로 담는다.
+                  (같은 상품, 다른 옵션) or (다른 상품) 선택 시, 따로 담는다.
      * 위에 상황을 위해, 상품 옵션 정보를 담은 ProductManagement table 생성
      *
      *  메서드 흐름
@@ -92,7 +92,7 @@ public class CartService {
 
             cartRepository.save(existingCart);
             return existingCart.getCartId();
-        } else {
+        } else { // 상품이 없을 경우, 새 상품 추가
             BigDecimal price = productMgt.getProduct().getPrice().multiply(BigDecimal.valueOf(request.getQuantity())); // 수정된 부분
             Cart cart = new Cart(member, productMgt, request.getQuantity(), price);
             cartRepository.save(cart);

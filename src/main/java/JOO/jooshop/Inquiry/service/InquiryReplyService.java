@@ -46,7 +46,7 @@ public class InquiryReplyService {
      * );
      */
     @Transactional
-    @RequiresRole({MemberRole.ADMIN, MemberRole.SELLER})
+    @RequiresRole({ MemberRole.ADMIN, MemberRole.SELLER})
     public Long createReply(InquiryReplyDto replyRequest, Long inquiryId) throws Exception {
 
         // 로그인 중인 유저의 memberId 찾기

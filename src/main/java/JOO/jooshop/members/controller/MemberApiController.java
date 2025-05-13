@@ -132,11 +132,11 @@ public class MemberApiController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(message);
     }
 
-    @ExceptionHandler(UsernameNotFoundException.class)
-    public ResponseEntity<String> handleUsernameNotFoundException(UsernameNotFoundException e) {
-        // 회원을 찾지 못한 경우 404 Not Found 응답과 함께 예외 메시지를 반환
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-    }
+//    @ExceptionHandler(UsernameNotFoundException.class)
+//    public ResponseEntity<String> handleUsernameNotFoundException(UsernameNotFoundException e) {
+//        // 회원을 찾지 못한 경우 404 Not Found 응답과 함께 예외 메시지를 반환
+//        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+//    }
 
     @Data // 내부 DTO 클래스는, 해당 클래스에서만 사용되는 DTO 클래스이다.
     private static class ResetPasswordRequest {

@@ -66,7 +66,7 @@ public class PaymentHistory {
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
-    private Status statusType;
+    private PaymentStatus statusType;
 
     @Column(name = "review")
     @Builder.Default
@@ -78,7 +78,7 @@ public class PaymentHistory {
     // 빌더에서 호출할 생성자 수정
     public PaymentHistory(String impUid, Member member, Orders orders, Product product,
                           String productName, String productOption, Long quantity,
-                          BigDecimal price, BigDecimal totalPrice, Status statusType,
+                          BigDecimal price, BigDecimal totalPrice, PaymentStatus statusType,
                           String payMethod, String bankCode, String bankName,
                           String buyerAddr, String buyerEmail) {
         this.impUid = impUid;

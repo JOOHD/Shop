@@ -41,30 +41,27 @@ import static JOO.jooshop.global.authorization.MemberAuthorizationUtil.verifyUse
 public class PaymentService {
 
     /*
-        사용자 철수
-            ↓
-        장바구니 상품 선택
-            ↓
-        결제 요청
-            ↓
-        Iamport 응답 수신
-            ↓
-        PaymentService.processPaymentDone()
-            ↓
-        Redis에서 cartIds 조회 → 장바구니 상품 정보 가져오기
-            ↓
-        OrderProduct 리스트 생성
-            ↓
-        주문 상태 변경
-            ↓
-        결제 내역 생성
-            ↓
-        결제 내역 저장
-            ↓
-        철수는 내 결제 내역 조회 가능!
+      ★ 결제 과정
+        1. [장바구니 단계]
+          - 구매자가 장바구니에 상품을 담는다. (cartIds -> Redis 저장)
 
-        주요 변경 사항
-        1. Redis 저장소에 주문 임시 저장
+        2. [결제 요청 단계]
+          - 구매자 결제 버튼 클릭, client -> Iamport 결제 요청
+          - Iamport 결제 성공 시, paymentService.processPaymentDone() 호출
+
+        3. [결제 처리 단계]
+          1) 구매자 로그인 상태인지 검증, DB 에서 주문/회원 정보 조회
+          2) 검증 완료 시, 주문 상태 변경
+          3) 임시 주문 정보 조회, Redis 에서 cartIds:{memberId} 키로 장바구니 리스트 조회
+          4) OrderProduct 생성, 각 Cart -> OrderProduct 로 변환
+          5) 각 OrderProduct 마다 PaymentHistory Entity 생성
+          6) 아임포트 응답(impUid, 결제 수단, 전체 금액, 상품명 등)을 바탕으로 DB 저장
+
+        4. [최종]
+          - 주문(Orders), 주문상품(OrderProduct), 결제이력(PaymentHistory)이 DB에 저장됨
+
+        ※ 주요 변경 사항
+        1. Redis 저장소에 임시 주문 저장
         - 세션에서 장바구니 ID를 가져와 임시 주문 정보를 Redis에 저장,
             결제 완료 후, Redis 에서 해당 정보를 조회해 OrderProduct 를 생성
         2. OrderProduct 저장
@@ -77,7 +74,6 @@ public class PaymentService {
          Spring 이 내부적으로 아래와 같이 자동 구서을 해주기 때문에,
          내가 등록한 RedisTemplate 와 StringRedisTemplate 가 "자동 주입 중복 충돌" 된다.
          그래서 @Qualifier "여러 개의 Bean 중에서 정확히 어떤 Bean을 사용할지 선택"으로 충돌 방지
-         
      */
 
     private final RedisTemplate<String, Object> redisTemplate;

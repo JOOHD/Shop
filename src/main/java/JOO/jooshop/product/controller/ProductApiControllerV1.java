@@ -38,7 +38,6 @@ public class ProductApiControllerV1 {
     
     /**
      * 상품 목록 (전체)
-     * @return
      */
     @GetMapping("/products/all")
     public ResponseEntity<List<ProductDto>> getAllProducts() {
@@ -48,13 +47,6 @@ public class ProductApiControllerV1 {
 
     /**
      * 상품 목록 (카테고리/조건별 필터링, 조건별 정렬, 검색 통합)
-     * @param page
-     * @param size
-     * @param condition
-     * @param category
-     * @param order
-     * @param keyword
-     * @return
      */
     @GetMapping("/products")
     public Page<ProductListDto> getFilteredAndSortedProducts(
@@ -86,7 +78,7 @@ public class ProductApiControllerV1 {
     @PostMapping("/products/new")
     public ResponseEntity<String> createProduct(
             @Valid @RequestPart("requestDto") String requestDtoStr,
-            @RequestPart(value = "ㅑthumbnailImgs", required = false) List<MultipartFile> thumbnailImgs,
+            @RequestPart(value = "thumbnailImgs", required = false) List<MultipartFile> thumbnailImgs,
             @RequestPart(value = "contentImgs", required = false) List<MultipartFile> contentImgs)throws JsonProcessingException {
 
         ProductCreateDto requestDto = objectMapper.readValue(requestDtoStr, ProductCreateDto.class);
