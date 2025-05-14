@@ -1,4 +1,4 @@
-package JOO.jooshop.global.mail.entity;
+package JOO.jooshop.global.mail.service;
 
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.repository.MemberRepositoryV1;

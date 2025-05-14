@@ -1,7 +1,7 @@
 package JOO.jooshop.members.controller;
 
 import JOO.jooshop.global.authentication.jwts.utils.CookieUtil;
-import JOO.jooshop.global.mail.entity.EmailMemberService;
+import JOO.jooshop.global.mail.service.EmailMemberService;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.entity.Refresh;
 import JOO.jooshop.members.model.LoginRequest;

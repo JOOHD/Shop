@@ -2,6 +2,7 @@ package JOO.jooshop.global.Exception;
 
 import JOO.jooshop.global.ResponseMessageConstants;
 import JOO.jooshop.payment.entity.PaymentHistory;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import okhttp3.Response;
@@ -99,6 +100,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
     }
 
+    /* 토큰 만료 */
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<?> handleExpiredJwt(ExpiredJwtException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("토큰이 만료되었습니다.");
+    }
+
+    /* RefreshToken not found */
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<?> handleNotFound(NoSuchElementException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh 토큰이 존재하지 않습니다.");
+    }
 
     /* 비즈니스 로직의 상태 오류 */
     @ExceptionHandler(PaymentCancelFailureException.class) // 결제 취소 실패도 정책상 고정된 메시지

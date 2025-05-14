@@ -17,7 +17,7 @@ public class ReviewReplyController {
     private final ReviewReplyService replyService;
 
     @PostMapping("/new/{reviewId}")
-    public ResponseEntity<String> createReply(@Valid@RequestBody ReviewReplyDto request, @PathVariable("reviewId") Long reviewId) {
+    public ResponseEntity<String> createReply(@Valid @RequestBody ReviewReplyDto request, @PathVariable("reviewId") Long reviewId) {
         ReviewReplyDto replyDto = ReviewReplyDto.ReplyFormRequest(request);
         Long createdId = replyService.createReply(replyDto, reviewId);
 

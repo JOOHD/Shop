@@ -59,7 +59,7 @@ public class Profiles {
     // Setter 대신 의미 있는 메서드로 상태 변경을 캡슐화
     // 엔티티 내부에서 상태 변경(변수 변경)을 안전하게 다루기 위해 설정된 메서드들
 
-    // 최초 회원가입 시, 기본적으로 만들어주는 프로필.
+    // 최초 회원가입 시, 기본적으로 만들어주는 프로필. (CustomOAuth2UserServiceV2)
     public static Profiles createMemberProfile(Member member) {
         return new Profiles(member, "자기 소개를 수정해주세요. ", null, null);
     }

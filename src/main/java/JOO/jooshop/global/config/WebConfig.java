@@ -25,7 +25,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // src/main/resources/static/uploads/thumbnails/ 에 저장하면 JAR 빌드 후, 변경사항 반영 안 됨
-        // 클래스패스(static 디렉토리)는 읽기 전용이다. 이미지를 resources/static 에 저장하는 건 개발 중만 가능한 트릭이다.
+        // 클래스패스(static 디렉토리)는 읽기 전용이다. 이미지를 resources/static 에 저장하는 건 개발일떄, 만 가능한 트릭이다.
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations("file:src/main/resources/static/uploads/");
     }

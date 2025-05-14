@@ -4,6 +4,7 @@ import JOO.jooshop.global.authentication.jwts.entity.CustomMemberDto;
 import JOO.jooshop.global.authentication.jwts.entity.CustomUserDetails;
 import JOO.jooshop.global.authentication.jwts.service.CookieService;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
+import JOO.jooshop.global.authentication.jwts.utils.TokenResolver;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.entity.enums.MemberRole;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
@@ -59,38 +60,42 @@ public class JWTFilterV3 extends OncePerRequestFilter {
      */
 
     private final JWTUtil jwtUtil;
-    private final CookieService cookieService;
     private final MemberRepositoryV1 memberRepository;
-
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        String authorization = request.getHeader("Authorization");
-        String refreshAuthorization = cookieService.getRefreshAuthorization(request);
+        // Authorization Header에서 accessToken 가져오기
+        Optional<String> authorizationOpt = TokenResolver.resolveTokenFromHeader(request);
+
+        // Refresh Token 쿠키에서 가져오기
+        Optional<String> refreshAuthorizationOpt = TokenResolver.resolveTokenFromCookie(request, "refreshToken");
 
         log.info("[JWT Filter] 요청 URI: {}", request.getRequestURI());
-        log.info("[JWT Filter] Authorization 헤더: {}", authorization);
-        log.info("[JWT Filter] RefreshAuthorization 쿠키: {}", refreshAuthorization);
+        log.info("[JWT Filter] Authorization 헤더: {}", authorizationOpt);
+        log.info("[JWT Filter] RefreshAuthorization 쿠키: {}", refreshAuthorizationOpt);
 
-        if (refreshAuthorization == null || !refreshAuthorization.startsWith("Bearer ")) {
+        // refreshToken이 없거나 형식이 잘못된 경우, 필터 처리
+        if (refreshAuthorizationOpt.isEmpty()) {
             log.warn("[JWT Filter] RefreshToken 없음 또는 형식 이상");
             filterChain.doFilter(request, response);
             return;
         }
 
-        String refreshToken = refreshAuthorization.substring(7);
+        String refreshToken = refreshAuthorizationOpt.get();
         if (!jwtUtil.validateToken(refreshToken)) {
             log.warn("[JWT Filter] RefreshToken 유효하지 않음");
             filterChain.doFilter(request, response);
             return;
         }
 
-        if (authorization != null && authorization.startsWith("Bearer ")) {
-            String accessToken = authorization.substring(7).trim();
+        // accessToken이 존재하면 검증
+        if (authorizationOpt.isPresent()) {
+            String accessToken = authorizationOpt.get();
             log.info("[JWT Filter] AccessToken 존재 및 Bearer 확인됨: {}", accessToken);
 
+            // AccessToken이 만료되었는지 체크
             if (jwtUtil.isExpired(accessToken)) {
                 log.warn("[JWT Filter] AccessToken 만료됨");
                 filterChain.doFilter(request, response);
@@ -98,6 +103,7 @@ public class JWTFilterV3 extends OncePerRequestFilter {
             }
 
             try {
+                // 토큰을 기반으로 Authentication 객체 생성
                 Authentication authToken = getAuthentication(accessToken);
 
                 if (authToken != null) {
@@ -110,7 +116,6 @@ public class JWTFilterV3 extends OncePerRequestFilter {
             } catch (Exception e) {
                 log.warn("[JWT Filter] 인증 정보 설정 실패: {}", e.getMessage());
             }
-
         } else {
             log.warn("[JWT Filter] Authorization 헤더 없음 또는 형식 이상함");
         }
