@@ -200,7 +200,7 @@ public class SecurityConfig {
          3. CustomLogoutFilter 에서는
          */
         http
-                .addFilterBefore(new JWTFilterV3(jwtUtil, cookieService, memberRepository), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new JWTFilterV3(jwtUtil, memberRepository), UsernamePasswordAuthenticationFilter.class);
         http
                 .addFilterBefore(loginFilter(), JWTFilterV3.class);
 

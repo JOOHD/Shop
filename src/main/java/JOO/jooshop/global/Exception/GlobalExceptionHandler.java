@@ -38,13 +38,6 @@ public class GlobalExceptionHandler {
      * throws : throws & try~catch
      */
 
-    /* DB 에서 데이터를 찾지 못한 경우 */
-    @ExceptionHandler(NoSuchElementException.class) // 상황별 데이터
-    public ResponseEntity<String> handleNoSuchElementException(NoSuchElementException ex) {
-        String errorMessage = ex.getMessage();
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Not found DB Data: " + ex.getMessage());
-    }
-
     /* 잘못된 요청 데이터(입력값 문제) 예외 */
     @ExceptionHandler(IllegalArgumentException.class) // 어떤 인자가 잘못됐는지
     public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
