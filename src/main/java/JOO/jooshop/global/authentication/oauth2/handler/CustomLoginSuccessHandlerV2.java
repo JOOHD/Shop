@@ -1,5 +1,6 @@
 package JOO.jooshop.global.authentication.oauth2.handler;
 
+import JOO.jooshop.global.authentication.jwts.utils.CookieUtil;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.authentication.oauth2.custom.entity.CustomOAuth2User;
 import JOO.jooshop.members.entity.Member;
@@ -139,16 +140,21 @@ public class CustomLoginSuccessHandlerV2 extends SimpleUrlAuthenticationSuccessH
     }
 
     private void setTokenResponseV2(HttpServletResponse response, String accessToken, String refreshToken) throws IOException {
-        // 엑세스 토큰을 JSON 형식으로 응답 데이터에 포함하여 클라이언트에게 반환
+        // 1) 엑세스 토큰과 리프레시 토큰을 쿠키로 저장
+        CookieUtil.createCookieWithSameSite(response, "accessToken", accessToken,900);       // 15분
+        CookieUtil.createCookieWithSameSite(response, "refreshToken", refreshToken, 1209600); // 14일
+
+        // 2) 엑세스 토큰을 JSON 형식으로 응답 데이터에 포함하여 클라이언트에게 반환
         JsonObject responseData = new JsonObject();
         responseData.addProperty("accessToken", accessToken);
         responseData.addProperty("refreshToken", refreshToken);
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(responseData.toString());
-        // HttpStatus 200 OK
+
+        // 3) HttpStatus 200 OK
         response.setStatus(HttpStatus.OK.value());
-        // 클라이언트 콘솔에 응답 로그 출력
+        // 4) 클라이언트 콘솔에 응답 로그 출력
         log.info("Response sent to client: " + responseData.toString());
     }
 }

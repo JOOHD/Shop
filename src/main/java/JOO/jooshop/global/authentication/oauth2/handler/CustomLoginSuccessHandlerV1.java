@@ -1,5 +1,6 @@
 package JOO.jooshop.global.authentication.oauth2.handler;
 
+import JOO.jooshop.global.authentication.jwts.utils.CookieUtil;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.authentication.oauth2.custom.entity.CustomOAuth2User;
 import JOO.jooshop.members.entity.Member;
@@ -70,7 +71,8 @@ public class CustomLoginSuccessHandlerV1 extends SimpleUrlAuthenticationSuccessH
         saveOrUpdateRefreshEntity(requestMember, refreshToken);
 
         // 리프레쉬 토큰을 쿠키에 저장
-        response.addCookie(createCookie("refreshAuthorization", "Bearer+" +refreshToken));
+        // Header response = Set-Cookie: refreshAuthorization=Bearer%20xxxxx.yyy.zzz; Max-Age=1209600; Path=/; HttpOnly; Secure; SameSite=None
+        CookieUtil.createCookieWithSameSite(response, "refreshAuthorization", "Bearer " + refreshToken, 1209600);
         response.setStatus(HttpStatus.OK.value());
 
         // frontendUrl 을 사용하여 리다이렉션 URL 을 구성
