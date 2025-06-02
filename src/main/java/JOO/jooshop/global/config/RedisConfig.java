@@ -25,9 +25,26 @@ public class RedisConfig {
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
         /*
-            Redis에서는 객체를 그대로 저장할 수 없기 때문에, 다음과 같은 역할을 합니다:
-            Key/Value를 문자열 또는 JSON 형식으로 변환해 Redis에 저장 가능하게 함.
-            Redis에서 값을 꺼낼 때는 다시 객체로 역직렬화(deserialize) 해서 사용합니다.
+            1. Redis에서는 객체를 그대로 저장할 수 없기 때문에, 객체를 Redis에 저장 가능한 JSON으로 직렬화
+                ex) 객체 → 직렬화 → Redis 저장
+                    // Jav 객체
+                       User user = new User("john", "john@example.com")
+                    // JSON 문자열로 직렬화
+                       String serialized = objectMapper.writeValueAsString(user);
+                    // Redis 저장
+                       redisTemplate.opsForValue().set("USER:john", serialized);
+
+            2. Redis에서 값을 꺼낼 때는 다시 객체로 역직렬화(deserialize) 해서 사용합니다.
+                ex) Redis -> 역직렬화 -> 객체
+                    // Redis 에서 JSON 문자열 꺼내기
+                       String serialized = redistTemplate.opsForValue().get("USER:john");
+
+                    // JSON 문자열을 다시 User 객체로 역직렬화
+                       User user = objectMapper.readValue(serialized, User.class);
+
+            3. Key/Value를 문자열 또는 JSON 형식으로 변환해 Redis에 저장 가능하게 함.
+                ex) {prefix}:{identifier} -> REFRESH:member123 & 	BLACKLIST:{jti}
+
          */
         RedisTemplate<String, Object> template = new RedisTemplate<>();
 

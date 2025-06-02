@@ -100,6 +100,16 @@ public class JWTUtil { // JwtTokenProvider
         return MemberRole.valueOf(parseToken(token).get("role", String.class));
     }
 
+    // getId() - JWT ID (jti)를 반환, 클레임을 추출하여 Redis 블랙리스트 체크에 사용
+    public String getId(String token) {
+        return parseToken(token).getId();
+    }
+
+    // getExpiration() - 토큰의 만료 시간 확인에 사용 (Date 타입 반환)
+    public Date getExpiration(String token) {
+        return parseToken(token).getExpiration();
+    }
+
     public Boolean isExpired(String token) {
         // Check if token is null or empty
         if (token == null || token.trim().isEmpty()) {

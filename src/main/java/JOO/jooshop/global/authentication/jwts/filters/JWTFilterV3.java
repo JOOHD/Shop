@@ -16,6 +16,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -54,12 +55,16 @@ public class JWTFilterV3 extends OncePerRequestFilter {
         V2 : 토큰 만료 검증 및 사용자 인증 흐름 추가
             - refreshToken이 만료되지 않았을 경우 사용자 인증을 처리하고, 만약 만료되었다면 로그아웃 처리를 추가
 
-        V3 : 최종 인증 처리 및 코드 정리
-            - 인증 흐름을 명확하게 정의하고, accessToken과 refreshToken을 모두 검증한 후,
-                최종적으로 인증된 사용자를 SecurityContextHolder에 저장
+        V3 : 최종 인증 처리 및 Redis 기반 보안 강화
+            - AccessToken 과 RefreshToken 모두를 검증하여 사용자 인증 흐름 완성
+            - AccessToken 이 유효할 경우 SecurityContextHolder 에 인증 정보 저장
+            - Redis 에 저장된 블랙리스트를 체크하여 로그아웃된 토큰 차단
+            - RefreshToken 으 Redis 에 저장된 값과 일치하는지 확인하여 검증
+            - Stateless 구조를 유지하면서 Redis 를 통한 인증 상태 제어로 보안성을 높임
      */
 
     private final JWTUtil jwtUtil;
+    private final RedisTemplate<String, String> redisTemplate;
     private final MemberRepositoryV1 memberRepository;
 
     @Override
@@ -68,20 +73,12 @@ public class JWTFilterV3 extends OncePerRequestFilter {
 
         // Authorization Header에서 accessToken 가져오기
         Optional<String> authorizationOpt = TokenResolver.resolveTokenFromHeader(request);
-
         // Refresh Token 쿠키에서 가져오기
         Optional<String> refreshAuthorizationOpt = TokenResolver.resolveTokenFromCookie(request, "refreshToken");
 
         log.info("[JWT Filter] 요청 URI: {}", request.getRequestURI());
         log.info("[JWT Filter] Authorization 헤더: {}", authorizationOpt);
         log.info("[JWT Filter] RefreshAuthorization 쿠키: {}", refreshAuthorizationOpt);
-
-        // refreshToken이 없거나 형식이 잘못된 경우, 필터 처리
-        if (refreshAuthorizationOpt.isEmpty()) {
-            log.warn("[JWT Filter] RefreshToken 없음 또는 형식 이상");
-            filterChain.doFilter(request, response);
-            return;
-        }
 
         String refreshToken = refreshAuthorizationOpt.get();
         if (!jwtUtil.validateToken(refreshToken)) {
@@ -90,34 +87,36 @@ public class JWTFilterV3 extends OncePerRequestFilter {
             return;
         }
 
-        // accessToken이 존재하면 검증
         if (authorizationOpt.isPresent()) {
             String accessToken = authorizationOpt.get();
-            log.info("[JWT Filter] AccessToken 존재 및 Bearer 확인됨: {}", accessToken);
+            log.info("[JWTFilter AccessToken 존재 및 Bearer 확인됨: {}", accessToken);
 
-            // AccessToken이 만료되었는지 체크
+            // 블랙리스트 체크
+            String blacklistValue = redisTemplate.opsForValue().get("blacklist:" + accessToken);
+            if (blacklistValue != null) {
+                log.warn("[JWTFilter] 블랙리스트에 포함된 토큰입니다. 인증 거부");
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             if (jwtUtil.isExpired(accessToken)) {
-                log.warn("[JWT Filter] AccessToken 만료됨");
+                log.warn("[JWTFilter] AccessToken 만료됨");
                 filterChain.doFilter(request, response);
                 return;
             }
 
             try {
-                // 토큰을 기반으로 Authentication 객체 생성
                 Authentication authToken = getAuthentication(accessToken);
-
                 if (authToken != null) {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    log.info("[JWT Filter] SecurityContext 에 인증 정보 설정 완료: {}", authToken.getPrincipal());
-                } else {
-                    log.warn("[JWT Filter] 인증 정보가 null 입니다. SecurityContext 설정 생략");
+                    log.info("[JWTFilter] SecurityContext 에 인증 정보 설정 완료: {}", authToken.getPrincipal());
                 }
-
-            } catch (Exception e) {
-                log.warn("[JWT Filter] 인증 정보 설정 실패: {}", e.getMessage());
+            } catch (Exception e){
+                    log.warn("[JWTFilter] 인증 정보 설정 실패 : {}", e.getMessage());
             }
+
         } else {
-            log.warn("[JWT Filter] Authorization 헤더 없음 또는 형식 이상함");
+            log.warn("[JWTFilter] Authorization 헤더 없음 또는 형식 이상함");
         }
 
         filterChain.doFilter(request, response);

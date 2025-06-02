@@ -55,7 +55,6 @@ public class ProductQueryHelper {
     public static BooleanBuilder createFilterBuilder(Condition condition, Long category, String keyword, QProduct product) {
         // 동적 WHERE 절 처리용. 조건이 들어오면 .and()로 계속 붙인다.
         BooleanBuilder filterBuilder = new BooleanBuilder();
-
         // 조건 필터링
         addConditionFilters(condition, product, filterBuilder);
         // 카테고리 필터링

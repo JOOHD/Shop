@@ -12,15 +12,18 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
+import java.util.Date;
 
 @RequiredArgsConstructor
 @Slf4j
 public class CustomLogoutFilter extends GenericFilterBean {
 
     private final JWTUtil jwtUtil;
+    private final RedisTemplate<String, Object> redisTemplate;
     private final RefreshRepository refreshRepository;
 
     @Override
@@ -30,33 +33,42 @@ public class CustomLogoutFilter extends GenericFilterBean {
 
     private void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
 
-        // 1.  /logout POST 요청
-        // 2.  회원의 엑세스 토큰(response.헤더)과 리프레쉬 토큰(response.쿠키)을 삭제한다.
-        // 3.  회원 테이블 X Refresh 테이블에 token 값을 삭제해준다.
+        // 1.  /logout 요청을 받아, 쿠키에서 Refresh Token 제거
+        // 2.  DB의 Refresh Token 레코드를 삭제
+        // 3.  응답 헤더에서 Authorization 제거
+        // 4.  Access Token을 블랙리스트에 등록
 
         //path and method verify
         String requestUri = request.getRequestURI();
-        if (!requestUri.matches("^/logout$")) {
+        if (!requestUri.matches("^/logout$") || !request.getMethod().equals("POST")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String requestMethod = request.getMethod();
-        if (!requestMethod.equals("POST")) {
-            filterChain.doFilter(request, response);
+        // 1. Access Token 블랙리스트 처리
+        String authorizationHeader = request.getHeader("Authorization");
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            String accessToken = authorizationHeader.substring(7);
+            try {
+                String tokenId = jwtUtil.getId(accessToken);
+                Date expiration = jwtUtil.getExpiration(accessToken); // 만료 시간 (ms 단위)
+                long currentTime = System.currentTimeMillis();        // 현재 시간
+                long remainTime = (expiration.getTime() - currentTime) / 1000; // 남은 시간 (초)
+
+                // Redis 블랙리스트에 저장
+                redisTemplate.opsForValue().set("blacklist:" + accessToken, "logout", remainTime);
+            } catch (Exception e) {
+                log.warn("블랙리스트 등록 실패: {}", e.getMessage());
+            }
         }
 
-        // Remove Authorization Header
-        response.setHeader("Authorization", "");
-
-        // get refresh token from cookies
-        String refresh = null;
+        // 2. Refresh Token 삭제
         Cookie[] cookies = request.getCookies();
+        String refresh = null;
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if (cookie.getName().equals("refresh")) {
                     refresh = cookie.getValue();
-                    // Remove Refresh Token Cookie
                     cookie.setMaxAge(0);
                     cookie.setPath("/");
                     response.addCookie(cookie);
@@ -64,41 +76,16 @@ public class CustomLogoutFilter extends GenericFilterBean {
             }
         }
 
-        // refresh null check
-        if (refresh == null) {
-            log.info("refresh is null");
-            filterChain.doFilter(request, response);
-            return;
+        if (refresh != null && !jwtUtil.isExpired(refresh) && "refresh".equals(jwtUtil.getCategory(refresh))) {
+            if (refreshRepository.existsByRefreshToken(refresh)) {
+                refreshRepository.deleteByRefreshToken(refresh);
+            }
         }
 
-        // expired check
-        try {
-            jwtUtil.isExpired(refresh);
-        } catch (ExpiredJwtException e) {
-            return;
-        }
-
-        // 토큰이 refresh 인지 확인 (발급 시, 페이로드에 명시)
-        String category = jwtUtil.getCategory(refresh);
-        if (!category.equals("refresh")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        //DB에 저장되어 있는지 확인
-        Boolean isExist = refreshRepository.existsByRefreshToken(refresh);
-        if (!isExist) {
-            return;
-        }
-
-        //로그아웃 진행
-        //Refresh 토큰 DB에서 제거
-        refreshRepository.deleteByRefreshToken(refresh);
-
+        // 응답
+        response.setHeader("Authorization", "");
         response.setStatus(HttpServletResponse.SC_OK);
-
-        //로그 출력 및 응답 메시지 추가
-        log.info("로그아웃에 성공했습니다.");
+        log.info("로그아웃 완료. 토큰 블랙리스트 등록 및 Refresh 제거.");
         response.getWriter().write("로그아웃에 성공했습니다.");
     }
 }
