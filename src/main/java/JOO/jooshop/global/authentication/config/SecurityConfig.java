@@ -3,7 +3,6 @@ package JOO.jooshop.global.authentication.config;
 import JOO.jooshop.global.authentication.jwts.filters.CustomJsonEmailPasswordAuthenticationFilter;
 import JOO.jooshop.global.authentication.jwts.filters.JWTFilterV3;
 import JOO.jooshop.global.authentication.jwts.filters.LoginFilter;
-import JOO.jooshop.global.authentication.jwts.service.CookieService;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.authentication.oauth2.custom.service.CustomOAuth2UserServiceV1;
 import JOO.jooshop.global.authentication.oauth2.handler.CustomLoginFailureHandler;
@@ -20,6 +19,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -45,7 +45,7 @@ public class SecurityConfig {
 
     private final JWTUtil jwtUtil;
 
-    private final CookieService cookieService;
+    private final RedisTemplate<String, String> redisTemplate;
 
     private final RefreshRepository refreshRepository;
 
@@ -200,7 +200,7 @@ public class SecurityConfig {
          3. CustomLogoutFilter 에서는
          */
         http
-                .addFilterBefore(new JWTFilterV3(jwtUtil, memberRepository), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new JWTFilterV3(jwtUtil, redisTemplate, memberRepository), UsernamePasswordAuthenticationFilter.class);
         http
                 .addFilterBefore(loginFilter(), JWTFilterV3.class);
 

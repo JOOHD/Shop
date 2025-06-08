@@ -80,7 +80,14 @@ public class JWTFilterV3 extends OncePerRequestFilter {
         log.info("[JWT Filter] Authorization 헤더: {}", authorizationOpt);
         log.info("[JWT Filter] RefreshAuthorization 쿠키: {}", refreshAuthorizationOpt);
 
+        if (refreshAuthorizationOpt.isEmpty()) {
+            log.warn("RefreshToken이 존재하지 않음");
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String refreshToken = refreshAuthorizationOpt.get();
+
         if (!jwtUtil.validateToken(refreshToken)) {
             log.warn("[JWT Filter] RefreshToken 유효하지 않음");
             filterChain.doFilter(request, response);

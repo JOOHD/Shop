@@ -15,14 +15,13 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
-    hibernate:
-      ddl-auto: update
-      naming:
-        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-#    show_sql: true
-    properties:
+    show-sql: true # SQL 쿼리 출력
+    properties :
       hibernate:
-#        format_sql: true # 줄바꿈 포함
+        format-sql : true
+        ddl-auto: update
+        naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
         default_batch_fetch_size: 1000
 
   redis:
@@ -66,5 +65,6 @@ spring:
 
 logging:
   level:
-    org.hibernate.SQL: debug    # SQL 쿼리 출력
-    org.hibernate.type: trace   # ? 파라미터 값도 함께 출력
+#    org.hibernate.SQL: debug    # SQL 쿼리 출력
+#    org.hibernate.type: trace   # ? 파라미터 값도 함께 출력
+    org.hibernate.type.descriptor.sql.BasicBinder : trace
