@@ -58,8 +58,8 @@ public class SocialLoginController {
     private String kakaoClientId;
     @Value("${spring.security.oauth2.client.registration.kakao.redirect-uri}")
     private String kakaoRedirectUri;
-    @Value("${spring.security.oauth2.client.registration.kakao.client-secret}")
-    private String kakaoClientSecret;
+//    @Value("${spring.security.oauth2.client.registration.kakao.client-secret}")
+//    private String kakaoClientSecret;
 
     private Long refreshTokenExpirationPeriod = 1209600L;
 
@@ -98,7 +98,7 @@ public class SocialLoginController {
         tokenRequestParams.add("client_id", kakaoClientId);
         tokenRequestParams.add("redirect_url", kakaoRedirectUri);
         tokenRequestParams.add("code", code);
-        tokenRequestParams.add("client_secret", kakaoClientSecret);
+//        tokenRequestParams.add("client_secret", kakaoClientSecret);
 
         // HTTP 요청 본문(Body) + 헤더(Headers) 객체
         HttpEntity<MultiValueMap<String, String>> kakaoTokenRequest = new HttpEntity<>(tokenRequestParams, headers);
