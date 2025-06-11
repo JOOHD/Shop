@@ -173,7 +173,8 @@ public class SecurityConfig {
             .oauth2Login(oauth2 -> oauth2
                     .authorizationEndpoint(auth -> auth
                             .authorizationRequestResolver(
-                                    new CustomAuthorizationRequestResolver(clientRegistrationRepository, "/oauth2/authorization"))
+                                    new CustomAuthorizationRequestResolver(clientRegistrationRepository, "/oauth2/authorization")
+                            )
                     )
                     .userInfoEndpoint(userInfo -> userInfo
                             .userService(customOAuth2UserService)

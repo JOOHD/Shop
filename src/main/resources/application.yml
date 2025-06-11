@@ -68,3 +68,6 @@ logging:
 #    org.hibernate.SQL: debug    # SQL 쿼리 출력
 #    org.hibernate.type: trace   # ? 파라미터 값도 함께 출력
     org.hibernate.type.descriptor.sql.BasicBinder : trace
+    org.springframework.security : DEBUG
+#    org.springframework.security.web: DEBUG
+#    org.springframework.security.oauth2: DEBUG
