@@ -139,6 +139,15 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable());
+        
+        // formLogin 활성화 & 로그인 페이지 지정
+        http.formLogin(form -> form
+                .loginPage("/login")          // 로그인 화면 경로 지정 (GET / login 요청 시 뷰 보여줌)
+                .loginProcessingUrl("/login") // 로그인 POST 처리 URL
+                .successHandler(loginSuccessHandler())
+                .failureHandler(loginFailureHandler())
+                .permitAll()                  // 로그인 페이지는 인증 없이 접근 허용
+        );
 
         // 기본 로그아웃 기능 비활성화 (커스텀 로그아웃 구현 가능)
         http.logout(logout -> logout.disable());

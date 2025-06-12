@@ -1,8 +1,9 @@
 <!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments/header :: header">
-    <meta charset="UTF-8">
-    <title>Title</title>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Login Page</title>
+    <div th:replace="fragments/header :: header"></div>
 </head>
 <body>
 <div class="container">
@@ -10,7 +11,8 @@
         <h1>Login Page</h1>
     </div>
     <div>
-        <form role="form" action="/members/login" th:object="${loginForm}" method="post">
+        <!-- 이메일/비밀번호 로그인 폼 -->
+        <form role="form" action="/members/login" th:object="${loginForm}" method="get">
             <div class="form-group">
                 <label for="email">이메일</label>
                 <input id="email" field="*{email}" type="email" name="email" class="form-control" placeholder="이메일을 입력하세요">
@@ -21,7 +23,19 @@
             </div>
             <button type="submit" class="btn btn-primary">Submit</button>
         </form>
+
         <br/>
+
+        <!-- 간편 로그인 영역 -->
+        <div>
+            <p>간편 로그인</p>
+            <a href="/oauth2/authorization/kakao">
+                <img src="/images/kakao_login_medium_narrow.png" alt="Kakao 로그인 버튼">
+            </a>
+            <a href="/oauth2/authorization/naver">
+                <img src="/images/naver_login_medium_narrow.png" alt="Naver 로그인 버튼">
+            </a>
+        </div>
     </div>
 </div> <!-- /container -->
 </body>
