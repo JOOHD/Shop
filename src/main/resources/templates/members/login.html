@@ -3,25 +3,51 @@
 <head>
     <meta charset="UTF-8"/>
     <title>Login Page</title>
-    <div th:replace="fragments/header :: header"></div>
+    <script>
+        async function login(event) {
+            event.preventDefault(); // 폼 제출 막기
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password1').value;
+
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            const text = await response.text();
+            if (response.ok) {
+                alert('success' + 로그인에 성공 했습니다.);
+                window.location.href = '/'; // 로그인 성공 시 리디렉션
+            } else {
+                if (response.status == 401) {
+                    alert('이메일 또는 비밀번호가 틀렸습니다.');
+                } else {
+                    alert('인증되지 않은 이메일 입니다.');
+            }
+        }
+    </script>
 </head>
 <body>
+<div th:replace="fragments/header :: header"></div>
+
 <div class="container">
     <div>
         <h1>Login Page</h1>
     </div>
     <div>
         <!-- 이메일/비밀번호 로그인 폼 -->
-        <form role="form" action="/members/login" th:object="${loginForm}" method="get">
+        <form onsubmit="login(event)">
             <div class="form-group">
                 <label for="email">이메일</label>
-                <input id="email" field="*{email}" type="email" name="email" class="form-control" placeholder="이메일을 입력하세요">
+                <input id="email" type="email" class="form-control" placeholder="이메일을 입력하세요">
             </div>
             <div class="form-group">
                 <label for="password1">비밀번호</label>
-                <input id="password1" field="*{password}" type="password" name="password" class="form-control" placeholder="비밀번호를 입력하세요">
+                <input id="password1" type="password" class="form-control" placeholder="비밀번호를 입력하세요">
             </div>
-            <button type="submit" class="btn btn-primary">Submit</button>
+            <button type="submit" class="btn btn-primary">로그인</button>
         </form>
 
         <br/>
@@ -37,6 +63,6 @@
             </a>
         </div>
     </div>
-</div> <!-- /container -->
+</div>
 </body>
 </html>

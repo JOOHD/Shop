@@ -1,9 +1,8 @@
 package JOO.jooshop.global.authentication.jwts.utils;
 
+import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.entity.enums.MemberRole;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.annotation.PostConstruct;
@@ -11,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
+import java.security.Key;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Base64;
@@ -22,180 +22,160 @@ public class JWTUtil { // JwtTokenProvider
 
     /*
         ※ JWTUtil 클래스 목적
-             JWT Create, AccessToken/RefreshToken
-             JWT Validate, expiration, reissue
-             JWT Parsing, claims(memberId, category, role)
+             JWT Create (AccessToken / RefreshToken)
+             JWT Validate (서명/만료 검증)
+             JWT Parsing (memberId, category, role 추출)
+             JWT Reissue (AccessToken 재발급)
 
-        ※ 전체 흐름
-        1. Spring 이 JWTUtil, Spring Bean 등록,
-            @PostConstruct 실행, application.yml 의 jwtSecret -> SecretKey 변환
-        2. 로그인 성공 시, createAccess/RefreshToken 으로 JWT 발급
-        3. API 호출 시 validateToken()을 통해 JWT 유효성 검사
-        4. parseToken(token), claims(memberId, category, role) 을 추출, 사용자 정보 확인
-        5. isExpired()로 AccessToken 만료 여부 확인,
-        6. 만료된 AccessToken 이면 reissueAccessToken()을 이용해 새로운 AccessToken 재발급
+        ※ 전체 흐름 (2025-06-13 리팩토링 반영)
+
+        1. Spring 이 JWTUtil을 Bean 으로 등록하며,
+           @PostConstruct 가 실행되어 application.yml 의 secretKey 값을 SecretKey 객체로 변환함.
+
+        2. 로그인 성공 시,
+           → createAccessToken(category, memberId, role) 을 호출하여 AccessToken 발급
+           → createRefreshToken(category, memberId, role) 을 호출하여 RefreshToken 발급
+
+        3. API 호출 시,
+           → validateToken(token) 으로 JWT의 유효성 및 서명 검증
+
+        4. JWT 추출 시,
+           → parseToken(token) 을 통해 Claims 파싱
+           → getMemberId(), getCategory(), getRole() 등으로 개별 claim 값 추출
+
+        5. AccessToken 만료 여부는,
+           → isExpired(token) 또는 getExpiration(token) 으로 확인 가능
+
+        6. AccessToken 이 만료된 경우,
+           → reissueAccessToken(refreshToken) 으로 새로운 AccessToken 재발급
+
+        7. 로그아웃 처리 시,
+           → getExpiration(token) 으로 블랙리스트 토큰의 만료 시간 추출
+           → 해당 토큰을 Redis 블랙리스트에 저장하여 더 이상 사용하지 못하도록 차단
      */
 
-    private SecretKey secretKey;   // 'final' 제거
-    @Value("${spring.jwt.secret}") // 문자열로 주입받음
+    @Value("${spring.jwt.secret}")
     private String jwtSecret;
-    private static final String MEMBERPK_CLAIM_KEY = "memberId";
-    private static final String CATEGORY_CLAIM_KEY = "category";
-    private Long accessTokenExpirationPeriod = 60L * 30; // 30 분
-    private Long refreshTokenExpirationPeriod = 3600L * 24 * 7; // 7일
+
+    private SecretKey secretKey;
+
+    private static final String MEMBER_ID_KEY = "memberId";
+    private static final String CATEGORY_KEY = "category";
+    private static final String ROLE_KEY = "role";
+
+    private final long accessTokenExpirationSeconds = 60L * 30;      // 30분
+    private final long refreshTokenExpirationSeconds = 60L * 60 * 24 * 7; // 7일
 
     @PostConstruct
-    public void init() { // @Value로 주입된 jwtSecret 값을 SecretKey로 변환, JWTUtil을 생성때 한 번 실행됨.
+    public void init() {
         if (jwtSecret == null || jwtSecret.isEmpty()) {
             this.secretKey = Jwts.SIG.HS256.key().build();
-            log.info("JWT SecretKey 자동 생성 완료");
+            log.warn("JWT SecretKey가 없어서 자동 생성됨.");
         } else {
             try {
                 byte[] keyBytes = Base64.getDecoder().decode(jwtSecret);
                 this.secretKey = Keys.hmacShaKeyFor(keyBytes);
-                log.info("JWT SecretKey (yml 설정값 사용) 적용 완료");
             } catch (IllegalArgumentException e) {
-                log.error("Base64 디코딩 실패: jwt.secret 값을 확인하세요", e);
-                throw e; // 혹은 CustomException 던져도 됨
+                log.error("JWT SecretKey 디코딩 실패. application.yml 설정 확인 필요", e);
+                throw e;
             }
         }
     }
 
+    /** ======================== Token 생성 ======================== */
+
+    public String createAccessToken(String category, String memberId, String role) {
+        return createToken(category, memberId, role, accessTokenExpirationSeconds);
+    }
+
+    public String createRefreshToken(String category, String memberId, String role) {
+        return createToken(category, memberId, role, refreshTokenExpirationSeconds);
+    }
+
+    private String createToken(String category, String memberId, String role, long expirationSeconds) {
+        Date now = new Date();
+        Date expiry = Date.from(LocalDateTime.now()
+                .plusSeconds(expirationSeconds)
+                .atZone(ZoneId.systemDefault()).toInstant());
+
+        return Jwts.builder()
+                .claim(CATEGORY_KEY, category)
+                .claim(MEMBER_ID_KEY, memberId)
+                .claim(ROLE_KEY, role)
+                .issuedAt(now)
+                .expiration(expiry)
+                .signWith(secretKey, Jwts.SIG.HS256)
+                .compact();
+    }
+
+    /** ======================== Token 파싱 및 Claim 추출 ======================== */
+
     private Claims parseToken(String token) {
         if (token == null || token.trim().isEmpty()) {
-            log.warn("parseToken: 전달받은 토큰이 null 이거나 비어 있습니다.");
-            throw new IllegalArgumentException("Token cannot be null or empty");
+            throw new IllegalArgumentException("JWT 토큰이 비어 있습니다.");
         }
-
-        try {
-            log.debug("parseToken: 토큰 파싱 시도 - {}", token);
-            Claims claims = Jwts.parser()
-                    .verifyWith(secretKey)
-                    .build()
-                    .parseSignedClaims(token.trim())
-                    .getPayload();
-            log.info("parseToken: 토큰 파싱 성공 - subject: {}, expiration: {}",
-                    claims.getSubject(), claims.getExpiration());
-            return claims;
-        } catch (SignatureException e) { // SignatureException 추가
-            log.error("JWT 서명이 유효하지 않습니다.", e);
-            throw new IllegalArgumentException("잘못된 JWT 서명입니다.");
-        } catch (JwtException e) {
-            log.error("JWT 파싱에 실패했습니다.", e);
-            throw new IllegalArgumentException("JWT 파싱 실패: 유효하지 않은 토큰입니다.");
-        }
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token.trim())
+                .getPayload();
     }
 
     public String getMemberId(String token) {
-        Object memberId = parseToken(token).get(MEMBERPK_CLAIM_KEY); // "memberId"는 Long 일 수도 있음
-        return memberId != null ? memberId.toString() : null;
+        return parseToken(token).get(MEMBER_ID_KEY, String.class);
     }
 
     public String getCategory(String token) {
-        Object category = parseToken(token).get(CATEGORY_CLAIM_KEY); // NPE 을 피하면서도 memberId의 값을 안전하게 확인
-        return category != null ? category.toString() : null;
+        return parseToken(token).get(CATEGORY_KEY, String.class);
     }
 
     public MemberRole getRole(String token) {
-        return MemberRole.valueOf(parseToken(token).get("role", String.class));
+        return MemberRole.valueOf(parseToken(token).get(ROLE_KEY, String.class));
     }
 
-    // getId() - JWT ID (jti)를 반환, 클레임을 추출하여 Redis 블랙리스트 체크에 사용
     public String getId(String token) {
         return parseToken(token).getId();
     }
 
-    // getExpiration() - 토큰의 만료 시간 확인에 사용 (Date 타입 반환)
-    public Date getExpiration(String token) {
-        return parseToken(token).getExpiration();
+    public Date getExpiration(String accessToken) {
+        return parseToken(accessToken).getExpiration();
     }
 
-    public Boolean isExpired(String token) {
-        // Check if token is null or empty
-        if (token == null || token.trim().isEmpty()) {
-            throw new IllegalArgumentException("Token cannot be null or empty");
-        }
-        // Validate token structure
-        if (!validateToken(token)) {
-            throw new IllegalArgumentException("Token is not valid");
-        }
+    /** ======================== Token 유효성 검사 ======================== */
 
-        // Check expiration
-        return parseToken(token).getExpiration().before(new Date());
-    }
-
-    private String createToken(String category, String memberId, String role, Date expirationDate) {
-        return Jwts.builder()
-                .claim(CATEGORY_CLAIM_KEY, category)
-                .claim(MEMBERPK_CLAIM_KEY, memberId)
-                .claim("role", role)
-                .issuedAt(new Date(System.currentTimeMillis())) // 재발급 (refreshToken)
-                .expiration(expirationDate)
-                .signWith(secretKey, Jwts.SIG.HS256) // postman basic HS256
-                .compact();
-    }
-
-    public String createAccessToken(String category, String memberId, String role) {
-        // 30분
-        LocalDateTime expirationDateTime = LocalDateTime.now().plusSeconds(accessTokenExpirationPeriod);
-        Date expirationDate = Date.from(expirationDateTime.atZone(ZoneId.systemDefault()).toInstant());
-        return createToken(category, memberId, role, expirationDate);
-    }
-
-    public String createRefreshToken(String category, String memberId, String role) {
-        // 7 일
-        LocalDateTime expirationDateTime = LocalDateTime.now().plusSeconds(refreshTokenExpirationPeriod);
-        Date expirationDate = Date.from(expirationDateTime.atZone(ZoneId.systemDefault()).toInstant());
-        return createToken(category, memberId, role, expirationDate);
-    }
-
-    // 액세스 토큰 파싱 후, 토큰형태로 반환합니다.
-    public String reissueAccessToken(String expiredAccessToken) {
-        Claims claims = parseToken(expiredAccessToken);
-
-        // 토큰에서 category, memberId, role을 추출
-        String category = claims.get(CATEGORY_CLAIM_KEY, String.class);
-        String memberId = claims.get(MEMBERPK_CLAIM_KEY, String.class);
-        String role = claims.get("role", String.class);
-
-        // 기존 AccessToken 의 만료 시간을 가져옴
-        Date expirationDate = claims.getExpiration();
-
-        // 새로운 AccessToken 생성
-        return createToken(category, memberId, role, expirationDate);
-    }
-
-    /**
-     * 토큰 유효성 체크
-     *
-     * @param token
-     * @return
-     */
     public boolean validateToken(String token) {
         if (token == null || token.trim().isEmpty()) {
-            log.warn("validateToken: 전달받은 토큰이 null 이거나 비어 있습니다.");
             return false;
         }
-
         try {
-            log.debug("validateToken: 토큰 유효성 검사 시도 - {}", token);
             Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token);
-            log.info("validateToken: 토큰 유효성 검사 통과");
             return true;
-        } catch (SignatureException e) {
-            log.error("validateToken: JWT 서명이 유효하지 않습니다. token: {}", token, e);
         } catch (JwtException e) {
-            log.error("validateToken: JWT 유효성 검사 실패. token: {}", token, e);
+            log.warn("JWT 유효성 검사 실패: {}", e.getMessage());
+            return false;
         }
-        return false;
+    }
+
+    public boolean isExpired(String token) {
+        try {
+            return parseToken(token).getExpiration().before(new Date());
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
+    /** ======================== AccessToken 재발급 ======================== */
+
+    public String reissueAccessToken(String expiredToken) {
+        Claims claims = parseToken(expiredToken);
+
+        String category = claims.get(CATEGORY_KEY, String.class);
+        String memberId = claims.get(MEMBER_ID_KEY, String.class);
+        String role = claims.get(ROLE_KEY, String.class);
+
+        return createAccessToken(category, memberId, role);
     }
 }
-
-
-
-
-
-
 
 
 
