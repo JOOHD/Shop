@@ -218,4 +218,7 @@ public class Member {
         this.nickname = newNickname;
     }
 
+    public MemberRole getRole() {
+        return this.memberRole;
+    }
 }

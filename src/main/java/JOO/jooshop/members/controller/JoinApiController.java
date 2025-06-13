@@ -5,6 +5,7 @@ import JOO.jooshop.global.mail.service.EmailMemberService;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.model.LoginRequest;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
+import JOO.jooshop.members.repository.RedisRefreshTokenRepository;
 import JOO.jooshop.members.repository.RefreshRepository;
 import JOO.jooshop.members.service.MemberService;
 import JOO.jooshop.profiile.entity.Profiles;
@@ -37,32 +38,17 @@ public class JoinApiController {
 
     /*
         ※ JoinApiController 클래스 목적
-             회원가입 및 로그인 처리
-             JWT 기반 토큰 생성 및 응답 쿠키 설정
-             RefreshToken Redis 저장 처리 포함
+             - 이메일/비밀번호 로그인 → JWT 발급 + AccessToken 쿠키 설정
+             - OAuth2 로그인 → success handler 처리 별도, 여기선 X
+             - 로그아웃 시 쿠키 삭제 및 AccessToken 블랙리스트 처리
 
-        ※ 전체 흐름 (2025-06-13 리팩토링 반영)
-
-        1. 회원가입 요청 (signUp)
-           - 이메일 중복 확인
-           - 패스워드 암호화 후 회원 저장
-
-        2. 로그인 요청 (signIn)
-           - 이메일/비밀번호 인증
-           - AccessToken / RefreshToken 생성
-             → JWTUtil.createAccessToken(), createRefreshToken()
-           - AccessToken: HttpOnly + Secure 쿠키에 저장
-           - RefreshToken: Redis 에 저장 (key=memberId, value=token)
-
-        3. 로그아웃 요청 (signOut)
-           - AccessToken 파싱하여 만료시간 추출
-           - Redis 블랙리스트에 저장하여 무효 처리
-           - AccessToken / RefreshToken 쿠키 제거
-
-        ※ 리팩토링 핵심
-           - JWTUtil 메서드명 일관성 적용 (createAccessToken 등)
-           - 쿠키명, 쿠키 설정 HttpOnly/Secure 일괄 정리
-           - 중복 코드 제거 및 메서드 분리 (e.g., 쿠키 생성 로직 등)
+        ※ 전체 흐름
+        1. [POST] /login 요청 수신 (login.html에서 fetch로 호출)
+        2. 이메일/비밀번호를 받아 회원 인증
+        3. 인증 성공 시 AccessToken/RefreshToken 생성
+        4. AccessToken은 HttpOnly + Secure 쿠키로 응답에 포함
+        5. RefreshToken은 Redis에 저장 (쿠키 X, 보안 강화를 위해)
+        6. 인증 실패 시 적절한 상태코드와 메시지 반환
      */
 
     private final JWTUtil jwtUtil;
@@ -71,13 +57,14 @@ public class JoinApiController {
     private final MemberRepositoryV1 memberRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final ProfileRepository profileRepository;
+    private final RedisRefreshTokenRepository redisRefreshTokenRepository;
     private final RedisTemplate<String, String> redisTemplate;
 
     @Value("${IMP_SECRET_KEY}")
     private String secretKey;
 
     @PostMapping("/join") // 회원가입
-    public ResponseEntity<?> joinMemberV1(@RequestBody @Valid JoinMemberRequest request) {
+    public ResponseEntity<?> join(@RequestBody @Valid JoinMemberRequest request) {
         if (isInvalidNickname(request.getNickname())) {
             return ResponseEntity.badRequest().body("닉네임을 입력해야 합니다.");
         }
@@ -120,34 +107,39 @@ public class JoinApiController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response)
-            throws UserPrincipalNotFoundException, CredentialNotFoundException {
-        Member member = memberService.memberLogin(loginRequest);
+    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
 
-        if (member == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("이메일 또는 비밀번호가 일치하지 않습니다.");
+        try {
+            // 1. 사용자 인증
+            Member member = memberService.authenticate(loginRequest.getEmail(), loginRequest.getPassword());
+
+            // 2. 토큰 생성
+            String accessToken = jwtUtil.createAccessToken("access", member.getId().toString(), member.getRole().name());
+            String refreshToken = jwtUtil.createRefreshToken("refresh", member.getId().toString(), member.getRole().name());
+
+            // 3. RefreshToken 저장 (Redis)
+            redisRefreshTokenRepository.save(String.valueOf(member.getId()), refreshToken);
+
+            // 4. AccessToken 쿠키로 설정
+            Cookie jwtCookie = new Cookie("accessToken", accessToken);
+            jwtCookie.setHttpOnly(true);
+            jwtCookie.setSecure(true);  // https 환경에서만 전송
+            jwtCookie.setPath("/");
+
+            // 현재 시간 기준으로 남은 초 단위 시간 적용
+            Date expiration = jwtUtil.getExpiration(accessToken);
+            int maxAge = (int) ((expiration.getTime() - System.currentTimeMillis()) / 1000);
+            jwtCookie.setMaxAge(maxAge);
+
+            response.addCookie(jwtCookie);
+
+            return ResponseEntity.ok("로그인 성공, 환영합니다.");
+
+        } catch (InvalidCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("이메일 또는 비밀번호가 틀렸습니다.");
+        } catch (UnverifiedEmailException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("인증되지 않은 이메일입니다.");
         }
-
-        if (!member.isCertifyByMail()) {
-            return ResponseEntity.badRequest().body("이메일 인증이 되지 않은 회원입니다.");
-        }
-
-        // JWT 발급 (리팩토링된 메서드 사용)
-        String accessToken = jwtUtil.createAccessToken(
-                "access",                   // category
-                String.valueOf(member.getId()),     // memberId
-                member.getMemberRole().name()       // role
-        );
-
-        Cookie jwtCookie = new Cookie("accessToken", accessToken);
-        jwtCookie.setHttpOnly(true);
-        jwtCookie.setSecure(true);
-        jwtCookie.setPath("/");
-        jwtCookie.setMaxAge(60 * 60);
-        response.addCookie(jwtCookie);
-
-        return ResponseEntity.ok("로그인 성공, 환영합니다.");
     }
 
     @PostMapping("/logout")

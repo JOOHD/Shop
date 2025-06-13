@@ -42,17 +42,12 @@ public class MemberService {
     }
 
     @Transactional
-    public Member memberLogin(LoginRequest loginRequest) throws UserPrincipalNotFoundException, CredentialNotFoundException {
-        Member member = memberRepository.findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new UserPrincipalNotFoundException("User not found with email: " + loginRequest.getEmail()));
-
-        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
-        if (!passwordEncoder.matches(loginRequest.getPassword(), member.getPassword())) {
-            log.info("Invalid password for email: {} ", loginRequest.getEmail());
-            throw new CredentialNotFoundException("Invalid password");
+    public Member authenticate(String email, String password) {
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new InvalidCredentialsException());
+        if (!passwordEncoder.matches(password, member.getPassword())) {
+            throw new InvalidCredentialsException();
         }
-
         return member;
     }
 
