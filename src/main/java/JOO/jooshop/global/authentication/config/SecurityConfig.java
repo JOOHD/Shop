@@ -11,10 +11,10 @@ import JOO.jooshop.global.authorization.CustomAuthorizationRequestResolver;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
 import JOO.jooshop.members.repository.RefreshRepository;
 import JOO.jooshop.members.service.MemberService;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -43,60 +43,27 @@ import static org.springframework.security.web.util.matcher.AntPathRequestMatche
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    // [LoginFilter] Bean 등록
     private final ObjectMapper objectMapper;
-
     private final JWTUtil jwtUtil;
-
     private final RedisTemplate<String, String> redisTemplate;
-
     private final RefreshRepository refreshRepository;
-
     private final MemberRepositoryV1 memberRepository;
-    // [Social 로그인] 을 위한 생성자 주입
     private final ClientRegistrationRepository clientRegistrationRepository;
-
     private final CustomOAuth2UserServiceV1 customOAuth2UserService;
-
     private final CustomLoginSuccessHandlerV1 customLoginSuccessHandler;
-
     private final CustomLoginFailureHandler customLoginFailureHandler;
 
     @Value("${frontend.url}")
     private String frontendUrl;
 
     @Bean
-    @Primary // 인증 관련 설정을 제공하는 객체
-    public AuthenticationConfiguration authenticationConfiguration() {
-        return new AuthenticationConfiguration();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
     }
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring()
-                .requestMatchers("/css/**", "/js/**");
-    }
-
-    @Bean
-    public LoginFilter loginFilter() throws Exception {
-        // LoginFilter 에 생각보다 필요한 dependency 가 많아서, Bean 으로 따로 관리
-        return new LoginFilter(
-                // 인증 수행
-                authenticationManager(authenticationConfiguration()),
-                objectMapper,       // JSON 파싱
-                memberService(),    // 회원 정보 조회
-                jwtUtil,            // JWT 생성 및 검증
-                refreshRepository   // refreshToken 저장소
-        );
-    }
-
-    @Bean
-    public AuthenticationSuccessHandler loginSuccessHandler() {
-        return customLoginSuccessHandler;
-    }
-    @Bean
-    public AuthenticationFailureHandler loginFailureHandler() {
-        return customLoginFailureHandler;
+        return web -> web.ignoring().requestMatchers("/css/**", "/js/**");
     }
 
     @Bean
@@ -110,51 +77,53 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
-
-        return configuration.getAuthenticationManager();
+    public LoginFilter loginFilter(AuthenticationManager authenticationManager) {
+        LoginFilter loginFilter = new LoginFilter(
+                authenticationManager,
+                objectMapper,
+                memberService(),
+                jwtUtil,
+                refreshRepository
+        );
+        loginFilter.setFilterProcessesUrl("/api/login"); // JSON 로그인용 경로 설정
+        return loginFilter;
     }
 
     @Bean
-    public CustomJsonEmailPasswordAuthenticationFilter customJsonUsernamePasswordAuthenticationFilter() throws Exception {
-        return new CustomJsonEmailPasswordAuthenticationFilter(authenticationManager(authenticationConfiguration()), objectMapper);
+    public AuthenticationSuccessHandler loginSuccessHandler() {
+        return customLoginSuccessHandler;
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        // CORS 설정 - 프론트엔드 도메인에서 요청 허용
-        http.cors(corsCustomizer -> corsCustomizer.configurationSource(request -> {
+    public AuthenticationFailureHandler loginFailureHandler() {
+        return customLoginFailureHandler;
+    }
+
+    @Bean
+    public CustomJsonEmailPasswordAuthenticationFilter customJsonUsernamePasswordAuthenticationFilter(
+            AuthenticationManager authenticationManager) {
+
+        return new CustomJsonEmailPasswordAuthenticationFilter(authenticationManager, objectMapper);
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
+
+        // CORS
+        http.cors(cors -> cors.configurationSource(request -> {
             CorsConfiguration config = new CorsConfiguration();
             config.setAllowedOrigins(Collections.singletonList(frontendUrl));
             config.setAllowedMethods(Collections.singletonList("*"));
-            config.setAllowCredentials(true);
             config.setAllowedHeaders(Collections.singletonList("*"));
+            config.setAllowCredentials(true);
             config.setMaxAge(3600L);
             config.addExposedHeader("Set-Cookie");
             config.addExposedHeader("Authorization");
             return config;
         }));
 
-        // REST API 특성상 CSRF, 폼 로그인, HTTP Basic 인증 비활성화
-        http.csrf(csrf -> csrf.disable())
-                .formLogin(form -> form.disable())
-                .httpBasic(basic -> basic.disable());
-        
-        // formLogin 활성화 & 로그인 페이지 지정
-        http.formLogin(form -> form
-                .loginPage("/login")          // 로그인 화면 경로 지정 (GET / login 요청 시 뷰 보여줌)
-                .loginProcessingUrl("/login") // 로그인 POST 처리 URL
-                .successHandler(loginSuccessHandler())
-                .failureHandler(loginFailureHandler())
-                .permitAll()                  // 로그인 페이지는 인증 없이 접근 허용
-        );
-
-        // 기본 로그아웃 기능 비활성화 (커스텀 로그아웃 구현 가능)
-        http.logout(logout -> logout.disable());
-
-        // 권한 설정
-        http
-            .authorizeHttpRequests(auth -> auth
+        // 인가 설정
+        http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/login", "/logout", "/", "/join", "/auth/**", "/login/oauth2/code/**").permitAll()
                 .requestMatchers("/api/v1/categorys/**", "/api/v1/thumbnail/**", "/api/v1/members/**").permitAll()
                 .requestMatchers(antMatcher(HttpMethod.GET, "/api/v1/products/**")).permitAll()
@@ -168,32 +137,47 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/reissue/access", "/api/v1/reissue/refresh").permitAll()
                 .requestMatchers("/api/v1/inquiry/**").permitAll()
                 .requestMatchers("/api/v1/inquiry/reply/**").hasAnyRole("ADMIN", "SELLER")
+                .requestMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()
         );
 
-        // JWT 필터 등록 (토큰 검증 → 로그인)
-        http
-            .addFilterBefore(new JWTFilterV3(jwtUtil, redisTemplate, memberRepository), UsernamePasswordAuthenticationFilter.class);
-        http
-            .addFilterBefore(loginFilter(), JWTFilterV3.class);
+        // CSRF 설정: REST API는 비활성화
+        http.csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"));
 
-        // OAuth2 로그인 설정 (소셜 로그인 처리)
-        http
-            .oauth2Login(oauth2 -> oauth2
-                    .authorizationEndpoint(auth -> auth
-                            .authorizationRequestResolver(
-                                    new CustomAuthorizationRequestResolver(clientRegistrationRepository, "/oauth2/authorization")
-                            )
-                    )
-                    .userInfoEndpoint(userInfo -> userInfo
-                            .userService(customOAuth2UserService)
-                    )
-                    .successHandler(loginSuccessHandler())
-                    .failureHandler(loginFailureHandler())
-            );
+        // Form 로그인 설정 (웹 UI)
+        http.formLogin(form -> form
+                .loginPage("/login")                // 로그인 form page
+                .loginProcessingUrl("/api/login")   // 로그읜 처리 요청 URL
+                .defaultSuccessUrl("/")
+                .successHandler(loginSuccessHandler())
+                .failureHandler(loginFailureHandler())
+                .permitAll()
+        );
 
-        // 세션을 서버에서 관리하지 않는 완전 무상태(stateless) 설정
-        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        // OAuth2 로그인 설정
+        http.oauth2Login(oauth2 -> oauth2
+                .loginPage("/login")
+                .authorizationEndpoint(auth -> auth
+                        .authorizationRequestResolver(
+                                new CustomAuthorizationRequestResolver(clientRegistrationRepository, "/oauth2/authorization")
+                        )
+                )
+                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                .successHandler(loginSuccessHandler())
+                .failureHandler(loginFailureHandler())
+        );
+
+        // 세션 설정: Form 로그인용은 stateful, API는 stateless
+        http.sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        );
+
+        // 로그아웃 비활성화 (커스텀 필터 사용 시)
+        http.logout(logout -> logout.disable());
+
+        // JWT 필터 등록
+        http.addFilterBefore(new JWTFilterV3(jwtUtil, redisTemplate, memberRepository), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(loginFilter(authenticationManager), JWTFilterV3.class);
 
         return http.build();
     }

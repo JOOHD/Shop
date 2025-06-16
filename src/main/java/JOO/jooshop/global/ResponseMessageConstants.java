@@ -18,4 +18,6 @@ public class ResponseMessageConstants {
     public static final String PAYMENT_CANCEL_FAILURE = "결제 취소 실패 하였습니다."; // 25.03.12
 
     public static final String MEMBER_NOT_MATCH = "회원 정보가 일치하지 않습니다."; // 25.04.26
+    public static final String CREDENTIALS_NOT_MATCH = "이메일 & 비밀번호가 일치하지 않습니다."; //25.06.13
+    public static final String EMAIL_NOT_VERIFIED = "인증되지 않은 이메일 입니다."; // 25.06.14
 }

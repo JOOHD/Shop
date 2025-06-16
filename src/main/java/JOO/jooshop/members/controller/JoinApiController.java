@@ -1,12 +1,13 @@
 package JOO.jooshop.members.controller;
 
+import JOO.jooshop.global.Exception.InvalidCredentialsException;
+import JOO.jooshop.global.Exception.UnverifiedEmailException;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.mail.service.EmailMemberService;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.model.LoginRequest;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
 import JOO.jooshop.members.repository.RedisRefreshTokenRepository;
-import JOO.jooshop.members.repository.RefreshRepository;
 import JOO.jooshop.members.service.MemberService;
 import JOO.jooshop.profiile.entity.Profiles;
 import JOO.jooshop.profiile.repository.ProfileRepository;
@@ -34,6 +35,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 @Transactional
+@RequestMapping("/api")
 public class JoinApiController {
 
     /*
@@ -107,7 +109,7 @@ public class JoinApiController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+    public ResponseEntity<String> oauth2Login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
 
         try {
             // 1. 사용자 인증
