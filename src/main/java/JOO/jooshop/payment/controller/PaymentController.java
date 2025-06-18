@@ -69,7 +69,7 @@ public class PaymentController {
      * 결제 검증 및 결제 완료 처리
      * - 결제 완료 후 아임포트로부터 결제 정보 검증 및 후처리
      */
-    @PostMapping("/order/payment/{imp_uid}")
+    @PostMapping("/payment/{imp_uid}")
     public ResponseEntity<IamportResponse<Payment>> validateIamport(
             @PathVariable("imp_uid") String imp_uid,
             @RequestBody PaymentRequestDto request,

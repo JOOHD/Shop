@@ -14,6 +14,7 @@ import JOO.jooshop.profiile.repository.ProfileRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -211,9 +212,9 @@ public class JoinApiController {
 
         return isAdmin
                 ? Member.createAdminMember(request.getEmail(), request.getNickname(),
-                passwordEncoder.encode(request.getPassword()), token, socialId)
+                passwordEncoder.encode(request.getPassword1()), token, socialId)
                 : Member.createGeneralMember(request.getEmail(), request.getNickname(),
-                passwordEncoder.encode(request.getPassword()), token, socialId);
+                passwordEncoder.encode(request.getPassword1()), token, socialId);
     }
 
     private boolean isInvalidNickname(String nickname) {
@@ -231,9 +232,14 @@ public class JoinApiController {
 
     @Data
     private static class JoinMemberRequest {
+        @NotBlank
         private String email;
+        @NotBlank
         private String nickname;
-        private String password;
+        @NotBlank
+        private String password1;
+        @NotBlank
+        private String password2;
     }
 
     @Data

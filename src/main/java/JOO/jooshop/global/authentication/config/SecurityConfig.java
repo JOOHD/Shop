@@ -124,7 +124,7 @@ public class SecurityConfig {
 
         // 인가 설정
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/logout", "/", "/join", "/auth/**", "/login/oauth2/code/**").permitAll()
+                .requestMatchers("/login", "/logout", "/", "/auth/**", "/login/oauth2/code/**", "/api/join", "/api/admin/join").permitAll()
                 .requestMatchers("/api/v1/categorys/**", "/api/v1/thumbnail/**", "/api/v1/members/**").permitAll()
                 .requestMatchers(antMatcher(HttpMethod.GET, "/api/v1/products/**")).permitAll()
                 .requestMatchers(antMatcher(HttpMethod.POST, "/api/v1/products/**")).hasAnyRole("ADMIN", "SELLER")
