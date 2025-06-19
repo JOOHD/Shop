@@ -74,6 +74,11 @@ public class CartController {
         return ResponseEntity.ok(updatedCartDto);
     }
 
+    /**
+     * 장바구니 삭제
+     * @param cartId
+     * @return
+     */
     @DeleteMapping("/{cartId}")
     public ResponseEntity<String> deleteCart(@PathVariable("cartId") Long cartId) {
         cartService.deleteCart(cartId);

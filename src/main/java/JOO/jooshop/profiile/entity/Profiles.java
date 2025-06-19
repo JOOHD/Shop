@@ -8,6 +8,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 
@@ -27,8 +28,10 @@ public class Profiles {
     private Member member;
 
     @Setter
+    @Column(name = "profile_img_name")
     private String profileImgName;
     @Setter
+    @Column(name = "profile_img_path")
     private String profileImgPath;
 
     @Lob
@@ -42,8 +45,11 @@ public class Profiles {
     @Column(name = "member_gender")
     private MemberGender memberGender;
 
+    @CreatedDate
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     public Profiles(Member member, String introduction, String profileImgName, String profileImgPath) {

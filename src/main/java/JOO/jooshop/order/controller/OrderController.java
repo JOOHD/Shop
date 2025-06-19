@@ -1,21 +1,11 @@
 package JOO.jooshop.order.controller;
 
-import JOO.jooshop.cart.entity.Cart;
-import JOO.jooshop.cart.repository.CartRepository;
 import JOO.jooshop.global.authentication.jwts.entity.CustomUserDetails;
-import JOO.jooshop.members.entity.Member;
-import JOO.jooshop.order.entity.Orders;
-import JOO.jooshop.order.entity.TemporaryOrderRedis;
 import JOO.jooshop.order.model.OrderDto;
-import JOO.jooshop.order.model.OrderResponseDto;
 import JOO.jooshop.order.service.OrderService;
-import jakarta.servlet.http.HttpSession;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;

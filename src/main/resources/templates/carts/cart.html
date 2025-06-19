@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>장바구니</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+<div class="container mt-5">
+    <h2 class="mb-4">장바구니</h2>
+
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th>선택</th>
+            <th>상품명</th>
+            <th>수량</th>
+            <th>가격</th>
+        </tr>
+        </thead>
+        <tbody id="cartItems">
+        <!-- 💡 테스트용 고정 상품 -->
+        <tr>
+            <td><input type="checkbox" class="cart-check" data-id="999" data-price="10000" checked></td>
+            <td>테스트 상품</td>
+            <td>2</td>
+            <td>10,000원</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="text-end">
+        <strong>총 결제 금액: <span id="totalPrice">0</span>원</strong>
+    </div>
+
+    <button id="goOrderBtn" class="btn btn-primary mt-3">주문하기</button>
+</div>
+
+<script>
+  let totalPrice = 0;
+
+  // 💡 테스트 데이터 기준 총 금액 계산
+  function calculateTotal() {
+    const checkboxes = document.querySelectorAll(".cart-check:checked");
+    totalPrice = Array.from(checkboxes).reduce((sum, cb) => sum + Number(cb.dataset.price), 0);
+    document.getElementById("totalPrice").textContent = totalPrice.toLocaleString();
+  }
+
+  calculateTotal(); // 페이지 로드 시 1회 실행
+
+  document.addEventListener("change", function (e) {
+    if (e.target.classList.contains("cart-check")) {
+      calculateTotal();
+    }
+  });
+
+  document.getElementById("goOrderBtn").addEventListener("click", function () {
+    const selectedIds = Array.from(document.querySelectorAll(".cart-check:checked")).map(cb => Number(cb.dataset.id));
+    if (selectedIds.length === 0) {
+      alert("주문할 상품을 선택해주세요.");
+      return;
+    }
+
+    const orderDto = {
+      cartIds: selectedIds,
+      totalPrice: totalPrice,
+      payMethod: "CARD",
+      ordererName: "테스트유저",
+      phoneNumber: "01012345678",
+      address: "서울시 강남구 강남대로 123",
+      detailAddress: "테스트빌딩 5층",
+      postCode: "06236"
+    };
+
+    sessionStorage.setItem("orderDto", JSON.stringify(orderDto));
+    alert("테스트 주문 정보가 저장되었습니다. 주문 페이지로 이동합니다.");
+    window.location.href = "/order";
+  });
+
+  // ===========================
+  // ✅ 서버 연동 테스트 시 주석 해제
+  /*
+  const memberId = 1;
+  const apiUrl = `/api/v1/cart/${memberId}`;
+  let cartData = [];
+
+  fetch(apiUrl)
+    .then(response => response.json())
+    .then(data => {
+      cartData = data;
+      const tbody = document.getElementById("cartItems");
+      tbody.innerHTML = ""; // 기존 고정값 제거
+
+      data.forEach(item => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><input type="checkbox" class="cart-check" data-id="${item.cartId}" data-price="${item.price}" checked></td>
+          <td>${item.productName}</td>
+          <td>${item.quantity}</td>
+          <td>${Number(item.price).toLocaleString()}원</td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      calculateTotal();
+    });
+  */
+</script>
+</body>
+</html>
