@@ -53,8 +53,8 @@ public class Member {
     @JsonProperty("social_type")
     private SocialType socialType;
 
-    @Column(name = "social_id", unique = true)
     @NotBlank
+    @Column(name = "social_id", unique = true)
     @JsonProperty("social_id")
     private String socialId; // Provider + prividerId 형식
 
@@ -153,20 +153,6 @@ public class Member {
         // 필요한 경우에 따라 다른 필드도 업데이트할 수 있습니다.
     }
 
-    public static Member createOAuth2Member(String email, String username, SocialType socialType, String socialId) {
-        return new Member(email, null, username, null, MemberRole.USER, socialType, socialId, null, true);
-    }
-
-    // 유저 권한 설정 메소드
-    public void authorizeUser() {
-        this.memberRole = MemberRole.USER;
-    }
-
-    // 관리자 권한 설정 메소드
-    public void authorizeAdmin() {
-        this.memberRole = MemberRole.ADMIN;
-    }
-
     // 비밀번호 암호화 메소드
     public void passwordEncode(PasswordEncoder passwordEncoder) {
         this.password = passwordEncoder.encode(this.password);
@@ -175,10 +161,6 @@ public class Member {
     // 이메일 인증 여부를 업데이트하는 메서드
     public void certifyByEmail() {
         this.isCertifyByMail = true;
-    }
-    // 이메일 인증 토큰 업데이트
-    public void updateMemberByToken(String token) {
-        this.token = token;
     }
     // 관리자 활성화
     public void verifyAdminUser() {
@@ -193,8 +175,11 @@ public class Member {
         return isActive;
     }
     // 회원 계정 정지 여부 가져오기
-    public boolean getIsBanned() {
+    public boolean isBanned() {
         return isBanned;
+    }
+    public void setBanned(boolean banned) {
+        isBanned = banned;
     }
 //    // 회원 계정 만료 여부 가져오기
 //    public boolean getIsAccountExpired() {

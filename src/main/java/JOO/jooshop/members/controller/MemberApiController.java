@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,6 +34,7 @@ public class MemberApiController {
      */
 
     private final MemberRepositoryV1 memberRepository;
+    private final MemberStatusService memberStatusService;
     private final JWTUtil jwtUtil;
 
     @GetMapping // 회원 목록 조회, ("") 생략
@@ -62,6 +62,18 @@ public class MemberApiController {
     public ResponseEntity<?> reActivateMember(@PathVariable("memberId") Long memberId, HttpServletRequest request) {
         MemberAuthorizationUtil.verifyUserIdMatch(memberId);
         return handleMemberActivationDeactivation(memberId, true, "이미 활성화된 계정입니다!", "계정이 활성화되었습니다.");
+    }
+
+    @PostMapping("/ban/{memberId}") // 회원 정지
+    public ResponseEntity<?> banMember(@PathVariable Long memberId) {
+        memberStatusService.bannedMember(memberId);
+        return ResponseEntity.ok("계정이 정지 되었습니다.");
+    }
+
+    @PostMapping("/unban/{memberId}")
+    public ResponseEntity<?> unbanMember(@PathVariable Long memberId) {
+        memberStatusService.unbanMember(memberId);
+        return ResponseEntity.ok("계정 정지가 해제되었습니다.");
     }
 
     @PostMapping("/repassword/{memberId}") // 회원 비밀번호 재설정
