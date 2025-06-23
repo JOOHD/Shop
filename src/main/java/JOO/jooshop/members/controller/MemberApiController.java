@@ -6,6 +6,7 @@ import JOO.jooshop.global.authorization.MemberAuthorizationUtil;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.entity.enums.MemberRole;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
+import JOO.jooshop.members.service.MemberStatusService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -66,7 +67,7 @@ public class MemberApiController {
 
     @PostMapping("/ban/{memberId}") // 회원 정지
     public ResponseEntity<?> banMember(@PathVariable Long memberId) {
-        memberStatusService.bannedMember(memberId);
+        memberStatusService.banMember(memberId);
         return ResponseEntity.ok("계정이 정지 되었습니다.");
     }
 
