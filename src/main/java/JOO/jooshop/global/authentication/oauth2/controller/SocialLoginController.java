@@ -193,7 +193,7 @@ public class SocialLoginController {
             // 존재하는 멤버를 가져와서, 업데이트한다.
             Member existedMember = memberWithSocialId.get();
             // 회원 활성화
-            existedMember.activateMember();
+            existedMember.activate();
 //            memberRepository.save(existedMember);
 
             Optional<Profiles> optionalProfile = profileRepository.findByMemberId(existedMember.getId());
@@ -215,7 +215,7 @@ public class SocialLoginController {
             // 맴버가 존재하지 않는다면, 생성
             Member newMember = Member.createSocialMember(email, username, MemberRole.USER, SocialType.KAKAO, socialId);
             // 회원 활성화
-            newMember.activateMember();
+            newMember.activate();
             Member createdMember = memberRepository.save(newMember);
 
             // 멤버 데이터로, 마이 프로필 생성

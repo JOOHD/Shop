@@ -97,7 +97,7 @@ public class LoginFilter extends CustomJsonEmailPasswordAuthenticationFilter {
 //            }
 //            boolean isCertifyByEmail = member.isCertifyByMail();
 //            log.info("[LoginFilter] 회원 이메일인증 여부 = " + isCertifyByMail);
-            boolean isCertifyByMail = member.isCertifyByMail();
+            boolean isCertifyByMail = member.isCertifiedByEmail();
             if (!isCertifyByMail) {
                 // 이메일이 인증되지 않은 경우 로그인 실패 처리
                 throw new AuthenticationServiceException("Email is not certified yet. 이메일 인증이 되지 않았습니다. ");

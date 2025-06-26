@@ -36,7 +36,7 @@ public class MemberService {
                 .socialId(member.getSocialId())
                 .build();
 
-        newMember.activateMember();
+        newMember.activate();
         return memberRepository.save(newMember);
     }
 

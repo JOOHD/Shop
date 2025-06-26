@@ -99,8 +99,8 @@ public class JoinApiController {
 
         String token = UUID.randomUUID().toString();
         Member admin = createMemberFromRequest(request, token, true);
-        admin.verifyAdminUser();
-        admin.activateMember();
+        admin.isAdmin();
+        admin.activate();
 
         Member savedAdmin = memberRepository.save(admin);
         profileRepository.save(Profiles.createMemberProfile(savedAdmin));

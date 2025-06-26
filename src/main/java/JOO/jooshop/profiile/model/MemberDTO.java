@@ -54,9 +54,9 @@ public class MemberDTO {
                              member.getPhone(),
                              member.getMemberRole(),
                              member.getSocialType(),
-                             member.getIsActive(),
+                             member.isActive(),
                              member.isAdmin(),
-                             member.isCertifyByMail(),
+                             member.isCertifiedByEmail(),
                              member.getJoinedAt().toString());
     }
 }

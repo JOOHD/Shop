@@ -20,23 +20,21 @@ public class QMember extends EntityPathBase<Member> {
 
     public static final QMember member = new QMember("member1");
 
+    public final BooleanPath accountExpired = createBoolean("accountExpired");
+
+    public final BooleanPath active = createBoolean("active");
+
     public final ListPath<JOO.jooshop.address.entity.Addresses, JOO.jooshop.address.entity.QAddresses> addresses = this.<JOO.jooshop.address.entity.Addresses, JOO.jooshop.address.entity.QAddresses>createList("addresses", JOO.jooshop.address.entity.Addresses.class, JOO.jooshop.address.entity.QAddresses.class, PathInits.DIRECT2);
+
+    public final BooleanPath admin = createBoolean("admin");
+
+    public final BooleanPath banned = createBoolean("banned");
+
+    public final BooleanPath certifiedByEmail = createBoolean("certifiedByEmail");
 
     public final StringPath email = createString("email");
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
-
-    public final BooleanPath isAccountExpired = createBoolean("isAccountExpired");
-
-    public final BooleanPath isActive = createBoolean("isActive");
-
-    public final BooleanPath isAdmin = createBoolean("isAdmin");
-
-    public final BooleanPath isBanned = createBoolean("isBanned");
-
-    public final BooleanPath isCertifyByMail = createBoolean("isCertifyByMail");
-
-    public final BooleanPath isPasswordExpired = createBoolean("isPasswordExpired");
 
     public final DateTimePath<java.time.LocalDateTime> joinedAt = createDateTime("joinedAt", java.time.LocalDateTime.class);
 
@@ -45,6 +43,8 @@ public class QMember extends EntityPathBase<Member> {
     public final StringPath nickname = createString("nickname");
 
     public final StringPath password = createString("password");
+
+    public final BooleanPath passwordExpired = createBoolean("passwordExpired");
 
     public final ListPath<JOO.jooshop.payment.entity.PaymentHistory, JOO.jooshop.payment.entity.QPaymentHistory> paymentHistories = this.<JOO.jooshop.payment.entity.PaymentHistory, JOO.jooshop.payment.entity.QPaymentHistory>createList("paymentHistories", JOO.jooshop.payment.entity.PaymentHistory.class, JOO.jooshop.payment.entity.QPaymentHistory.class, PathInits.DIRECT2);
 

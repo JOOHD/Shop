@@ -2,127 +2,111 @@ package JOO.jooshop.global.authentication.jwts.entity;
 
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.entity.enums.MemberRole;
-import lombok.Data;
+import lombok.Builder;
+import lombok.Getter;
 
-@Data
+/**
+ * 인증 관련 사용자 정보를 담는 DTO
+ * - 인증 처리에서 Member 엔티티 대신 경량화된 정보만 전달
+ * - 보안/세션 처리 등에서 주로 사용
+ */
+@Getter
+@Builder
 public class CustomMemberDto {
 
-    /*
-        Java에서는 boolean 타입의 필드가 is로 시작하면, Lombok 또는 일반적인 Getter 규칙에 의해 getIsActive()가 아니라 isActive() 형태로 Getter가 자동 생성됩니다.
-        하지만 생성자 파라미터에는 is를 붙이지 않는 것이 일반적입니다.
-
-        생성자에서 isActive, isBanned 등의 값을 넘기지 않은 이유
-        -단순히 기본값을 사용하고, 나중에 필요한 경우 set() 메서드를 통해 값을 변경할 수 있게 합니다.
-     */
-
     private Long memberId;
-
     private String email;
-
     private String username;
-
     private String password;
-
     private MemberRole memberRole;
 
-    private boolean isActive;           // 계정 활성화 여부
+    private boolean active;             // 계정 활성화 여부
+    private boolean banned;             // 정지 여부
+    private boolean passwordExpired;    // 비밀번호 만료 여부
+    private boolean accountExpired;     // 계정 만료 여부
 
-    private boolean isBanned;           // 계정 정지 여부, 25/03/09
-    
-    private boolean isPasswordExpired;  // 비밀번호 만료 여부, 25/03/09
-    
-    private boolean isAccountExpired;   // 계정 만료 여부, 25/03/09
+    // ========================== 정적 생성 메서드 ==========================
 
-    public CustomMemberDto(Long memberId,
-                           String email,
-                           String username,
-                           String password,
-                           MemberRole memberRole,
-                           boolean isActive,
-                           boolean isBanned,
-                           boolean isPasswordExpired, boolean isAccountExpired) {
-        this.memberId = memberId;
-        this.email = email;
-        this.username = username;
-        this.password = password;
-        this.memberRole = memberRole;
-        this.isActive = isActive;
-
-        // [2025-03-19] 계정 상태 필드 초기화, isBanned() 메서드로 설정 x
-        // Security 인증 처리 (CustomUserDetails)에서 상태 체크 메서드에서 참조됨
-        this.isBanned = isBanned;                    // 계정 잠김
-        this.isAccountExpired = isAccountExpired;    // 계정 만료
-        this.isPasswordExpired = isPasswordExpired;  // 비밀번호 만료 여부
+    /**
+     * Member 엔티티 → CustomMemberDto 변환
+     */
+    public static CustomMemberDto from(Member member) {
+        return CustomMemberDto.builder()
+                .memberId(member.getId())
+                .email(member.getEmail())
+                .username(member.getUsername())
+                .password(member.getPassword())
+                .memberRole(member.getMemberRole())
+                .active(member.isActive())
+                .banned(member.isBanned())
+                .passwordExpired(member.isPasswordExpired())
+                .accountExpired(member.isAccountExpired())
+                .build();
     }
 
-    /** 핵심 생성자 */
+    /**
+     * 기존 사용했던 메서드 생성자
+     */
     public static CustomMemberDto createCustomMember(Member member) {
-        return new CustomMemberDto(
-                member.getId(),
-                member.getEmail(),
-                member.getUsername(),
-                member.getPassword(),
-                member.getMemberRole(),
-                member.getIsActive(),
-                member.getIsBanned(),
-                member.isAccountExpired(),
-                member.isPasswordExpired()
-        );
+        return CustomMemberDto.builder()
+                .memberId(member.getId())
+                .email(member.getEmail())
+                .username(member.getUsername())
+                .password(member.getPassword())
+                .memberRole(member.getMemberRole())
+                .active(member.isActive())
+                .banned(member.isBanned())
+                .passwordExpired(member.isPasswordExpired())
+                .accountExpired(member.isAccountExpired())
+                .build();
     }
 
-    /** 생성자 체이닝: 기본값을 가진 생성자 */
-    public CustomMemberDto(Long memberId, String email, String username, String password, MemberRole memberRole) {
-        this(memberId,
-                email,
-                username,
-                password,
-                memberRole,
-                true,
-                false,
-                false,
-                false);
-    }
-
-    /** 생성자 체이닝: 최소 정보만 받는 경우 */
-    public CustomMemberDto(Long memberId, MemberRole memberRole) {
-        this(memberId,
-                null,
-                null,
-                null,
-                memberRole,
-                true,
-                false,
-                false,
-                false);
-    }
-
-    /** 엔티티 -> DTO 변환 */
-    public static CustomMemberDto fromEntity(Member member) {
-        return new CustomMemberDto(
-                member.getId(),
-                member.getEmail(),
-                member.getUsername(),
-                member.getPassword(),
-                member.getMemberRole(),
-                member.getIsActive(),
-                false,
-                false,
-                false
-        );
-    }
-
-    /** 계정 정지된 사용자 DTO 생성 */
+    /**
+     * 계정 정지 상태의 사용자 DTO 생성
+     */
     public static CustomMemberDto bannedMember(Member member) {
-        return new CustomMemberDto(
-                member.getId(),
-                member.getEmail(),
-                member.getUsername(),
-                member.getPassword(),
-                member.getMemberRole(),
-                false,
-                true,
-                false,
-                false
-        );
+        return CustomMemberDto.builder()
+                .memberId(member.getId())
+                .email(member.getEmail())
+                .username(member.getUsername())
+                .password(member.getPassword())
+                .memberRole(member.getMemberRole())
+                .active(false)
+                .banned(true)
+                .passwordExpired(false)
+                .accountExpired(false)
+                .build();
+    }
+
+    /**
+     * 최소 정보만 포함된 DTO 생성
+     */
+    public static CustomMemberDto withMinimal(Long memberId, MemberRole memberRole) {
+        return CustomMemberDto.builder()
+                .memberId(memberId)
+                .memberRole(memberRole)
+                .active(true)
+                .banned(false)
+                .passwordExpired(false)
+                .accountExpired(false)
+                .build();
+    }
+
+    /**
+     * 테스트 및 기본 세션용 DTO 생성
+     */
+    public static CustomMemberDto basic(Long memberId, String email, String username,
+                                        String password, MemberRole role) {
+        return CustomMemberDto.builder()
+                .memberId(memberId)
+                .email(email)
+                .username(username)
+                .password(password)
+                .memberRole(role)
+                .active(true)
+                .banned(false)
+                .passwordExpired(false)
+                .accountExpired(false)
+                .build();
     }
 }

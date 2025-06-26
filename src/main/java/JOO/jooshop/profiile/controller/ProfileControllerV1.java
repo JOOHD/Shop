@@ -116,7 +116,7 @@ public class ProfileControllerV1 {
         Optional<Member> optionalMember = memberRepositoryV1.findById(memberId);
         if (optionalMember.isPresent()) {
             Member existingMember = optionalMember.get();
-            existingMember.updateNickname(newNickname);
+            existingMember.getNickname(); // 도메인 메서드 적용
             memberRepositoryV1.save(existingMember);
             return ResponseEntity.ok("Member Nickname updated successfully.");
         }
