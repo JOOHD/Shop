@@ -1,0 +1,248 @@
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* --- HEADER --- */
+.header-bar {
+    height: 70px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    background-color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.left-icons,
+.right-icons {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.left-icons i,
+.right-icons i {
+    font-size: 20px;
+    cursor: pointer;
+    color: #111;
+}
+
+.logo {
+    height: 40px;
+}
+
+.header-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+}
+
+.header-logo-link {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* --- HERO BANNER --- */
+.hero {
+    position: relative;
+    width: 100%;
+    height: 500px;
+    background: url('/images/hero_kit.jpg') no-repeat center center;
+    background-size: cover;
+    display: flex;
+    align-items: flex-end;
+    padding: 40px;
+    color: white;
+}
+
+.hero-content {
+    background: rgba(0, 0, 0, 0.5);
+    padding: 20px 30px;
+    border-radius: 10px;
+}
+
+.hero-content h1 {
+    font-size: 2.5rem;
+    margin: 0;
+}
+
+.hero-content p {
+    font-size: 1.1rem;
+    margin: 10px 0 20px 0;
+}
+
+.hero-content .btn-shop {
+    padding: 10px 30px;
+    font-size: 1rem;
+    background-color: #DA291C;
+    border: none;
+    border-radius: 25px;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.hero-content .btn-shop:hover {
+    background-color: #b52018;
+}
+
+/* --- 사이드바 (카테고리) --- */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: -250px;
+    width: 250px;
+    height: 100%;
+    background-color: #fff;
+    border-right: 1px solid #ddd;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    transition: left 0.3s ease-in-out;
+    z-index: 1100;
+}
+
+.sidebar.active {
+    left: 0;
+}
+
+.sidebar h3 {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: #212529;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar ul li {
+    margin: 15px 0;
+}
+
+.sidebar ul li a {
+    color: #495057;
+    text-decoration: none;
+    font-size: 1rem;
+}
+
+.sidebar ul li a:hover {
+    text-decoration: underline;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.3);
+    display: none;
+    z-index: 1099;
+}
+
+.overlay.active {
+    display: block;
+}
+
+/* --- 검색 사이드바 --- */
+.search-sidebar {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    max-width: 500px;
+    height: 100%;
+    background-color: #fff;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+    z-index: 1200;
+    transition: left 0.3s ease-in-out;
+    padding: 20px;
+}
+
+.search-sidebar.active {
+    left: 0;
+}
+
+.search-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.search-header i {
+    font-size: 24px;
+    cursor: pointer;
+    color: #DA291C;
+}
+
+.logo-small {
+    height: 36px;
+}
+
+.search-box {
+    margin-top: 30px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #ccc;
+    padding: 10px 0;
+}
+
+.search-box i {
+    font-size: 18px;
+    margin-right: 10px;
+    color: #555;
+}
+
+.search-box input {
+    flex-grow: 1;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    color: #222;
+}
+
+/* --- 본문 콘텐츠 --- */
+.main-content {
+    padding: 30px;
+}
+
+.thumbnail-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.thumbnail {
+    width: 240px;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.thumbnail img {
+    width: 100%;
+    height: auto;
+}
+
+.thumbnail:hover {
+    transform: scale(1.03);
+}
+
+.thumb-title {
+    padding: 10px;
+    font-weight: bold;
+    text-align: center;
+}

@@ -6,6 +6,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class ViewController {
 
+    @GetMapping("/")
+    public String formHome() {
+        return "home";
+    }
+
     @GetMapping("/join")
     public String formJoin() {
         return "/members/join";

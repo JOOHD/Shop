@@ -56,7 +56,7 @@ public class ImageUtil {
                 log.info("Initial file size is larger than 2MB compressing...");
 
                 // JPEG 이미지일 경우 품질을 조절하여 기본적으로 50% 압축
-                if (formatName.equalsIgnoreCase("jpeg") || formatName.equalsIgnoreCase("jpg")) {
+                if (formatName.equalsIgnoreCase("jpeg") || formatName.equalsIgnoreCase("jpg") || formatName.equalsIgnoreCase("png")) {
                     Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName(formatName);
                     if (writers.hasNext()) {
                         ImageWriter writer = writers.next();
