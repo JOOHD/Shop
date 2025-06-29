@@ -1,7 +1,9 @@
 package JOO.jooshop.profiile.service;
 
 import JOO.jooshop.global.authorization.MemberAuthorizationUtil;
+import JOO.jooshop.global.authorization.RequiresRole;
 import JOO.jooshop.global.image.ImageUtil;
+import JOO.jooshop.members.entity.enums.MemberRole;
 import JOO.jooshop.profiile.entity.Profiles;
 import JOO.jooshop.profiile.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
@@ -40,12 +42,14 @@ public class ProfileService {
 
     /* 프로필 생성(회원가입 시, INSERT) */
     @Transactional
+    @RequiresRole({ MemberRole.USER, MemberRole.SELLER})
     public void saveProfileBySignup(Profiles memberProfiles) {
         profileRepository.save(memberProfiles);
     }
 
     /* 프로필 이미지 조회 (SELECT) */
     @Cacheable(value = "profileImages", key = "#memberId") // 캐시에 존재하면 DB 조회 없이 바로 반환, 없으면 DB 조회 후, 캐시에 저장
+    @RequiresRole({ MemberRole.USER, MemberRole.SELLER})
     public String getProfileImage(Long memberId) throws Exception {
         Optional<Profiles> memberProfileOpt = profileRepository.findByMemberId(memberId);
         if (memberProfileOpt.isPresent()) {
@@ -57,8 +61,9 @@ public class ProfileService {
     }
 
     /* 프로필 이미지 업로드 및 수정 (UPDATE) */
-    @CachePut(value = "profileImages", key = "#memberId")
     @Transactional
+    @CachePut(value = "profileImages", key = "#memberId")
+    @RequiresRole({ MemberRole.USER, MemberRole.SELLER})
     public ResponseEntity<String> uploadProfileImageV3(@PathVariable("memberId") Long memberId, @RequestPart MultipartFile imageFile) {
         MemberAuthorizationUtil.verifyUserIdMatch(memberId);
         String uploadsDir = "/src/main/resources/static/uploads/profileimg/";
@@ -94,6 +99,7 @@ public class ProfileService {
 
     /* 프로필 이미지 삭제 (DELETE) */
     @Transactional
+    @RequiresRole({ MemberRole.USER, MemberRole.SELLER})
     public void deleteProfileImage(Long memberId) {
         Optional<Profiles> memberProfileOpt = profileRepository.findByMemberId(memberId);
         if (memberProfileOpt.isPresent()) {

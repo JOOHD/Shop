@@ -43,7 +43,6 @@ public class ProfileControllerV1 {
 
     private final ProfileService profileService;
     private final ProfileRepository profileRepository;
-    private final ObjectMapper objectMapper;
     private final MemberRepositoryV1 memberRepositoryV1;
 
     /* 프로필 조회 */

@@ -45,6 +45,9 @@ public class JoinApiController {
              - OAuth2 로그인 → success handler 처리 별도, 여기선 X
              - 로그아웃 시 쿠키 삭제 및 AccessToken 블랙리스트 처리
 
+        GET /login 컨트롤러는 로그인 페이지 보여주기용으로 필요합니다.
+        POST /login 인증 처리(아이디, 비밀번호 검증)는 Spring Security가 내부에서 처리합니다.
+
         ※ 전체 흐름
         1. [POST] /login 요청 수신 (login.html에서 fetch로 호출)
         2. 이메일/비밀번호를 받아 회원 인증

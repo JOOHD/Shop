@@ -3,10 +3,13 @@ package JOO.jooshop.global.authentication.config;
 import JOO.jooshop.global.authentication.jwts.filters.CustomJsonEmailPasswordAuthenticationFilter;
 import JOO.jooshop.global.authentication.jwts.filters.JWTFilterV3;
 import JOO.jooshop.global.authentication.jwts.filters.LoginFilter;
+import JOO.jooshop.global.authentication.jwts.handler.FormLoginFailureHandler;
+import JOO.jooshop.global.authentication.jwts.handler.FormLoginSuccessHandler;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.authentication.oauth2.custom.service.CustomOAuth2UserServiceV1;
 import JOO.jooshop.global.authentication.oauth2.handler.CustomLoginFailureHandler;
 import JOO.jooshop.global.authentication.oauth2.handler.CustomLoginSuccessHandlerV1;
+import JOO.jooshop.global.authentication.oauth2.handler.CustomLoginSuccessHandlerV2;
 import JOO.jooshop.global.authorization.CustomAuthorizationRequestResolver;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
 import JOO.jooshop.members.repository.RefreshRepository;
@@ -49,8 +52,11 @@ public class SecurityConfig {
     private final RefreshRepository refreshRepository;
     private final MemberRepositoryV1 memberRepository;
     private final ClientRegistrationRepository clientRegistrationRepository;
+
+    private final FormLoginSuccessHandler formLoginSuccessHandler;
+    private final FormLoginFailureHandler formLoginFailureHandler;
     private final CustomOAuth2UserServiceV1 customOAuth2UserService;
-    private final CustomLoginSuccessHandlerV1 customLoginSuccessHandler;
+    private final CustomLoginSuccessHandlerV2 customLoginSuccessHandler;
     private final CustomLoginFailureHandler customLoginFailureHandler;
 
     @Value("${frontend.url}")
@@ -127,6 +133,7 @@ public class SecurityConfig {
                 .requestMatchers("/login", "/logout", "/", "/auth/**", "/login/oauth2/code/**", "/api/join", "/api/admin/join").permitAll()
                 .requestMatchers("/api/v1/categorys/**", "/api/v1/thumbnail/**", "/api/v1/members/**").permitAll()
                 .requestMatchers(antMatcher(HttpMethod.GET, "/api/v1/products/**")).permitAll()
+                .requestMatchers(antMatcher(HttpMethod.POST, "/api/v1/profile/**")).hasAnyRole("USER", "SELLER")
                 .requestMatchers(antMatcher(HttpMethod.POST, "/api/v1/products/**")).hasAnyRole("ADMIN", "SELLER")
                 .requestMatchers(antMatcher(HttpMethod.PUT, "/api/v1/products/**")).hasAnyRole("ADMIN", "SELLER")
                 .requestMatchers(antMatcher(HttpMethod.DELETE, "/api/v1/products/**")).hasAnyRole("ADMIN", "SELLER")
@@ -147,12 +154,12 @@ public class SecurityConfig {
         // Form 로그인 설정 (웹 UI)
         http.formLogin(form -> form
                 .loginPage("/login")                // 로그인 form page
-                .loginProcessingUrl("/api/login")   // 로그읜 처리 요청 URL
-                .defaultSuccessUrl("/")
-                .successHandler(loginSuccessHandler())
-                .failureHandler(loginFailureHandler())
+                .loginProcessingUrl("/login")       // 로그읜 처리 요청 URL
+                .defaultSuccessUrl("/profile", true)   // 로그인 성공 시, 리다이렉트 URL
+                .successHandler(formLoginSuccessHandler)
+                .failureHandler(formLoginFailureHandler)
                 .permitAll()
-        );
+        ); 
 
         // OAuth2 로그인 설정
         http.oauth2Login(oauth2 -> oauth2
@@ -163,8 +170,8 @@ public class SecurityConfig {
                         )
                 )
                 .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                .successHandler(loginSuccessHandler())
-                .failureHandler(loginFailureHandler())
+                .successHandler(customLoginSuccessHandler)  // JWT 토큰 발행하는 핸들러 등록
+                .failureHandler(customLoginFailureHandler)
         );
 
         // 세션 설정: Form 로그인용은 stateful, API는 stateless
