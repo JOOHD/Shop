@@ -4,14 +4,14 @@
     <title>회원 프로필</title>
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <link rel="stylesheet" href="/css/profile.css" />
+    <link rel="stylesheet" th:href="@{/css/profile.css}" />
 </head>
 <body>
 <div class="profile-container">
     <h2>내 프로필</h2>
 
     <div class="profile-header">
-        <img id="profileImage" src="/images/default_profile.png" alt="프로필 이미지" class="profile-img" />
+        <img id="profileImage" th:src="@{/images/default_profile.png}" alt="프로필 이미지" class="profile-img" />
         <div class="profile-actions">
             <input type="file" id="imageUpload" accept="image/*" />
             <button id="uploadBtn">프로필 이미지 업로드</button>
@@ -20,12 +20,12 @@
 
     <div class="profile-info">
         <p><label>닉네임: </label>
-            <input type="text" id="nickname" />
+            <input type="text" id="nickname" th:value="${member.nickname}" />
             <button id="updateNicknameBtn">수정</button>
         </p>
-        <p><label>이메일: </label> <span id="email"></span></p>
+        <p><label>이메일: </label> <span id="email" th:text="${member.email}"></span></p>
         <p><label>성별: </label>
-            <select id="genderSelect">
+            <select id="genderSelect" th:value="${member.gender}">
                 <option value="">선택</option>
                 <option value="MALE">남성</option>
                 <option value="FEMALE">여성</option>
@@ -34,7 +34,7 @@
             <button id="updateGenderBtn">수정</button>
         </p>
         <p><label>연령대: </label>
-            <select id="ageSelect">
+            <select id="ageSelect" th:value="${member.age}">
                 <option value="">선택</option>
                 <option value="TEENS">10대</option>
                 <option value="TWENTIES">20대</option>
@@ -45,16 +45,17 @@
             <button id="updateAgeBtn">수정</button>
         </p>
         <p><label>자기소개:</label></p>
-        <textarea id="introduction" rows="4" cols="60" readonly></textarea>
+        <textarea id="introduction" rows="4" cols="60" readonly th:text="${member.introduction}"></textarea>
 
-        <p><small>가입일: <span id="createdAt"></span></small></p>
-        <p><small>최근 수정일: <span id="updatedAt"></span></small></p>
+        <p><small>가입일: <span id="createdAt" th:text="${member.createdAt}"></span></small></p>
+        <p><small>최근 수정일: <span id="updatedAt" th:text="${member.updatedAt}"></span></small></p>
     </div>
 
     <div id="message" class=""></div>
 </div>
 
-<script>
+<!-- JS -->
+<script th:inline="javascript">
     const memberId = /* 서버에서 주입하거나 JS 세션에서 가져오기 */ 1;
 
     const apiBase = `/api/v1/profile/${memberId}`;

@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -35,6 +36,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.Collections;
@@ -113,78 +115,76 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
-
-        // CORS
-        http.cors(cors -> cors.configurationSource(request -> {
-            CorsConfiguration config = new CorsConfiguration();
-            config.setAllowedOrigins(Collections.singletonList(frontendUrl));
-            config.setAllowedMethods(Collections.singletonList("*"));
-            config.setAllowedHeaders(Collections.singletonList("*"));
-            config.setAllowCredentials(true);
-            config.setMaxAge(3600L);
-            config.addExposedHeader("Set-Cookie");
-            config.addExposedHeader("Authorization");
-            return config;
-        }));
-
-        // 인가 설정
-        http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/logout", "/", "/auth/**", "/login/oauth2/code/**", "/api/join", "/api/admin/join").permitAll()
-                .requestMatchers("/api/v1/categorys/**", "/api/v1/thumbnail/**", "/api/v1/members/**").permitAll()
-                .requestMatchers(antMatcher(HttpMethod.GET, "/api/v1/products/**")).permitAll()
-                .requestMatchers(antMatcher(HttpMethod.POST, "/api/v1/profile/**")).hasAnyRole("USER", "SELLER")
-                .requestMatchers(antMatcher(HttpMethod.POST, "/api/v1/products/**")).hasAnyRole("ADMIN", "SELLER")
-                .requestMatchers(antMatcher(HttpMethod.PUT, "/api/v1/products/**")).hasAnyRole("ADMIN", "SELLER")
-                .requestMatchers(antMatcher(HttpMethod.DELETE, "/api/v1/products/**")).hasAnyRole("ADMIN", "SELLER")
-                .requestMatchers(antMatcher(HttpMethod.POST, "/api/v1/thumbnail/**")).hasAnyRole("ADMIN", "SELLER")
-                .requestMatchers(antMatcher(HttpMethod.PUT, "/api/v1/thumbnail/**")).hasAnyRole("ADMIN", "SELLER")
-                .requestMatchers(antMatcher(HttpMethod.DELETE, "/api/v1/thumbnail/**")).hasAnyRole("ADMIN", "SELLER")
-                .requestMatchers("/admin", "/api/v1/inventory/**").hasRole("ADMIN")
-                .requestMatchers("/api/v1/reissue/access", "/api/v1/reissue/refresh").permitAll()
-                .requestMatchers("/api/v1/inquiry/**").permitAll()
-                .requestMatchers("/api/v1/inquiry/reply/**").hasAnyRole("ADMIN", "SELLER")
-                .requestMatchers("/api/**").authenticated()
-                .anyRequest().permitAll()
-        );
-
-        // CSRF 설정: REST API는 비활성화
-        http.csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"));
-
-        // Form 로그인 설정 (웹 UI)
-        http.formLogin(form -> form
-                .loginPage("/login")                // 로그인 form page
-                .loginProcessingUrl("/login")       // 로그읜 처리 요청 URL
-                .defaultSuccessUrl("/profile", true)   // 로그인 성공 시, 리다이렉트 URL
-                .successHandler(formLoginSuccessHandler)
-                .failureHandler(formLoginFailureHandler)
-                .permitAll()
-        ); 
-
-        // OAuth2 로그인 설정
-        http.oauth2Login(oauth2 -> oauth2
-                .loginPage("/login")
-                .authorizationEndpoint(auth -> auth
-                        .authorizationRequestResolver(
-                                new CustomAuthorizationRequestResolver(clientRegistrationRepository, "/oauth2/authorization")
-                        )
+    @Order(1) // API 먼저 처리
+    public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
+        http
+                .securityMatcher("/api/**")    // API 경로만 적용
+                .csrf(csrf -> csrf.disable())  // API 요청은 CSRF 비활성화
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // ✅ STATELESS
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/join", "/api/admin/join").permitAll()
+                        .requestMatchers("/api/v1/categorys/**", "/api/v1/thumbnail/**", "/api/v1/members/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/profile/**").hasAnyRole("USER", "SELLER")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/products/**").hasAnyRole("ADMIN", "SELLER")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/products/**").hasAnyRole("ADMIN", "SELLER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/products/**").hasAnyRole("ADMIN", "SELLER")
+                        .requestMatchers("/api/v1/inquiry/reply/**").hasAnyRole("ADMIN", "SELLER")
+                        .requestMatchers("/api/v1/reissue/access", "/api/v1/reissue/refresh").permitAll()
+                        .requestMatchers("/api/v1/inquiry/**").permitAll()
+                        .requestMatchers("/api/**").authenticated()
                 )
-                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                .successHandler(customLoginSuccessHandler)  // JWT 토큰 발행하는 핸들러 등록
-                .failureHandler(customLoginFailureHandler)
-        );
+                .addFilterBefore(new JWTFilterV3(jwtUtil, redisTemplate, memberRepository), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(loginFilter(authenticationManager), JWTFilterV3.class);
 
-        // 세션 설정: Form 로그인용은 stateful, API는 stateless
-        http.sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        );
+        return http.build();
+    }
 
-        // 로그아웃 비활성화 (커스텀 필터 사용 시)
-        http.logout(logout -> logout.disable());
-
-        // JWT 필터 등록
-        http.addFilterBefore(new JWTFilterV3(jwtUtil, redisTemplate, memberRepository), UsernamePasswordAuthenticationFilter.class);
-        http.addFilterBefore(loginFilter(authenticationManager), JWTFilterV3.class);
+    @Bean
+    @Order(2) // 그 외 모든 요청 (Form Login, OAuth2 등)
+    public SecurityFilterChain webSecurityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
+        http
+                .securityMatcher("/**")
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/**") // API 경로는 CSRF 무시 (안 해도 위에서 이미 처리됨)
+                        .csrfTokenRepository(CookieCsrfTok enRepository.withHttpOnlyFalse()) // 폼 로그인용 CSRF 활성화 및 쿠키 방식 저장
+                )
+                .cors(cors -> cors.configurationSource(request -> {
+                    CorsConfiguration config = new CorsConfiguration();
+                    config.setAllowedOrigins(Collections.singletonList(frontendUrl));
+                    config.setAllowedMethods(Collections.singletonList("*"));
+                    config.setAllowedHeaders(Collections.singletonList("*"));
+                    config.setAllowCredentials(true);
+                    config.setMaxAge(3600L);
+                    config.addExposedHeader("Set-Cookie");
+                    config.addExposedHeader("Authorization");
+                    return config;
+                }))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)) // ✅ 세션 사용
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/login", "/logout", "/", "/auth/**", "/oauth2/**").permitAll()
+                        .requestMatchers("/admin", "/api/v1/inventory/**").hasRole("ADMIN")
+                        .anyRequest().permitAll()
+                )
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .loginProcessingUrl("/login")
+                        .successHandler(formLoginSuccessHandler)
+                        .failureHandler(formLoginFailureHandler)
+                        .permitAll()
+                )
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/login")
+                        .authorizationEndpoint(auth -> auth
+                                .authorizationRequestResolver(
+                                        new CustomAuthorizationRequestResolver(clientRegistrationRepository, "/oauth2/authorization")
+                                )
+                        )
+                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                        .successHandler(customLoginSuccessHandler)
+                        .failureHandler(customLoginFailureHandler)
+                )
+                .logout(logout -> logout.disable()); // 커스텀 로그아웃 필터 있는 경우
 
         return http.build();
     }

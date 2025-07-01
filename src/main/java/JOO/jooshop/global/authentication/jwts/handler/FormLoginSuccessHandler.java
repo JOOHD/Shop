@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -16,10 +16,15 @@ import java.io.IOException;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class FormLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JWTUtil jwtUtil;
+    private final String backendUrl;
+
+    public FormLoginSuccessHandler(JWTUtil jwtUtil, @Value("${spring.backend.url}") String backendUrl) {
+        this.jwtUtil = jwtUtil;
+        this.backendUrl = backendUrl;
+    }
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
@@ -49,7 +54,7 @@ public class FormLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandl
         */
 
         // 로그인 성공 후 리다이렉트 (프로필 페이지 등)
-        response.setStatus(HttpStatus.OK.value());
-        getRedirectStrategy().sendRedirect(request, response, "/profile");  // 원하는 URL로 변경 가능
+//        response.sendRedirect(backendUrl + "/profile");
+        getRedirectStrategy().sendRedirect(request, response, backendUrl + "/profile");
     }
 }
