@@ -3,7 +3,6 @@ package JOO.jooshop.contentImgs.controller;
 import JOO.jooshop.contentImgs.entity.ContentImages;
 import JOO.jooshop.contentImgs.service.ContentImgService;
 import JOO.jooshop.product.entity.Product;
-import JOO.jooshop.product.repository.ProductColorRepositoryV1;
 import JOO.jooshop.product.repository.ProductRepositoryV1;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,8 +14,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
-import static JOO.jooshop.global.ResponseMessageConstants.PRODUCT_NOT_FOUND;
-import static JOO.jooshop.global.ResponseMessageConstants.DELETE_SUCCESS;
+import static JOO.jooshop.global.Exception.ResponseMessageConstants.PRODUCT_NOT_FOUND;
+import static JOO.jooshop.global.Exception.ResponseMessageConstants.DELETE_SUCCESS;
 
 @RestController
 @RequestMapping("/api/v1/product/image")

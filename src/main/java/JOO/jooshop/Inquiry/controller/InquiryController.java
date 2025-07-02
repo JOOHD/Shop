@@ -16,7 +16,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import static JOO.jooshop.global.ResponseMessageConstants.*;
+import static JOO.jooshop.global.Exception.ResponseMessageConstants.*;
 
 @RestController
 @RequestMapping("/api/v1/inquiry")

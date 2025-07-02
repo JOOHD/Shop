@@ -2,7 +2,7 @@ package JOO.jooshop.order.service;
 
 import JOO.jooshop.cart.entity.Cart;
 import JOO.jooshop.cart.repository.CartRepository;
-import JOO.jooshop.global.Exception.MemberNotMatchException;
+import JOO.jooshop.global.Exception.customException.MemberNotMatchException;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
 import JOO.jooshop.order.entity.OrderProduct;

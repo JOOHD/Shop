@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-import static JOO.jooshop.global.ResponseMessageConstants.*;
+import static JOO.jooshop.global.Exception.ResponseMessageConstants.*;
 
 @Service
 @RequiredArgsConstructor

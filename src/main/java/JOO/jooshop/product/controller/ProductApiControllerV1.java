@@ -22,7 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-import static JOO.jooshop.global.ResponseMessageConstants.DELETE_SUCCESS;
+import static JOO.jooshop.global.Exception.ResponseMessageConstants.DELETE_SUCCESS;
 
 @RestController
 @RequestMapping("/api/v1")

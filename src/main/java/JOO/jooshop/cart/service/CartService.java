@@ -7,7 +7,6 @@ import JOO.jooshop.cart.model.CartUpdateDto;
 import JOO.jooshop.cart.repository.CartRepository;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
-import JOO.jooshop.product.repository.ProductRepositoryV1;
 import JOO.jooshop.productManagement.entity.ProductManagement;
 import JOO.jooshop.productManagement.repository.ProductManagementRepository;
 
@@ -20,7 +19,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
-import static JOO.jooshop.global.ResponseMessageConstants.*;
+import static JOO.jooshop.global.Exception.ResponseMessageConstants.*;
 import static JOO.jooshop.global.authorization.MemberAuthorizationUtil.verifyUserIdMatch;
 
 @Service

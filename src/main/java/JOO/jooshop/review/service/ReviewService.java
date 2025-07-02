@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static JOO.jooshop.global.ResponseMessageConstants.*;
+import static JOO.jooshop.global.Exception.ResponseMessageConstants.*;
 import static JOO.jooshop.global.authorization.MemberAuthorizationUtil.*;
 
 @Service

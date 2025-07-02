@@ -1,7 +1,6 @@
 package JOO.jooshop.global.authentication.jwts.controller;
 
 
-import JOO.jooshop.global.authentication.jwts.utils.CookieUtil;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.authentication.jwts.utils.TokenResolver;
 import JOO.jooshop.members.entity.Member;
@@ -11,29 +10,22 @@ import JOO.jooshop.members.model.RefreshDto;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
 import JOO.jooshop.members.repository.RefreshRepository;
 import com.google.gson.JsonObject;
-import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-
-import static JOO.jooshop.global.ResponseMessageConstants.REFRESH_NOT_FOUND;
 
 @Slf4j
 @RestController

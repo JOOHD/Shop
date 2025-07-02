@@ -1,6 +1,6 @@
 package JOO.jooshop.global.Exception;
 
-import JOO.jooshop.global.ResponseMessageConstants;
+import JOO.jooshop.global.Exception.customException.*;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -98,6 +98,21 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.FORBIDDEN, ResponseMessageConstants.EMAIL_NOT_VERIFIED);
     }
 
+    @ExceptionHandler(EmailAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handlerEmailAlreadyExists(EmailAlreadyExistsException ex) {
+        return buildResponse(HttpStatus.ALREADY_REPORTED, ResponseMessageConstants.EMAIL_ALREADY_EXISTS);
+    }
+
+    @ExceptionHandler(ExistingMemberException.class)
+    public ResponseEntity<ErrorResponse> handlerExistingMember(EmailAlreadyExistsException ex) {
+        return buildResponse(HttpStatus.ALREADY_REPORTED, ResponseMessageConstants.MEMBER_ALREADY_EXISTS);
+    }
+
+    @ExceptionHandler(InvalidNicknameException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidNicknameException(InvalidNicknameException ex) {
+        return buildResponse(HttpStatus.ALREADY_REPORTED, ResponseMessageConstants.INVALID_NICKNAME);
+    }
+
     // ===================== 기타 보안 예외 =====================
 
     @ExceptionHandler(SecurityException.class)
@@ -110,6 +125,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(PaymentHistoryNotFoundException.class)
     public ResponseEntity<ErrorResponse> handlePaymentHistoryNotFoundException(PaymentHistoryNotFoundException ex) {
         return buildResponse(HttpStatus.NOT_FOUND, ResponseMessageConstants.PAYMENT_HISTORY_NOT_FOUND);
+    }
+
+    @ExceptionHandler(MemberNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleMemberNotFoundException(MemberNotFoundException ex) {
+        return buildResponse(HttpStatus.NOT_FOUND, ResponseMessageConstants.MEMBER_NOT_FOUND);
     }
 
     // ===================== 공통 응답 빌더 =====================

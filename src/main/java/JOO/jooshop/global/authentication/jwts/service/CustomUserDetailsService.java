@@ -5,6 +5,7 @@ import JOO.jooshop.global.authentication.jwts.entity.CustomMemberDto;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.service.MemberService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -21,7 +22,10 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
-        Member member = memberService.validateDuplicatedEmail(email);
+        Member member = memberService.findMemberByEmail(email);
+        if (!member.isCertifiedByEmail()) {
+            throw new AuthenticationServiceException("Email is not certified yet.");
+        }
 
         CustomMemberDto customMemberDto = CustomMemberDto.createCustomMember(member);
 

@@ -1,4 +1,4 @@
-package JOO.jooshop.global.Exception;
+package JOO.jooshop.global.Exception.customException;
 
 public class UnverifiedEmailException extends RuntimeException{
 

@@ -5,7 +5,7 @@ import JOO.jooshop.cart.model.CartDto;
 import JOO.jooshop.cart.model.CartRequestDto;
 import JOO.jooshop.cart.model.CartUpdateDto;
 import JOO.jooshop.cart.service.CartService;
-import JOO.jooshop.global.ResponseMessageConstants;
+import JOO.jooshop.global.Exception.ResponseMessageConstants;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
 import jakarta.validation.Valid;

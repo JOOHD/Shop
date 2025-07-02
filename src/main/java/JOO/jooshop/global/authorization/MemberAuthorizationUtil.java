@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import static JOO.jooshop.global.ResponseMessageConstants.*;
+import static JOO.jooshop.global.Exception.ResponseMessageConstants.*;
 @Slf4j
 public class MemberAuthorizationUtil {
 

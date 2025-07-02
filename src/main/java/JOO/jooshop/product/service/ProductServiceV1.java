@@ -12,7 +12,6 @@ import JOO.jooshop.product.model.ProductDto;
 import JOO.jooshop.product.repository.ProductColorRepositoryV1;
 import JOO.jooshop.product.repository.ProductRepositoryV1;
 import JOO.jooshop.productThumbnail.service.ProductThumbnailServiceV1;
-import kotlin.RequiresOptIn;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -27,7 +26,7 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static JOO.jooshop.global.ResponseMessageConstants.PRODUCT_NOT_FOUND;
+import static JOO.jooshop.global.Exception.ResponseMessageConstants.PRODUCT_NOT_FOUND;
 
 @Service
 @Transactional(rollbackFor = Exception.class)

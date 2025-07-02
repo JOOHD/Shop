@@ -126,12 +126,15 @@ public class Member {
     /**
      * 일반 회원가입 처리 (패스워드 회원)
      */
-    public static Member createGeneralMember(String email, String nickname, String password,
+    public static Member createGeneralMember(String email, String username, String nickname,
+                                             String password, String phone,
                                              String token, String socialId) {
         return Member.builder()
                 .email(email)
+                .username(username)
                 .nickname(nickname)
                 .password(password)
+                .phone(phone)
                 .memberRole(MemberRole.USER)
                 .socialType(SocialType.GENERAL)
                 .socialId(socialId)
@@ -144,12 +147,15 @@ public class Member {
     /**
      * 관리자 계정 생성
      */
-    public static Member createAdminMember(String email, String nickname, String password,
+    public static Member createAdminMember(String email, String username, String nickname,
+                                           String password, String phone,
                                            String token, String socialId) {
         return Member.builder()
                 .email(email)
+                .username(username)
                 .nickname(nickname)
                 .password(password)
+                .phone(phone)
                 .memberRole(MemberRole.ADMIN)
                 .socialType(SocialType.GENERAL)
                 .socialId(socialId)
@@ -159,6 +165,7 @@ public class Member {
                 .active(true)
                 .build();
     }
+
 
     /**
      * 민감 정보 제외한 프로필용 객체 생성

@@ -4,7 +4,6 @@ import JOO.jooshop.review.entity.Review;
 import JOO.jooshop.review.model.ReviewCreateDto;
 import JOO.jooshop.review.model.ReviewDto;
 import JOO.jooshop.review.service.ReviewService;
-import jakarta.mail.Multipart;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import static JOO.jooshop.global.ResponseMessageConstants.*;
+import static JOO.jooshop.global.Exception.ResponseMessageConstants.*;
 
 @RestController
 @RequestMapping("api/v1/review")

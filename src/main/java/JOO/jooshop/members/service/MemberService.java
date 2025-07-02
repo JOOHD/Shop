@@ -1,78 +1,140 @@
 package JOO.jooshop.members.service;
 
-import JOO.jooshop.global.Exception.InvalidCredentialsException;
+import JOO.jooshop.global.Exception.customException.ExistingMemberException;
+import JOO.jooshop.global.Exception.customException.InvalidCredentialsException;
+import JOO.jooshop.global.Exception.customException.MemberNotFoundException;
+import JOO.jooshop.global.Exception.customException.UnverifiedEmailException;
+import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
+import JOO.jooshop.global.mail.service.EmailMemberService;
 import JOO.jooshop.members.entity.Member;
+import JOO.jooshop.members.model.JoinMemberRequest;
+import JOO.jooshop.members.model.LoginRequest;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
+import JOO.jooshop.members.repository.RedisRefreshTokenRepository;
+import JOO.jooshop.profiile.entity.Profiles;
+import JOO.jooshop.profiile.repository.ProfileRepository;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
-import java.util.Optional;
+import java.util.UUID;
 
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true) // write(PUT,DELETE,INSERT) 작업은 X
-@Slf4j
 public class MemberService {
 
     private final MemberRepositoryV1 memberRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final JWTUtil jwtUtil;
+    private final RedisRefreshTokenRepository redisRefreshTokenRepository;
+    private final ProfileRepository profileRepository;
+    private final EmailMemberService emailMemberService;
 
     @Transactional
-    public Member joinMember(Member member) {
-        if (memberRepository.existsByEmail(member.getEmail())) {
-            throw new ExistingMemberException();
-        }
-        Member newMember = Member.builder()
-                .email(member.getEmail())
-                .nickname(member.getNickname())
-                .password(member.getPassword())
-                .token(member.getToken())
-                .socialId(member.getSocialId())
-                .build();
+    public Member registerMember(JoinMemberRequest request) {
+        validateDuplicateEmail(request.getEmail());
 
-        newMember.activate();
-        return memberRepository.save(newMember);
-    }
+        String token = UUID.randomUUID().toString();
+        String socialId = generateSocialId();
 
-    @Transactional
-    public Member authenticate(String email, String password) {
-        Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new InvalidCredentialsException("이메일이 올바르지 않습니다."));
-        if (!passwordEncoder.matches(password, member.getPassword())) {
-            throw new InvalidCredentialsException("비밀번호가 올바르지 않습니다.");
-        }
+        Member member = Member.createGeneralMember(
+                request.getEmail(),
+                request.getUsername(),
+                request.getNickname(),
+                passwordEncoder.encode(request.getPassword1()),
+                request.getPhone(),
+                token,
+                socialId);
+
+        memberRepository.save(member);
+        profileRepository.save(Profiles.createMemberProfile(member));
+        sendVerificationEmail(member.getEmail(), token);
+
         return member;
     }
 
     @Transactional
-    public Member validateDuplicatedEmail(String email) {
-        Optional<Member> optionalMember = memberRepository.findByEmail(email);
-        return optionalMember.orElseThrow(
-                () -> new UserNotFoundByEmailException("No user found with this email: " + email));
+    public Member registerAdmin(JoinMemberRequest request) {
+        validateDuplicateEmail(request.getEmail());
+
+        String token = UUID.randomUUID().toString();
+        String socialId = generateSocialId();
+
+        Member admin = Member.createAdminMember(
+                request.getEmail(),
+                request.getUsername(),
+                request.getNickname(),
+                passwordEncoder.encode(request.getPassword1()),
+                request.getPhone(),
+                token,
+                socialId);
+
+        admin.activate();
+        memberRepository.save(admin);
+        profileRepository.save(Profiles.createMemberProfile(admin));
+        return admin;
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public static class ExistingMemberException extends IllegalStateException {
-        public ExistingMemberException() {
-            super("이미 존재하는 회원입니다.");
+    @Transactional
+    public String login(LoginRequest loginRequest, HttpServletResponse response) {
+        Member member = memberRepository.findByEmail(loginRequest.getEmail())
+                .orElseThrow(() -> new InvalidCredentialsException("이메일이 올바르지 않습니다."));
+
+        if (!passwordEncoder.matches(loginRequest.getPassword(), member.getPassword())) {
+            throw new InvalidCredentialsException("비밀번호가 올바르지 않습니다.");
+        }
+
+        if (!member.isCertifiedByEmail()) {
+            throw new UnverifiedEmailException("인증되지 않은 이메일입니다.");
+        }
+
+        String accessToken = jwtUtil.createAccessToken("access", member.getId().toString(), member.getRole().name());
+        String refreshToken = jwtUtil.createRefreshToken("refresh", member.getId().toString(), member.getRole().name());
+
+        redisRefreshTokenRepository.save(String.valueOf(member.getId()), refreshToken);
+
+        Cookie jwtCookie = new Cookie("accessToken", accessToken);
+        jwtCookie.setHttpOnly(true);
+        jwtCookie.setSecure(true);
+        jwtCookie.setPath("/");
+        int maxAge = (int) ((jwtUtil.getExpiration(accessToken).getTime() - System.currentTimeMillis()) / 1000);
+        jwtCookie.setMaxAge(maxAge);
+        response.addCookie(jwtCookie);
+
+        return "로그인 성공, 환영합니다.";
+    }
+
+    private void sendVerificationEmail(String email, String token) {
+        try {
+            Member tempMember = Member.createEmailMember(email, token);
+            emailMemberService.sendEmailVerification(tempMember);
+        } catch (Exception e) {
+            log.error("이메일 전송 실패", e);
         }
     }
 
-    public static class UserNotFoundByEmailException extends RuntimeException {
-        public UserNotFoundByEmailException(String message) {
-            super(message);
+    public void validateDuplicateEmail(String email) {
+        if (memberRepository.existsByEmail(email)) {
+            throw new ExistingMemberException(email);
         }
+    }
+
+    public Member findMemberByEmail(String email) {
+        return memberRepository.findByEmail(email)
+                .orElseThrow(() -> new MemberNotFoundException(email));
+    }
+
+    public Member findMemberById(Long id) {
+        return memberRepository.findById(id)
+                .orElseThrow(() -> new MemberNotFoundException("해당 ID로 사용자를 찾을 수 없습니다: " + id));
+    }
+
+    private String generateSocialId() {
+        return "general-" + UUID.randomUUID().toString().replace("-", "").substring(0, 12);
     }
 }
-
-
-
-
-
-

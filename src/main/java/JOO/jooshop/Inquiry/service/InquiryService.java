@@ -5,7 +5,7 @@ import JOO.jooshop.Inquiry.model.InquiryCreateDto;
 import JOO.jooshop.Inquiry.model.InquiryDto;
 import JOO.jooshop.Inquiry.model.InquiryUpdateDto;
 import JOO.jooshop.Inquiry.repository.InquiryRepository;
-import JOO.jooshop.global.ResponseMessageConstants;
+import JOO.jooshop.global.Exception.ResponseMessageConstants;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.authorization.MemberAuthorizationUtil;
 import JOO.jooshop.members.entity.Member;
@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
-import static JOO.jooshop.global.ResponseMessageConstants.*;
+import static JOO.jooshop.global.Exception.ResponseMessageConstants.*;
 
 @Service
 @Transactional(rollbackFor = Exception.class)

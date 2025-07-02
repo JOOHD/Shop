@@ -89,7 +89,10 @@ public class LoginFilter extends CustomJsonEmailPasswordAuthenticationFilter {
             String password = usernamePasswordMap.get("password");
 
             // 사용자 정보에서 isCertifyByMail 필드 확인
-            Member member = memberService.validateDuplicatedEmail(email);
+            Member member = memberService.findMemberByEmail(email);
+            if (!member.isCertifiedByEmail()) {
+                throw new AuthenticationServiceException("Email is not certified yet.");
+            }
 
 //            Member member = ByEmail.get();
 //            if (!passwordEncoder.matches(password, member.getPassword())) {
@@ -132,8 +135,14 @@ public class LoginFilter extends CustomJsonEmailPasswordAuthenticationFilter {
         log.info("유저 권한: " + authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList()));
+
         String email = authentication.getName();
-        Member memberByEmail = memberService.validateDuplicatedEmail(email);
+        Member memberByEmail = memberService.findMemberByEmail(email);
+
+        if (!memberByEmail.isCertifiedByEmail()) {
+            throw new AuthenticationServiceException("Email is not certified yet.");
+        }
+
         String memberId = memberByEmail.getId().toString(); // 토큰에 넣을때, 문자열로 넣습니다.
 
         // 권한을 문자열로 변환

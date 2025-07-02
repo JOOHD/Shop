@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import static JOO.jooshop.global.ResponseMessageConstants.PRODUCT_NOT_FOUND;
+import static JOO.jooshop.global.Exception.ResponseMessageConstants.PRODUCT_NOT_FOUND;
 
 @Service
 @Transactional(rollbackFor = Exception.class)

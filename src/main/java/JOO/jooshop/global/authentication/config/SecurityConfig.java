@@ -14,12 +14,13 @@ import JOO.jooshop.global.authorization.CustomAuthorizationRequestResolver;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
 import JOO.jooshop.members.repository.RefreshRepository;
 import JOO.jooshop.members.service.MemberService;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -41,18 +42,16 @@ import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.Collections;
 
-import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
-
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final ObjectMapper objectMapper;
     private final JWTUtil jwtUtil;
+    private final ObjectMapper objectMapper;
+    private final BCryptPasswordEncoder passwordEncoder;
     private final RedisTemplate<String, String> redisTemplate;
     private final RefreshRepository refreshRepository;
-    private final MemberRepositoryV1 memberRepository;
     private final ClientRegistrationRepository clientRegistrationRepository;
 
     private final FormLoginSuccessHandler formLoginSuccessHandler;
@@ -60,6 +59,11 @@ public class SecurityConfig {
     private final CustomOAuth2UserServiceV1 customOAuth2UserService;
     private final CustomLoginSuccessHandlerV2 customLoginSuccessHandler;
     private final CustomLoginFailureHandler customLoginFailureHandler;
+
+    // 지연 주입으로 순환 참조 방지
+    @Autowired
+    @Lazy
+    private MemberService memberService;
 
     @Value("${frontend.url}")
     private String frontendUrl;
@@ -80,16 +84,11 @@ public class SecurityConfig {
     }
 
     @Bean
-    public MemberService memberService() {
-        return new MemberService(memberRepository, passwordEncoder());
-    }
-
-    @Bean
     public LoginFilter loginFilter(AuthenticationManager authenticationManager) {
         LoginFilter loginFilter = new LoginFilter(
                 authenticationManager,
                 objectMapper,
-                memberService(),
+                memberService,
                 jwtUtil,
                 refreshRepository
         );
@@ -134,7 +133,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/inquiry/**").permitAll()
                         .requestMatchers("/api/**").authenticated()
                 )
-                .addFilterBefore(new JWTFilterV3(jwtUtil, redisTemplate, memberRepository), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JWTFilterV3(jwtUtil, redisTemplate, memberService), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(loginFilter(authenticationManager), JWTFilterV3.class);
 
         return http.build();
@@ -146,8 +145,8 @@ public class SecurityConfig {
         http
                 .securityMatcher("/**")
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/**") // API 경로는 CSRF 무시 (안 해도 위에서 이미 처리됨)
-                        .csrfTokenRepository(CookieCsrfTok enRepository.withHttpOnlyFalse()) // 폼 로그인용 CSRF 활성화 및 쿠키 방식 저장
+                        .ignoringRequestMatchers("/api/**")
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 )
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
@@ -184,7 +183,7 @@ public class SecurityConfig {
                         .successHandler(customLoginSuccessHandler)
                         .failureHandler(customLoginFailureHandler)
                 )
-                .logout(logout -> logout.disable()); // 커스텀 로그아웃 필터 있는 경우
+                .logout(logout -> logout.disable());
 
         return http.build();
     }

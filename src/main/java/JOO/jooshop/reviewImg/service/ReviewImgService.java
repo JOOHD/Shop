@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
-import static JOO.jooshop.global.ResponseMessageConstants.*;
 import static JOO.jooshop.global.authorization.MemberAuthorizationUtil.verifyUserIdMatch;
 
 @Service

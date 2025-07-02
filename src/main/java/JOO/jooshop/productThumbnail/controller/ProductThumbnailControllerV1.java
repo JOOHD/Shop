@@ -6,23 +6,17 @@ import JOO.jooshop.productThumbnail.entity.ProductThumbnail;
 import JOO.jooshop.productThumbnail.service.ProductThumbnailServiceV1;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.net.MalformedURLException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
-import static JOO.jooshop.global.ResponseMessageConstants.DELETE_SUCCESS;
-import static JOO.jooshop.global.ResponseMessageConstants.PRODUCT_NOT_FOUND;
+import static JOO.jooshop.global.Exception.ResponseMessageConstants.DELETE_SUCCESS;
+import static JOO.jooshop.global.Exception.ResponseMessageConstants.PRODUCT_NOT_FOUND;
 
 @Slf4j
 @RestController

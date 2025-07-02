@@ -31,7 +31,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class JWTFilterV3 extends OncePerRequestFilter {
 
@@ -65,7 +64,7 @@ public class JWTFilterV3 extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
     private final RedisTemplate<String, String> redisTemplate;
-    private final MemberRepositoryV1 memberRepository;
+    private final MemberService memberService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -139,13 +138,14 @@ public class JWTFilterV3 extends OncePerRequestFilter {
         String memberId = jwtUtil.getMemberId(token);
         log.info("[getAuthentication] memberId from token: {}", memberId);
 
-        Optional<Member> optionalMember = memberRepository.findById(Long.valueOf(memberId));
-        if (optionalMember.isEmpty()) {
-            log.warn("[getAuthentication] 사용자 없음 (memberId: {})", memberId);
+        Member member;
+        try {
+            member = memberService.findMemberById(Long.valueOf(memberId));
+        } catch (Exception e) {
+            log.warn("[getAuthentication] 사용자 조회 실패 (memberId: {})", memberId);
             return null;
         }
 
-        Member member = optionalMember.get();
         log.info("[getAuthentication] 사용자 조회 성공: {}", member.getEmail());
 
         CustomMemberDto customMemberDto = CustomMemberDto.createCustomMember(member);
