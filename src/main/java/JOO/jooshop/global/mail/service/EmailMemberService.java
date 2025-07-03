@@ -28,7 +28,7 @@ public class EmailMemberService {
         http://backend-url/auth/verify?token=...
         backend-url 클릭 시, 이메일 인증이 완료되는 구조
      */
-    @Value("${backend.url") 
+    @Value("${backend.url}")
     private String backendUrl;
 
     @Transactional
@@ -41,7 +41,7 @@ public class EmailMemberService {
         message.setSubject("JOO 회원가입 이메일 인증입닏. "); // 제목
 
         String body = "<div>"
-                + "<h1> 안녕하세요. JOO Shopping mall 입니다!<h1>"
+                + "<h1> 안녕하세요. JOO ManuMall 입니다!<h1>"
                 + "<br>"
                 + "<p>JOO 회원가입을 축하드리며, 저희 서비스를 이용해주셔서 감사합니다. <p>"
                 + "<p>아래 링크를 클릭하면 이메일 인증이 완료됩니다.<p>"

@@ -8,20 +8,15 @@ import JOO.jooshop.global.authentication.jwts.handler.FormLoginSuccessHandler;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.authentication.oauth2.custom.service.CustomOAuth2UserServiceV1;
 import JOO.jooshop.global.authentication.oauth2.handler.CustomLoginFailureHandler;
-import JOO.jooshop.global.authentication.oauth2.handler.CustomLoginSuccessHandlerV1;
 import JOO.jooshop.global.authentication.oauth2.handler.CustomLoginSuccessHandlerV2;
 import JOO.jooshop.global.authorization.CustomAuthorizationRequestResolver;
-import JOO.jooshop.members.repository.MemberRepositoryV1;
 import JOO.jooshop.members.repository.RefreshRepository;
 import JOO.jooshop.members.service.MemberService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpMethod;
@@ -49,7 +44,6 @@ public class SecurityConfig {
 
     private final JWTUtil jwtUtil;
     private final ObjectMapper objectMapper;
-    private final BCryptPasswordEncoder passwordEncoder;
     private final RedisTemplate<String, String> redisTemplate;
     private final RefreshRepository refreshRepository;
     private final ClientRegistrationRepository clientRegistrationRepository;
@@ -59,11 +53,6 @@ public class SecurityConfig {
     private final CustomOAuth2UserServiceV1 customOAuth2UserService;
     private final CustomLoginSuccessHandlerV2 customLoginSuccessHandler;
     private final CustomLoginFailureHandler customLoginFailureHandler;
-
-    // 지연 주입으로 순환 참조 방지
-    @Autowired
-    @Lazy
-    private MemberService memberService;
 
     @Value("${frontend.url}")
     private String frontendUrl;
@@ -84,19 +73,6 @@ public class SecurityConfig {
     }
 
     @Bean
-    public LoginFilter loginFilter(AuthenticationManager authenticationManager) {
-        LoginFilter loginFilter = new LoginFilter(
-                authenticationManager,
-                objectMapper,
-                memberService,
-                jwtUtil,
-                refreshRepository
-        );
-        loginFilter.setFilterProcessesUrl("/api/login"); // JSON 로그인용 경로 설정
-        return loginFilter;
-    }
-
-    @Bean
     public AuthenticationSuccessHandler loginSuccessHandler() {
         return customLoginSuccessHandler;
     }
@@ -114,12 +90,28 @@ public class SecurityConfig {
     }
 
     @Bean
-    @Order(1) // API 먼저 처리
-    public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
+    @Order(1)
+    public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http,
+                                                      AuthenticationManager authenticationManager,
+                                                      MemberService memberService) throws Exception {
+
+        // ❗LoginFilter 직접 생성 (Bean으로 등록 X)
+        LoginFilter loginFilter = new LoginFilter(
+                authenticationManager,
+                objectMapper,
+                memberService,
+                jwtUtil,
+                refreshRepository
+        );
+        loginFilter.setFilterProcessesUrl("/api/login");
+
+        // ❗JWTFilterV3도 직접 생성
+        JWTFilterV3 jwtFilter = new JWTFilterV3(jwtUtil, redisTemplate, memberService);
+
         http
-                .securityMatcher("/api/**")    // API 경로만 적용
-                .csrf(csrf -> csrf.disable())  // API 요청은 CSRF 비활성화
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // ✅ STATELESS
+                .securityMatcher("/api/**")
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/join", "/api/admin/join").permitAll()
                         .requestMatchers("/api/v1/categorys/**", "/api/v1/thumbnail/**", "/api/v1/members/**").permitAll()
@@ -133,14 +125,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/inquiry/**").permitAll()
                         .requestMatchers("/api/**").authenticated()
                 )
-                .addFilterBefore(new JWTFilterV3(jwtUtil, redisTemplate, memberService), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(loginFilter(authenticationManager), JWTFilterV3.class);
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(loginFilter, JWTFilterV3.class);
 
         return http.build();
     }
 
     @Bean
-    @Order(2) // 그 외 모든 요청 (Form Login, OAuth2 등)
+    @Order(2)
     public SecurityFilterChain webSecurityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
         http
                 .securityMatcher("/**")
@@ -159,7 +151,7 @@ public class SecurityConfig {
                     config.addExposedHeader("Authorization");
                     return config;
                 }))
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)) // ✅ 세션 사용
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/logout", "/", "/auth/**", "/oauth2/**").permitAll()
                         .requestMatchers("/admin", "/api/v1/inventory/**").hasRole("ADMIN")

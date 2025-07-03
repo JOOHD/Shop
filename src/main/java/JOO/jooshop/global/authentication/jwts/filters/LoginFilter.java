@@ -94,12 +94,6 @@ public class LoginFilter extends CustomJsonEmailPasswordAuthenticationFilter {
                 throw new AuthenticationServiceException("Email is not certified yet.");
             }
 
-//            Member member = ByEmail.get();
-//            if (!passwordEncoder.matches(password, member.getPassword())) {
-//                throw new BadCredentialsException("비밀번호가 일치하지 않습니다.");
-//            }
-//            boolean isCertifyByEmail = member.isCertifyByMail();
-//            log.info("[LoginFilter] 회원 이메일인증 여부 = " + isCertifyByMail);
             boolean isCertifyByMail = member.isCertifiedByEmail();
             if (!isCertifyByMail) {
                 // 이메일이 인증되지 않은 경우 로그인 실패 처리
