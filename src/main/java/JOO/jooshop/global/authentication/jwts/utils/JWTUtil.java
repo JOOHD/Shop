@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -68,18 +69,9 @@ public class JWTUtil { // JwtTokenProvider
 
     @PostConstruct
     public void init() {
-        if (jwtSecret == null || jwtSecret.isEmpty()) {
-            this.secretKey = Jwts.SIG.HS256.key().build();
-            log.warn("JWT SecretKey가 없어서 자동 생성됨.");
-        } else {
-            try {
-                byte[] keyBytes = Base64.getDecoder().decode(jwtSecret);
-                this.secretKey = Keys.hmacShaKeyFor(keyBytes);
-            } catch (IllegalArgumentException e) {
-                log.error("JWT SecretKey 디코딩 실패. application.yml 설정 확인 필요", e);
-                throw e;
-            }
-        }
+        byte[] keyBytes = Base64.getDecoder().decode(jwtSecret);
+        this.secretKey = Keys.hmacShaKeyFor(keyBytes);
+        log.info("JWT SecretKey 로딩 완료 (base64).");
     }
 
     /** ======================== Token 생성 ======================== */

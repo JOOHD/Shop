@@ -203,6 +203,11 @@ public class Member {
         this.certifiedByEmail = true;
     }
 
+    // 테스트용 (setter 열려있다면 가능)
+    public void setCertifiedByEmail(boolean certifiedByEmail) {
+        this.certifiedByEmail = certifiedByEmail;
+    }
+
     // 권한 처리
     public void grantAdminRole() {
         this.admin = true;

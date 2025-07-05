@@ -28,7 +28,7 @@ public class EmailMemberService {
         http://backend-url/auth/verify?token=...
         backend-url 클릭 시, 이메일 인증이 완료되는 구조
      */
-    @Value("${backend.url}")
+    @Value("${spring.backend.url}")
     private String backendUrl;
 
     @Transactional
@@ -62,7 +62,7 @@ public class EmailMemberService {
             // 회원 정보를 업데이트
             Member member = optionalMember.get();
             log.info("member email token = " + member.getToken());
-            member.certifyByEmail(); // isVerified = true
+            member.setCertifiedByEmail(true); // isVerified = true
 
             // 변경된 이메일 인증 여부, 이메일 토큰을 DB에 반영
             return memberRepository.save(member);

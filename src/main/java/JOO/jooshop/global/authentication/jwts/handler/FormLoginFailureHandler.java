@@ -29,8 +29,8 @@ public class FormLoginFailureHandler implements AuthenticationFailureHandler {
         data.put("message", exception.getMessage());
 
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write("{\"error\": \"이메일 인증이 필요합니다.\"}");
         response.getWriter().write(objectMapper.writeValueAsString(data));
     }
 }
