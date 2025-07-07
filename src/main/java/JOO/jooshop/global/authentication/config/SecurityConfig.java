@@ -1,16 +1,13 @@
 package JOO.jooshop.global.authentication.config;
 
+import JOO.jooshop.global.authentication.factory.FilterFactory;
 import JOO.jooshop.global.authentication.jwts.filters.CustomJsonEmailPasswordAuthenticationFilter;
 import JOO.jooshop.global.authentication.jwts.filters.JWTFilterV3;
 import JOO.jooshop.global.authentication.jwts.filters.LoginFilter;
-import JOO.jooshop.global.authentication.jwts.handler.FormLoginFailureHandler;
-import JOO.jooshop.global.authentication.jwts.handler.FormLoginSuccessHandler;
-import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.authentication.oauth2.custom.service.CustomOAuth2UserServiceV1;
 import JOO.jooshop.global.authentication.oauth2.handler.CustomLoginFailureHandler;
 import JOO.jooshop.global.authentication.oauth2.handler.CustomLoginSuccessHandlerV2;
 import JOO.jooshop.global.authorization.CustomAuthorizationRequestResolver;
-import JOO.jooshop.members.repository.RefreshRepository;
 import JOO.jooshop.members.service.MemberService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -37,22 +34,37 @@ import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.Collections;
 
+/**
+ * SecurityConfig
+ *
+ * Spring Security 설정을 구성하는 핵심 클래스입니다.
+ *
+ * ✔ API 경로(/api/**)와 웹 경로(/)** 를 분리하여 각각 SecurityFilterChain을 적용합니다.
+ * ✔ 필터(LoginFilter, JWTFilterV3)는 Spring Bean으로 등록하지 않고 수동 생성하여 순환 참조를 방지합니다.
+ * ✔ 필터 생성은 별도의 FilterFactory를 통해 수행되며, MemberService 등 필요한 의존성을 생성 시점에 직접 주입합니다.
+ */
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JWTUtil jwtUtil;
+    /**
+     * 1. API용 SecurityFilterChain (JWT 기반 인증)
+     *
+     * - Stateless 정책
+     * - JWTFilter → LoginFilter 순서로 필터 적용
+     * - 인증되지 않은 요청은 JWTFilter에서 차단
+     * - 로그인 요청(/api/login)은 LoginFilter에서 처리
+     */
+
     private final ObjectMapper objectMapper;
     private final RedisTemplate<String, String> redisTemplate;
-    private final RefreshRepository refreshRepository;
     private final ClientRegistrationRepository clientRegistrationRepository;
 
-    private final FormLoginSuccessHandler formLoginSuccessHandler;
-    private final FormLoginFailureHandler formLoginFailureHandler;
     private final CustomOAuth2UserServiceV1 customOAuth2UserService;
     private final CustomLoginSuccessHandlerV2 customLoginSuccessHandler;
     private final CustomLoginFailureHandler customLoginFailureHandler;
+    private final FilterFactory filterFactory;
 
     @Value("${frontend.url}")
     private String frontendUrl;
@@ -85,28 +97,26 @@ public class SecurityConfig {
     @Bean
     public CustomJsonEmailPasswordAuthenticationFilter customJsonUsernamePasswordAuthenticationFilter(
             AuthenticationManager authenticationManager) {
-
         return new CustomJsonEmailPasswordAuthenticationFilter(authenticationManager, objectMapper);
     }
 
+    /**
+     * 2. Web용 SecurityFilterChain (Form Login + OAuth2)
+     *
+     * - CSRF 쿠키 설정 적용
+     * - OAuth2 로그인 및 일반 Form 로그인 지원
+     * - 세션 정책은 IF_REQUIRED (OAuth2 및 일반 인증 시 세션 유지 필요)
+     */
     @Bean
     @Order(1)
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http,
                                                       AuthenticationManager authenticationManager,
+                                                      FilterFactory filterFactory,
                                                       MemberService memberService) throws Exception {
 
-        // ❗LoginFilter 직접 생성 (Bean으로 등록 X)
-        LoginFilter loginFilter = new LoginFilter(
-                authenticationManager,
-                objectMapper,
-                memberService,
-                jwtUtil,
-                refreshRepository
-        );
-        loginFilter.setFilterProcessesUrl("/api/login");
-
-        // ❗JWTFilterV3도 직접 생성
-        JWTFilterV3 jwtFilter = new JWTFilterV3(jwtUtil, redisTemplate, memberService);
+        // 의존성 순환 없이 안전하게 필터 생성
+        LoginFilter loginFilter = filterFactory.createLoginFilter(authenticationManager, memberService);
+        JWTFilterV3 jwtFilter = filterFactory.createJWTFilter(memberService);
 
         http
                 .securityMatcher("/api/**")
@@ -160,8 +170,8 @@ public class SecurityConfig {
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
-                        .successHandler(formLoginSuccessHandler)
-                        .failureHandler(formLoginFailureHandler)
+                        .successHandler(loginSuccessHandler())
+                        .failureHandler(loginFailureHandler())
                         .permitAll()
                 )
                 .oauth2Login(oauth2 -> oauth2

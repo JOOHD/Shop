@@ -1,5 +1,6 @@
 package JOO.jooshop.global.authentication.oauth2.handler;
 
+import JOO.jooshop.global.authentication.jwts.entity.CustomUserDetails;
 import JOO.jooshop.global.authentication.jwts.utils.CookieUtil;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.authentication.oauth2.custom.entity.CustomOAuth2User;
@@ -19,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -59,9 +61,20 @@ public class CustomLoginSuccessHandlerV2 extends SimpleUrlAuthenticationSuccessH
          */
 
         // 커스텀 클래스이기 때문에 캐스팅
-        CustomOAuth2User oAuth2User = (CustomOAuth2User) authentication.getPrincipal();
-        String email = oAuth2User.getName();
+        authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = authentication.getPrincipal();
+
+        String email = null;
         String role = extractOAuthRole(authentication);
+
+        // 일반 로그인 (CustomUserDetails), 소셜 로그인 (CustomOAuth2User) 분리
+        if (principal instanceof CustomOAuth2User) {
+            email = ((CustomOAuth2User) principal).getName();
+        } else if (principal instanceof CustomUserDetails) {
+            email = ((CustomUserDetails) principal).getUsername();
+        } else {
+            throw new IllegalStateException("UnKnown Principal Type: " + principal.getClass());
+        }
         log.info("=============소셜 로그인 성공, 유저 데이터 시작 ==============");
         log.info("email = " + email);
         log.info("role = " + role);

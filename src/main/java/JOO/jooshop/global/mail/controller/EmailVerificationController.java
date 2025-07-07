@@ -22,10 +22,10 @@ public class EmailVerificationController {
         try {
             emailMemberService.updateByVerifyToken(token);
             model.addAttribute("message", "이메일 인증이 완료되었습니다. 환영합니다!");
+            return "verifySuccess";
         } catch (UsernameNotFoundException e) {
             model.addAttribute("message", "유효하지 않은 인증 링크입니다.");
+            return "verifyFail";
         }
-
-        return "email/verificationResult";  // ✅ templates/email/verificationResult.html 경로
     }
 }
