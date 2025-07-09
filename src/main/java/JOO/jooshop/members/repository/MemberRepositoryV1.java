@@ -32,6 +32,4 @@ public interface MemberRepositoryV1 extends JpaRepository<Member, Long> {
     // socialId를 통해 회원 정보를 조회하는 메소드
     Optional<Member> findBySocialId(String socialId);
 
-    // token을 통해 회원 정보를 조회하는 메소드
-    Optional<Member> findByToken(String token);
 }

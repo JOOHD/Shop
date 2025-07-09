@@ -45,7 +45,7 @@ public class CustomLoginSuccessHandlerV2 extends SimpleUrlAuthenticationSuccessH
 
     private Long refreshTokenExpirationPeriod = 1209600L; // Refresh 만료 14일
 
-    @Value("${frontend.url}") // 로그인 성공 시, 리다이렉트 url
+    @Value("${spring.frontend.url}") // 로그인 성공 시, 리다이렉트 url
     private String frontendUrl;
 
     @Override // 로그인 성공 시, 자동으로 실행
@@ -97,7 +97,7 @@ public class CustomLoginSuccessHandlerV2 extends SimpleUrlAuthenticationSuccessH
         // [response.data] 에 Json 형태로 accessToken 과 refreshToken 을 넣어주는 방식
         setTokenResponseV2(response, newAccess, newRefresh);
 
-        response.sendRedirect(frontendUrl);
+        response.sendRedirect(frontendUrl + "/login");
     }
 
     private static String extractOAuthRole(Authentication authentication) {

@@ -48,12 +48,11 @@ public class MemberService {
                 request.getNickname(),
                 passwordEncoder.encode(request.getPassword1()),
                 request.getPhone(),
-                token,
                 socialId);
 
         memberRepository.save(member);
         profileRepository.save(Profiles.createMemberProfile(member));
-        sendVerificationEmail(member.getEmail(), token);
+        sendVerificationEmail(member.getEmail());
 
         return member;
     }
@@ -71,7 +70,6 @@ public class MemberService {
                 request.getNickname(),
                 passwordEncoder.encode(request.getPassword1()),
                 request.getPhone(),
-                token,
                 socialId);
 
         admin.activate();
@@ -93,8 +91,8 @@ public class MemberService {
             throw new UnverifiedEmailException("인증되지 않은 이메일입니다.");
         }
 
-        String accessToken = jwtUtil.createAccessToken("access", member.getId().toString(), member.getRole().name());
-        String refreshToken = jwtUtil.createRefreshToken("refresh", member.getId().toString(), member.getRole().name());
+        String accessToken = jwtUtil.createAccessToken("access", member.getId().toString(), member.getMemberRole().name());
+        String refreshToken = jwtUtil.createRefreshToken("refresh", member.getId().toString(), member.getMemberRole().name());
 
         redisRefreshTokenRepository.save(String.valueOf(member.getId()), refreshToken);
 
@@ -109,10 +107,10 @@ public class MemberService {
         return "로그인 성공, 환영합니다.";
     }
 
-    private void sendVerificationEmail(String email, String token) {
+    private void sendVerificationEmail(String email) {
         try {
-            Member tempMember = Member.createEmailMember(email, token);
-            emailMemberService.sendEmailVerification(tempMember);
+            // Member 객체 생성 없이 바로 email 전달
+            emailMemberService.sendEmailVerification(email);
         } catch (Exception e) {
             log.error("이메일 전송 실패", e);
         }

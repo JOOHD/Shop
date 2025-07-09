@@ -66,7 +66,7 @@ public class SecurityConfig {
     private final CustomLoginFailureHandler customLoginFailureHandler;
     private final FilterFactory filterFactory;
 
-    @Value("${frontend.url}")
+    @Value("${spring.frontend.url}")
     private String frontendUrl;
 
     @Bean

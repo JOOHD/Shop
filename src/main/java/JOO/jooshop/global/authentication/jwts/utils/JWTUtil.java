@@ -100,6 +100,23 @@ public class JWTUtil { // JwtTokenProvider
                 .compact();
     }
 
+    // 이메일 인증용 토큰 생성 (만료 시간: 15분)
+    public String createEmailToken(String email) {
+        long emailTokenExpireSeconds = 60L * 15; // 15분
+
+        Date now = new Date();
+        Date expiry = Date.from(LocalDateTime.now()
+                .plusSeconds(emailTokenExpireSeconds)
+                .atZone(ZoneId.systemDefault()).toInstant());
+
+        return Jwts.builder()
+                .claim("email", email)
+                .issuedAt(now)
+                .expiration(expiry)
+                .signWith(secretKey, Jwts.SIG.HS256)
+                .compact();
+    }
+
     /** ======================== Token 파싱 및 Claim 추출 ======================== */
 
     private Claims parseToken(String token) {
@@ -131,6 +148,11 @@ public class JWTUtil { // JwtTokenProvider
 
     public Date getExpiration(String accessToken) {
         return parseToken(accessToken).getExpiration();
+    }
+    
+    // 이메일 인증 토큰으로부터 이메일 주소 추출
+    public String getEmailFromToken(String token) {
+        return parseToken(token).get("email", String.class);
     }
 
     /** ======================== Token 유효성 검사 ======================== */

@@ -4,40 +4,7 @@
     <meta charset="UTF-8" />
     <title>회원 가입</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
-    <style>
-        .container {
-            max-width: 600px;
-            margin-top: 50px;
-        }
-        .join-title {
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        .btn-group {
-            margin-top: 20px;
-        }
-        #toast {
-            visibility: hidden;
-            min-width: 200px;
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            border-radius: 8px;
-            padding: 12px;
-            position: fixed;
-            z-index: 9999;
-            left: 50%;
-            bottom: 30px;
-            transform: translateX(-50%);
-            font-size: 14px;
-            opacity: 0;
-            transition: opacity 0.5s, visibility 0.5s;
-         }
-         #toast.show {
-            visibility: visible;
-            opacity: 1;
-         }
-    </style>
+    <link rel="stylesheet" href="/css/join.css">  <!-- 분리한 CSS 파일 경로 -->
 </head>
 <body>
 
@@ -77,6 +44,16 @@
     <div id="resultMessage" class="mt-3"></div>
 </div>
 
+<!-- 이메일 인증 모달 -->
+<div id="emailVerifictionModal" class="d-flex">
+    <div class="modal-content text-center">
+        <h5>이메일 인증이 필요합니다</h5>
+        <p>가입하신 이메일로 인증 메일이 발송되었습니다.<br>메일함을 확인해주세요.</p>
+        <button id="resendEmailBtn" class="btn btn-outline-primary">인증 메일 재전송</button>
+        <button id="closeEmailModalBtn" class="btn btn-secondary ml-2">닫기</button>
+    </div>
+</div>
+
 <script>
     function showToast(message, redirectUrl, delay = 1500) {
         const toast = document.getElementById("toast");
@@ -90,6 +67,42 @@
             }
         }, delay);
     }
+
+    function openEmailVerificationModal() {
+        document.getElementById("emailVerificationModal").style.display = 'flex';
+    }
+
+    function closeEmailVerificationModal() {
+        document.getElementById("emailVerificationModal").style.display = 'none';
+    }
+
+    document.getElementById("closeEmailModalBtn").addEventListener("click", () => {
+        closeEmailVerificationModal();
+    });
+
+    document.getElementById("resendEmailBtn").addEventListener("click", async  () => {
+        const email = document.getElementById("email").value.trim();
+        if (!email) {
+            alert("이메일을 입력해주세요.");
+            return;
+        }
+        try {
+            const response = await fetch('/api/email/resend', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+
+            if (response.ok) {
+                alert("인증 메일을 재발송했습니다.");
+            } else {
+                const err = await response.text();
+                alert("재발송 실패: " + err);
+            }
+        } catch (e) {
+            alert("에러 발생: " + e.message);
+        }
+    });
 
     function submitjoin(isAdmin) {
         const email = document.getElementById("email").value.trim();
@@ -109,42 +122,38 @@
             return;
         }
 
-        const payload = {
-            email,
-            phone,
-            username,
-            nickname,
-            password1,
-            password2
-        };
-
+        const payload = { email, phone, username, nickname, password1, password2 };
         const url = isAdmin ? "/api/admin/join" : "/api/join";
 
         fetch(url, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         })
-        .then(response => {
+        .then(async response => {
             if (response.status === 201) {
-                // 성공 시, 토스트 메시지 보여주고 리다이렉트
-                showToast("가입이 완료되었습니다!", "/login", 2000);
-                return response.json();
+                const data = await response.json();
+
+                if (data.emailVerificationRequired) {
+                    openEmailVerificationModal();
+                    document.getElementById("resultMessage").innerHTML =
+                        `<div class="alert alert-info">이메일 인증이 필요합니다. 이메일을 확인해주세요.</div>`;
+                } else {
+                    showToast("가입이 완료되었습니다!", "/login", 2000);
+                    document.getElementById("resultMessage").innerHTML =
+                        `<div class="alert alert-success">가입 성공! 이메일: ${data.email}</div>`;
+                }
+
+                document.getElementById("join").reset();
             } else {
-                return response.text().then(msg => { throw new Error(msg); });
+                const msg = await response.text();
+                throw new Error(msg);
             }
         })
-        .then(data => {
-            document.getElementById("resultMessage").innerHTML =
-                `<div class="alert alert-success">가입 성공! 이메일: ${data.email}</div>`;
-            document.getElementById("join").reset();
-        })
-        .catch(err => {
-            document.getElementById("resultMessage").innerHTML =
-                `<div class="alert alert-danger">가입 실패: ${err.message}</div>`;
-        });
+<!--        .catch(err => {-->
+<!--            document.getElementById("resultMessage").innerHTML =-->
+<!--                `<div class="alert alert-danger">가입 실패: ${err.message}</div>`;-->
+<!--        });-->
     }
 </script>
 

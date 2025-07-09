@@ -17,7 +17,7 @@ public class CorsMvcConfig implements WebMvcConfigurer {
      * CORS 설정에서 exposedHeaders("Set-Cookie") 없으면 브라우저가 이 헤더를 무시함
      * allowCredentials(true) 없으면 브라우저가 쿠키를 서버로 보낼 수 없음 → JWT 인증 불가
      */
-    @Value("${frontend.url}")
+    @Value("${spring.frontend.url}")
     private String frontendUrl;
 
     @Override

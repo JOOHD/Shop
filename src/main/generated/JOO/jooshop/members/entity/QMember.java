@@ -54,8 +54,6 @@ public class QMember extends EntityPathBase<Member> {
 
     public final EnumPath<JOO.jooshop.members.entity.enums.SocialType> socialType = createEnum("socialType", JOO.jooshop.members.entity.enums.SocialType.class);
 
-    public final StringPath token = createString("token");
-
     public final StringPath username = createString("username");
 
     public final ListPath<JOO.jooshop.wishList.entity.WishList, JOO.jooshop.wishList.entity.QWishList> wishLists = this.<JOO.jooshop.wishList.entity.WishList, JOO.jooshop.wishList.entity.QWishList>createList("wishLists", JOO.jooshop.wishList.entity.WishList.class, JOO.jooshop.wishList.entity.QWishList.class, PathInits.DIRECT2);
