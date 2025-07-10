@@ -4,6 +4,8 @@ import JOO.jooshop.global.Exception.customException.ExistingMemberException;
 import JOO.jooshop.global.Exception.customException.InvalidCredentialsException;
 import JOO.jooshop.global.Exception.customException.UnverifiedEmailException;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
+import JOO.jooshop.global.mail.service.EmailMemberService;
+import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.model.LoginRequest;
 import JOO.jooshop.members.model.JoinMemberRequest;
 import JOO.jooshop.members.service.MemberService;
@@ -17,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
+import java.util.function.Consumer;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,30 +29,38 @@ public class JoinApiController {
 
     private final JWTUtil jwtUtil;
     private final MemberService memberService;
+    private final EmailMemberService emailMemberService;
 
     @PostMapping("/join")
     public ResponseEntity<?> join(@RequestBody @Valid JoinMemberRequest request) {
-        try {
-            memberService.registerMember(request);
-            return ResponseEntity.status(HttpStatus.CREATED).body("회원가입 성공");
-        } catch (ExistingMemberException e) {
-            return ResponseEntity.badRequest().body("이미 등록된 이메일입니다.");
-        } catch (InvalidCredentialsException e) {
-            return ResponseEntity.badRequest().body("닉네임을 입력해야 합니다."); // 필요하면 InvalidNicknameException 따로 만들어서 catch 가능
-        }
+        return handleJoin(request, memberService::registerMember, "회원가입 성공");
     }
 
     @PostMapping("/admin/join")
     public ResponseEntity<?> joinAdmin(@RequestBody @Valid JoinMemberRequest request) {
+        return handleJoin(request, memberService::registerAdmin, "관리자 등록 성공");
+    }
+
+    private ResponseEntity<?> handleJoin(
+            JoinMemberRequest request,
+            Consumer<JoinMemberRequest> joinFunction,
+            String successMessage) {
+
+        if (!emailMemberService.isEmailVerified(request.getEmail())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("이메일 인증이 필요합니다.");
+        }
+
         try {
-            memberService.registerAdmin(request);
-            return ResponseEntity.status(HttpStatus.CREATED).body("관리자 등록 성공");
+            joinFunction.accept(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(successMessage);
         } catch (ExistingMemberException e) {
             return ResponseEntity.badRequest().body("이미 등록된 이메일입니다.");
         } catch (InvalidCredentialsException e) {
             return ResponseEntity.badRequest().body("닉네임을 입력해야 합니다.");
         }
     }
+
 
     @PostMapping("/login")
     public ResponseEntity<String> oauth2Login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {

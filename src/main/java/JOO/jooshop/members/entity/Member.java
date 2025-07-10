@@ -204,6 +204,14 @@ public class Member {
     }
 
     /**
+     * [이메일 인증 여부 처리]
+     * @return
+     */
+    public boolean isCertifiedByEmail() {
+        return this.certifiedByEmail;
+    }
+
+    /**
      * [이메일 인증 완료 처리]
      * - 인증 URL을 통해 인증 성공 시 호출됨
      */

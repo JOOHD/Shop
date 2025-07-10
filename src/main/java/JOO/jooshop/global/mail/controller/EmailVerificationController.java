@@ -6,16 +6,16 @@ import JOO.jooshop.members.entity.Member;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/auth")
+@RequestMapping("/api/email")
 public class EmailVerificationController {
 
     /**
@@ -27,6 +27,7 @@ public class EmailVerificationController {
     private final EmailMemberService emailMemberService;
     private final JWTUtil jwtUtil;
 
+    // 이메일 인증 링크 클릭 시 (GET)
     @GetMapping("/verify")
     public void verifyEmail(@RequestParam("token") String token, HttpServletResponse response) throws IOException {
         try {
@@ -46,14 +47,28 @@ public class EmailVerificationController {
             accessTokenCookie.setSecure(true);
             accessTokenCookie.setPath("/");
             accessTokenCookie.setMaxAge(60 * 60); // 초 단위
-
             response.addCookie(accessTokenCookie);
 
             // 4. 인증 성공 후 리다이렉트
-            response.sendRedirect("/");
+            response.sendRedirect("/verifySuccess");
         } catch (Exception e) {
             // 인증 실패 시 회원가입 페이지로 이동
             response.sendRedirect("/join");
+        }
+    }
+
+    // 인증 메일 발송 요청 (POST)
+    @PostMapping("/verify-request")
+    public ResponseEntity<?> sendVerificationEmail(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        if (email == null || email.isEmpty()) {
+            return ResponseEntity.badRequest().body("이메일이 필요합니다.");
+        }
+        try {
+            emailMemberService.sendEmailVerification(email);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("메일 발송 실패");
         }
     }
 }

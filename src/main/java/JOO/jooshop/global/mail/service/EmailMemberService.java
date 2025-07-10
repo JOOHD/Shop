@@ -54,7 +54,7 @@ public class EmailMemberService {
         certificationRepository.save(cert);
 
         // (4) 인증 링크 생성 및 이메일 전송
-        String link = backendUrl + "/auth/verify?token=" + token;
+        String link = backendUrl + "/api/email/verify?token=" + token;
         sendEmail(email, link);
     }
 
@@ -123,5 +123,17 @@ public class EmailMemberService {
         member.certifyByEmail();
         certificationRepository.delete(certOpt.get());
         return true;
+    }
+
+    /**
+     * EmailMemberService
+     * 이메일 인증 여부를 확인하는 서비스 메서드
+     * @param email 확인할 회원 이메일
+     * @return 인증 완료 상태(true: 인증됨, false: 인증 안 됨 또는 회원 없음)
+     */
+    public boolean isEmailVerified(String email) {
+        return memberRepository.findByEmail(email)
+                .map(Member::isCertifiedByEmail)
+                .orElse(false); // 존재하지 않으면 인증되지 않은 것으로 간주
     }
 }
