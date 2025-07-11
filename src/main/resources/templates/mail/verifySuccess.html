@@ -30,6 +30,18 @@
 </head>
 <body>
 <div class="message">이메일 인증이 성공적으로 완료되었습니다!</div>
-<a href="/join" class="btn">회원가입 페이지로 이동</a>
+<div class="message">잠시 후 회원가입 페이지로 이동합니다...</div>
+
+<a id="fallbackLink" href="/join" class="btn">회원가입 페이지로 이동</a>
+
+<script>
+        const email = /*[[${verifiedEmail}]]*/ "";
+        if (email) {
+            const encodedEmail = encodeURIComponent(email);
+            window.location.href = "/join?verifiedEmail=" + encodedEmail;
+        } else {
+            console.warn("verifiedEmail 파라미터가 전달되지 않았습니다.");
+        }
+    </script>
 </body>
 </html>

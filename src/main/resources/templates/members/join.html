@@ -85,6 +85,28 @@
 </div>
 
 <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const params = new URLSearchParams(window.location.search);
+
+        console.log("현재 URL:", window.location.href);
+        console.log("검색 파라미터:", window.location.search);
+
+        if (params.has("verifiedEmail")) {
+            const verifiedEmail = params.get("verifiedEmail");
+            const emailInput = document.getElementById("email");
+
+            console.log("인증된 이메일:", verifiedEmail);
+            if (emailInput) {
+                emailInput.value = verifiedEmail;
+                showEmailVerifiedMessage();
+            } else {
+                console.warn("email input 요소가 존재하지 않습니다.");
+            }
+        } else {
+            console.log("verifiedEmail 파라미터 없음");
+        }
+    });
+
     // 토스트 메시지 표시 함수
     function showToast(message, redirectUrl, delay = 1500) {
         const toast = document.getElementById("toast");
@@ -197,9 +219,13 @@
             if (response.status === 201) {
                 const data = await response.json();
                 showToast("가입이 완료되었습니다!", "/login", 2000);
+
+                // 가입 성공한 경우에만 reset!
+                document.getElementById("join").reset();
+
+                // 인증 메시지는 숨기지 말고 유지해도 괜찮다.
                 document.getElementById("resultMessage").innerHTML =
                     `<div class="alert alert-success">가입 성공! 이메일: ${data.email}</div>`;
-                document.getElementById("join").reset();
                 // 인증 메시지 숨기기 초기화
                 document.getElementById("emailVerifiedMessage").style.display = "none";
             } else {
@@ -211,17 +237,6 @@
                 `<div class="alert alert-danger">가입 실패: ${err.message}</div>`;
         }
     }
-
-    // 페이지 로드시 URL 파라미터로 인증 완료 표시 (예: /join?verifiedEmail=user@example.com)
-    window.onload = () => {
-        const params = new URLSearchParams(window.location.search);
-        if (params.has("verifiedEmail")) {
-            const emailInput = document.getElementById("email");
-            const verifiedEmail = params.get("verifiedEmail");
-            emailInput.value = verifiedEmail;
-            showEmailVerifiedMessage();
-        }
-    };
 </script>
 
 </body>
