@@ -7,5 +7,7 @@ import java.util.Optional;
 
 public interface CertificationRepository extends JpaRepository<CertificationEntity, Long> {
     Optional<CertificationEntity> findByToken(String token);
+    Optional<CertificationEntity> findByEmail(String email);
     void deleteByEmail(String email);
+
 }

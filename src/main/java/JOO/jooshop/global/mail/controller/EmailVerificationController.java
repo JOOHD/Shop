@@ -1,8 +1,11 @@
 package JOO.jooshop.global.mail.controller;
 
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
+import JOO.jooshop.global.mail.repository.CertificationRepository;
 import JOO.jooshop.global.mail.service.EmailMemberService;
+import JOO.jooshop.members.entity.CertificationEntity;
 import JOO.jooshop.members.entity.Member;
+import JOO.jooshop.members.repository.MemberRepositoryV1;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -12,9 +15,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,39 +30,9 @@ public class EmailVerificationController {
      * 컨트롤러는 /verify, /resend 기능만 담당
      */
     private final EmailMemberService emailMemberService;
+    private final MemberRepositoryV1 memberRepository;
+    private final CertificationRepository certificationRepository;
     private final JWTUtil jwtUtil;
-
-    // 이메일 인증 링크 클릭 시 (GET)
-    @GetMapping("/verify")
-    public String verifyEmail(@RequestParam("token") String token,
-                            HttpServletResponse response,
-                            Model model) throws IOException {
-        try {
-            // 토큰으로 인증 처리 + 인증 완료된 회원 반환
-            Member member = emailMemberService.verifyEmailAndReturnMember(token);
-
-            // JWT Access Token 생성
-            String accessToken = jwtUtil.createAccessToken(
-                    "access_token",
-                    String.valueOf(member.getId()),
-                    member.getMemberRole().name()
-            );
-
-            // 쿠키 설정
-            Cookie cookie = new Cookie("access_token", accessToken);
-            cookie.setHttpOnly(true);
-            cookie.setSecure(true);
-            cookie.setPath("/");
-            cookie.setMaxAge(60 * 60); // 초 단위
-            response.addCookie(cookie);
-
-            // 이메일 파라미터 Thymeleaf 에 전달
-            model.addAttribute("verifiedEmail", member.getEmail());
-            return "email/verify-success"; // HTML 내 JS에서 join으로 이동
-        } catch (Exception e) {
-            return "email/verify-fail";
-        }
-    }
 
     // 인증 메일 발송 요청 (POST)
     @PostMapping("/verify-request")
@@ -75,5 +47,48 @@ public class EmailVerificationController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("메일 발송 실패");
         }
+    }
+
+    // 이메일 인증 링크 클릭 시 (GET)
+    @GetMapping("/verify")
+    public String verifyEmail(@RequestParam("token") String token,
+                              HttpServletResponse response,
+                              Model model) throws IOException {
+        try {
+            String email = emailMemberService.verifyEmailAndReturnMember(token);
+            model.addAttribute("verifiedEmail", email);
+
+            Optional<Member> memberOpt = memberRepository.findByEmail(email);
+            memberOpt.ifPresent(member -> {
+                String accessToken = jwtUtil.createAccessToken(
+                        "access_token",
+                        String.valueOf(member.getId()),
+                        member.getMemberRole().name()
+                );
+
+                Cookie cookie = new Cookie("access_token", accessToken);
+                cookie.setHttpOnly(true);
+                cookie.setSecure(true);
+                cookie.setPath("/");
+                cookie.setMaxAge(60 * 60);
+
+                response.addCookie(cookie);
+            });
+
+            // 회원이 없으면 인증만 완료된 상태 → 회원가입 페이지로 이동 유도 가능
+            return "email/verify-success";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "email/verify-fail";
+        }
+    }
+
+    // 이메일 인증 상태 확인
+    @GetMapping("/verify-check")
+    public ResponseEntity<Map<String, Boolean>> verifyCheck(@RequestParam("email") String email) {
+        boolean isVerified = certificationRepository.findByEmail(email).isEmpty();
+
+        // 항상 200 OK 응답이고, body가 {"verified":true} 또는 {"verified":false} 형태
+        return ResponseEntity.ok(Map.of("verified", isVerified));
     }
 }

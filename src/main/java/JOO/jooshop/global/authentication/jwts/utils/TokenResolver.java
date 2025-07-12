@@ -18,8 +18,9 @@ public class TokenResolver {
         return Arrays.stream(request.getCookies())
                 .filter(c -> name.equals(c.getName()))
                 .map(Cookie::getValue)
-                .findFirst()
-                .filter(v -> v.startsWith("Bearer+"))
-                .map(v -> v.substring(7));
+                .findFirst();
+//                보통 쿠키에 저장한는 JWT는 "Bearer+" 접두사 없이 순수 토큰만 넣는다.
+//                .filter(v -> v.startsWith("Bearer+"))
+//                .map(v -> v.substring(7));
     }
 }

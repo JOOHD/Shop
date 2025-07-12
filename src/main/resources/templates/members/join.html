@@ -4,9 +4,7 @@
     <meta charset="UTF-8" />
     <title>회원 가입</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="/css/join.css" />
     <style>
-        /* 토스트 메시지 스타일 */
         #toast {
             visibility: hidden;
             min-width: 250px;
@@ -31,10 +29,9 @@
     </style>
 </head>
 <body>
-
 <div class="container">
-    <h2 class="join-title">회원 가입</h2>
-    <form id="join">
+    <h2 class="mt-4 mb-4">회원 가입</h2>
+    <form id="joinForm">
         <div class="form-group">
             <label for="email">이메일</label>
             <div class="input-group">
@@ -43,7 +40,9 @@
                     <button class="btn btn-outline-secondary" type="button" onclick="requestEmailVerification()">인증</button>
                 </div>
             </div>
-            <small id="emailVerifiedMessage" class="form-text text-success" style="display:none; margin-top: 5px;">인증이 완료되었습니다.</small>
+            <small id="emailVerifiedMessage" class="form-text text-success" style="display:none; margin-top:5px;">
+                이메일 인증이 완료되었습니다.
+            </small>
         </div>
         <div class="form-group">
             <label for="phone">전화번호</label>
@@ -65,10 +64,9 @@
             <label for="password2">비밀번호 확인</label>
             <input type="password" class="form-control" id="password2" placeholder="비밀번호를 다시 입력하세요" required />
         </div>
-        <div class="btn-group d-flex justify-content-between">
-            <button type="button" class="btn btn-primary" onclick="submitjoin(false)">일반 회원 가입</button>
-            <button type="button" class="btn btn-danger" onclick="submitjoin(true)">관리자 가입</button>
-        </div>
+
+        <button type="button" class="btn btn-primary" onclick="submitJoin(false)">일반 회원 가입</button>
+        <button type="button" class="btn btn-danger ml-2" onclick="submitJoin(true)">관리자 가입</button>
     </form>
 
     <div id="toast">가입이 완료되었습니다!</div>
@@ -85,25 +83,16 @@
 </div>
 
 <script>
+    // 페이지 로드 시 URL 파라미터에서 인증된 이메일 있을 경우 처리
     document.addEventListener("DOMContentLoaded", () => {
         const params = new URLSearchParams(window.location.search);
-
-        console.log("현재 URL:", window.location.href);
-        console.log("검색 파라미터:", window.location.search);
-
         if (params.has("verifiedEmail")) {
             const verifiedEmail = params.get("verifiedEmail");
             const emailInput = document.getElementById("email");
-
-            console.log("인증된 이메일:", verifiedEmail);
             if (emailInput) {
                 emailInput.value = verifiedEmail;
                 showEmailVerifiedMessage();
-            } else {
-                console.warn("email input 요소가 존재하지 않습니다.");
             }
-        } else {
-            console.log("verifiedEmail 파라미터 없음");
         }
     });
 
@@ -112,7 +101,6 @@
         const toast = document.getElementById("toast");
         toast.textContent = message;
         toast.classList.add("show");
-
         setTimeout(() => {
             toast.classList.remove("show");
             if (redirectUrl) {
@@ -121,17 +109,13 @@
         }, delay);
     }
 
-    // 모달 열기 / 닫기
+    // 모달 열기/닫기
     function openEmailVerificationModal() {
-        const modal = document.getElementById("emailVerificationModal");
-        modal.style.display = "flex";
+        document.getElementById("emailVerificationModal").style.display = "flex";
     }
-
     function closeEmailVerificationModal() {
-        const modal = document.getElementById("emailVerificationModal");
-        modal.style.display = "none";
+        document.getElementById("emailVerificationModal").style.display = "none";
     }
-
     document.getElementById("closeEmailModalBtn").addEventListener("click", closeEmailVerificationModal);
 
     // 이메일 인증 요청
@@ -141,14 +125,12 @@
             alert("이메일을 입력해주세요.");
             return;
         }
-
         try {
             const response = await fetch('/api/email/verify-request', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email })
             });
-
             if (response.ok) {
                 openEmailVerificationModal();
             } else {
@@ -160,26 +142,26 @@
         }
     }
 
-    // 이메일 인증 완료 메시지 보이기
+    // 이메일 인증 완료 메시지 표시
     function showEmailVerifiedMessage() {
-        const msgElem = document.getElementById("emailVerifiedMessage");
-        msgElem.style.display = "block";
+        document.getElementById("emailVerifiedMessage").style.display = "block";
     }
 
-    // 이메일 인증 여부 확인 API 호출 (예시)
+    // 이메일 인증 여부 확인 API 호출
     async function checkEmailVerified(email) {
         try {
             const response = await fetch(`/api/email/verify-check?email=${encodeURIComponent(email)}`);
             if (!response.ok) throw new Error("인증 여부 확인 실패");
             const data = await response.json();
-            return data.verified;  // true / false
-        } catch {
+            return data.verified === true;
+        } catch (error) {
+            console.error(error);
             return false;
         }
     }
 
-    // 회원 가입 제출
-    async function submitjoin(isAdmin) {
+    // 회원가입 제출
+    async function submitJoin(isAdmin) {
         const email = document.getElementById("email").value.trim();
         const phone = document.getElementById("phone").value.trim();
         const username = document.getElementById("username").value.trim();
@@ -187,6 +169,7 @@
         const password1 = document.getElementById("password1").value.trim();
         const password2 = document.getElementById("password2").value.trim();
 
+        // 필수 입력 체크
         if (!email || !phone || !username || !nickname || !password1 || !password2) {
             alert("모든 항목을 입력해주세요.");
             return;
@@ -219,25 +202,17 @@
             if (response.status === 201) {
                 const data = await response.json();
                 showToast("가입이 완료되었습니다!", "/login", 2000);
-
-                // 가입 성공한 경우에만 reset!
-                document.getElementById("join").reset();
-
-                // 인증 메시지는 숨기지 말고 유지해도 괜찮다.
-                document.getElementById("resultMessage").innerHTML =
-                    `<div class="alert alert-success">가입 성공! 이메일: ${data.email}</div>`;
-                // 인증 메시지 숨기기 초기화
+                document.getElementById("joinForm").reset();
+                document.getElementById("resultMessage").innerHTML = `<div class="alert alert-success">가입 성공! 이메일: ${data.email}</div>`;
                 document.getElementById("emailVerifiedMessage").style.display = "none";
             } else {
                 const msg = await response.text();
                 throw new Error(msg);
             }
         } catch (err) {
-            document.getElementById("resultMessage").innerHTML =
-                `<div class="alert alert-danger">가입 실패: ${err.message}</div>`;
+            document.getElementById("resultMessage").innerHTML = `<div class="alert alert-danger">가입 실패: ${err.message}</div>`;
         }
     }
 </script>
-
 </body>
 </html>

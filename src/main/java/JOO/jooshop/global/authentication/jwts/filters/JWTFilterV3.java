@@ -70,17 +70,30 @@ public class JWTFilterV3 extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        // Authorization Header에서 accessToken 가져오기
+        // 헤더에서 Access Token 시도
         Optional<String> authorizationOpt = TokenResolver.resolveTokenFromHeader(request);
+
+        // 쿠키에서 Access Token 시도
+        Optional<String> accessTokenCookieOpt = TokenResolver.resolveTokenFromCookie(request, "access_token");
+
         // Refresh Token 쿠키에서 가져오기
         Optional<String> refreshAuthorizationOpt = TokenResolver.resolveTokenFromCookie(request, "refreshToken");
 
         log.info("[JWT Filter] 요청 URI: {}", request.getRequestURI());
         log.info("[JWT Filter] Authorization 헤더: {}", authorizationOpt);
+        log.info("[JWT Filter] access_token 쿠키: {}", accessTokenCookieOpt);
         log.info("[JWT Filter] RefreshAuthorization 쿠키: {}", refreshAuthorizationOpt);
 
         if (refreshAuthorizationOpt.isEmpty()) {
             log.warn("RefreshToken이 존재하지 않음");
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String accessToken = authorizationOpt.or(() -> accessTokenCookieOpt).orElse(null);
+
+        if (accessToken == null) {
+            log.warn("[JWTFilter] AccessToken 없음");
             filterChain.doFilter(request, response);
             return;
         }
@@ -94,7 +107,6 @@ public class JWTFilterV3 extends OncePerRequestFilter {
         }
 
         if (authorizationOpt.isPresent()) {
-            String accessToken = authorizationOpt.get();
             log.info("[JWTFilter AccessToken 존재 및 Bearer 확인됨: {}", accessToken);
 
             // 블랙리스트 체크
