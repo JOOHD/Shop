@@ -3,7 +3,6 @@ package JOO.jooshop.global.mail.controller;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.mail.repository.CertificationRepository;
 import JOO.jooshop.global.mail.service.EmailMemberService;
-import JOO.jooshop.members.entity.CertificationEntity;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
 import jakarta.servlet.http.Cookie;
@@ -11,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 
-@RestController
+@Controller
 @RequiredArgsConstructor
 @RequestMapping("/api/email")
 public class EmailVerificationController {
@@ -53,7 +53,7 @@ public class EmailVerificationController {
     @GetMapping("/verify")
     public String verifyEmail(@RequestParam("token") String token,
                               HttpServletResponse response,
-                              Model model) throws IOException {
+                              Model model) {
         try {
             String email = emailMemberService.verifyEmailAndReturnMember(token);
             model.addAttribute("verifiedEmail", email);
@@ -76,10 +76,10 @@ public class EmailVerificationController {
             });
 
             // 회원이 없으면 인증만 완료된 상태 → 회원가입 페이지로 이동 유도 가능
-            return "email/verify-success";
+            return "email/verifySuccess";
         } catch (Exception e) {
-            e.printStackTrace();
-            return "email/verify-fail";
+            model.addAttribute("errorMessage", e.getMessage());
+            return "email/verifyFail";
         }
     }
 
