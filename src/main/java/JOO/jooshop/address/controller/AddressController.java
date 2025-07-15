@@ -1,7 +1,7 @@
 package JOO.jooshop.address.controller;
 
 import JOO.jooshop.address.entity.Addresses;
-import JOO.jooshop.address.model.AddressesRequstDto;
+import JOO.jooshop.address.model.AddressesReqeustDto;
 import JOO.jooshop.address.service.AddressService;
 import JOO.jooshop.global.authorization.MemberAuthorizationUtil;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +41,7 @@ public class AddressController {
      * @return 생성된 주소 정보 반환
      */
     @PostMapping("/address/{memberId}")
-    public ResponseEntity<Addresses> createAddress(@PathVariable("memberId") Long memberId, @RequestBody AddressesRequstDto addressDto) {
+    public ResponseEntity<Addresses> createAddress(@PathVariable("memberId") Long memberId, @RequestBody AddressesReqeustDto addressDto) {
         // 회원 본인 여부 검증
         MemberAuthorizationUtil.verifyUserIdMatch(memberId);
 
@@ -72,7 +72,7 @@ public class AddressController {
      * @return 수정 결과 반환
      */
     @PutMapping("/address/{memberId}/{addressId}")
-    public ResponseEntity<?> updateDetailAddress(@PathVariable("memberId") Long memberId, @PathVariable Long addressId, @RequestBody AddressesRequstDto addressDto) {
+    public ResponseEntity<?> updateDetailAddress(@PathVariable("memberId") Long memberId, @PathVariable Long addressId, @RequestBody AddressesReqeustDto addressDto) {
         // 회원 본인 여부 검증
         MemberAuthorizationUtil.verifyUserIdMatch(memberId);
 

@@ -1,7 +1,7 @@
 package JOO.jooshop.address.service;
 
 import JOO.jooshop.address.entity.Addresses;
-import JOO.jooshop.address.model.AddressesRequstDto;
+import JOO.jooshop.address.model.AddressesReqeustDto;
 import JOO.jooshop.address.repository.AddressRepository;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
@@ -33,7 +33,7 @@ public class AddressService {
      * @param addressDto 수정할 주소 정보 DTO
      * @return 수정 결과에 따른 ResponseEntity
      */
-    public ResponseEntity<?> updateDetailAddress(Long memberId, Long addressId, AddressesRequstDto addressDto) {
+    public ResponseEntity<?> updateDetailAddress(Long memberId, Long addressId, AddressesReqeustDto addressDto) {
 
         Member member = findMember(memberId);
         Addresses addresses = Addresses.createAddress(addressDto, member);
@@ -55,7 +55,7 @@ public class AddressService {
      * @param addressDto 새로 추가할 주소 정보 DTO
      * @return 생성된 주소 정보와 함께 ResponseEntity 반환
      */
-    public ResponseEntity<Addresses> createAddress(Long memberId, AddressesRequstDto addressDto) {
+    public ResponseEntity<Addresses> createAddress(Long memberId, AddressesReqeustDto addressDto) {
 
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new NoSuchElementException(MEMBER_NOT_FOUND));

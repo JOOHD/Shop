@@ -18,22 +18,21 @@
 /* 토스트 메시지 스타일 */
 #toast {
     visibility: hidden;
-    min-width: 200px;
+    min-width: 250px;
+    margin-left: -125px;
     background-color: #333;
     color: #fff;
     text-align: center;
-    border-radius: 8px;
+    border-radius: 4px;
     padding: 12px;
     position: fixed;
     z-index: 9999;
     left: 50%;
     bottom: 30px;
-    transform: translateX(-50%);
-    font-size: 14px;
+    font-size: 16px;
+    transition: visibility 0s, opacity 0.5s linear;
     opacity: 0;
-    transition: opacity 0.5s, visibility 0.5s;
 }
-
 #toast.show {
     visibility: visible;
     opacity: 1;

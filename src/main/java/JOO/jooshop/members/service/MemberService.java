@@ -1,5 +1,8 @@
 package JOO.jooshop.members.service;
 
+import JOO.jooshop.address.entity.Addresses;
+import JOO.jooshop.address.model.AddressesReqeustDto;
+import JOO.jooshop.address.repository.AddressRepository;
 import JOO.jooshop.global.Exception.customException.ExistingMemberException;
 import JOO.jooshop.global.Exception.customException.InvalidCredentialsException;
 import JOO.jooshop.global.Exception.customException.MemberNotFoundException;
@@ -33,6 +36,7 @@ public class MemberService {
     private final JWTUtil jwtUtil;
     private final RedisRefreshTokenRepository redisRefreshTokenRepository;
     private final ProfileRepository profileRepository;
+    private final AddressRepository addressRepository;
     private final EmailMemberService emailMemberService;
 
     @Transactional
@@ -52,8 +56,15 @@ public class MemberService {
 
         memberRepository.save(member);
         profileRepository.save(Profiles.createMemberProfile(member));
-        sendVerificationEmail(member.getEmail());
 
+        // 주소 저장 로직 추가
+        AddressesReqeustDto addressDto = request.getAddress();
+        if (addressDto != null) {
+            Addresses address = Addresses.createAddress(addressDto, member);
+            addressRepository.save(address);
+        }
+
+        sendVerificationEmail(member.getEmail());
         return member;
     }
 

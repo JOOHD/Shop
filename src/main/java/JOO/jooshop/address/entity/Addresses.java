@@ -1,7 +1,7 @@
 package JOO.jooshop.address.entity;
 
 
-import JOO.jooshop.address.model.AddressesRequstDto;
+import JOO.jooshop.address.model.AddressesReqeustDto;
 import JOO.jooshop.members.entity.Member;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -68,17 +68,17 @@ public class Addresses {
     }
 
     // Social Member 생성
-    public static Addresses createAddress(AddressesRequstDto addressesRequstDto, Member member) {
+    public static Addresses createAddress(AddressesReqeustDto addressesRequstDto, Member member) {
         return new Addresses(addressesRequstDto.getAddressName(), addressesRequstDto.getRecipient(), addressesRequstDto.getPostCode(), addressesRequstDto.getAddress(), addressesRequstDto.getDetailAddress(), addressesRequstDto.isDefaultAddress(), addressesRequstDto.getRecipientPhone(), member, LocalDateTime.now(), LocalDateTime.now());
     }
 
-    public Addresses updateAddress(AddressesRequstDto addressDto) {
+    public Addresses updateAddress(AddressesReqeustDto addressDto) {
         updateFieldsFromDto(addressDto);
         editupdatedAt();
         return this;
     }
 
-    private void updateFieldsFromDto(AddressesRequstDto addressDto) {
+    private void updateFieldsFromDto(AddressesReqeustDto addressDto) {
         this.addressName = addressDto.getAddressName();
         this.recipient = addressDto.getRecipient();
         this.postCode = addressDto.getPostCode();

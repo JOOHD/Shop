@@ -1,5 +1,6 @@
 package JOO.jooshop.members.model;
 
+import JOO.jooshop.address.model.AddressesReqeustDto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
@@ -24,4 +25,6 @@ public class JoinMemberRequest {
 
     @NotBlank
     private String password2;
+
+    private AddressesReqeustDto address;
 }

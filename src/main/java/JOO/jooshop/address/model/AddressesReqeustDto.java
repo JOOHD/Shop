@@ -4,7 +4,7 @@ package JOO.jooshop.address.model;
 import lombok.Data;
 
 @Data
-public class AddressesRequstDto {
+public class AddressesReqeustDto {
 
     private String addressName;     // 주소지 (집, 회사)
 
