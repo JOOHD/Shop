@@ -72,77 +72,145 @@
 
 </div>
 
-<!-- 이메일 인증 모달 생략 (기존 코드 유지) -->
-
 <script>
-    function execDaumPostcode() {
-        new daum.Postcode({
-            oncomplete: function(data) {
-                document.getElementById("postCode").value = data.zonecode;
-                document.getElementById("address").value = data.roadAddress || data.jibunAddress;
-                document.getElementById("detailAddress").focus();
-            }
-        }).open();
+   // 다음 우편번호 서비스 실행 함수
+  function execDaumPostcode() {
+    new daum.Postcode({
+      oncomplete: function(data) {
+        document.getElementById("postCode").value = data.zonecode;
+        document.getElementById("address").value = data.roadAddress || data.jibunAddress;
+        document.getElementById("detailAddress").focus();
+      }
+    }).open();
+  }
+
+  // 이메일 인증 요청 함수
+  async function requestEmailVerification() {
+    const email = document.getElementById("email").value.trim();
+    if (!email) {
+      alert("이메일을 입력하세요.");
+      return;
     }
 
-    // 기존 이메일 관련 로직, toast 등은 그대로 유지
+    try {
+      const response = await fetch('/api/email/verify-request', {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
 
-    async function submitJoin(isAdmin) {
-        const email = document.getElementById("email").value.trim();
-        const phone = document.getElementById("phone").value.trim();
-        const username = document.getElementById("username").value.trim();
-        const nickname = document.getElementById("nickname").value.trim();
-        const password1 = document.getElementById("password1").value.trim();
-        const password2 = document.getElementById("password2").value.trim();
-        const postCode = document.getElementById("postCode").value.trim();
-        const address = document.getElementById("address").value.trim();
-        const detailAddress = document.getElementById("detailAddress").value.trim();
-
-        if (!email || !phone || !username || !nickname || !password1 || !password2 || !postCode || !address) {
-            alert("모든 항목을 입력해주세요.");
-            return;
-        }
-
-        if (password1 !== password2) {
-            alert("비밀번호가 일치하지 않습니다.");
-            return;
-        }
-
-        const verified = await checkEmailVerified(email);
-        if (!verified) {
-            alert("이메일 인증이 완료되지 않았습니다.");
-            return;
-        } else {
-            showEmailVerifiedMessage();
-        }
-
-        const payload = {
-            email, phone, username, nickname, password1, password2,
-            postCode, address, detailAddress
-        };
-        const url = isAdmin ? "/api/admin/join" : "/api/join";
-
-        try {
-            const response = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-
-            if (response.status === 201) {
-                const data = await response.json();
-                showToast("가입이 완료되었습니다!", "/login", 2000);
-                document.getElementById("joinForm").reset();
-                document.getElementById("resultMessage").innerHTML = `<div class="alert alert-success">가입 성공! 이메일: ${data.email}</div>`;
-                document.getElementById("emailVerifiedMessage").style.display = "none";
-            } else {
-                const msg = await response.text();
-                throw new Error(msg);
-            }
-        } catch (err) {
-            document.getElementById("resultMessage").innerHTML = `<div class="alert alert-danger">가입 실패: ${err.message}</div>`;
-        }
+      if (response.ok) {
+        alert("인증 메일을 발송했습니다. 이메일을 확인하세요.");
+      } else {
+        const errorText = await response.text();
+        alert("메일 발송 실패: " + errorText);
+      }
+    } catch (error) {
+      alert("서버와 통신 중 오류가 발생했습니다.");
+      console.error(error);
     }
+  }
+
+  // 이메일 인증 여부 체크 함수
+  async function checkEmailVerified(email) {
+    if (!email) return false;
+
+    try {
+      const response = await fetch(`/api/email/verify-check?email=${encodeURIComponent(email)}`, {
+        method: 'GET',
+      });
+      if (!response.ok) {
+        return false;
+      }
+      const data = await response.json();
+      return data.verified === true;
+    } catch (error) {
+      console.error("이메일 인증 확인 중 오류:", error);
+      return false;
+    }
+  }
+
+  // 이메일 인증 완료 메시지 보여주기
+  function showEmailVerifiedMessage() {
+    const msgElem = document.getElementById("emailVerifiedMessage");
+    if (msgElem) {
+      msgElem.style.display = "block";
+    }
+  }
+
+  // 토스트 메시지 보여주기 (간단한 alert 대체 가능)
+  function showToast(message, redirectUrl = null, duration = 2000) {
+    alert(message);
+    if (redirectUrl) {
+      setTimeout(() => {
+        window.location.href = redirectUrl;
+      }, duration);
+    }
+  }
+
+  // 회원가입 제출 함수
+  async function submitJoin(isAdmin) {
+    const email = document.getElementById("email").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const username = document.getElementById("username").value.trim();
+    const nickname = document.getElementById("nickname").value.trim();
+    const password1 = document.getElementById("password1").value.trim();
+    const password2 = document.getElementById("password2").value.trim();
+    const postCode = document.getElementById("postCode").value.trim();
+    const address = document.getElementById("address").value.trim();
+    const detailAddress = document.getElementById("detailAddress").value.trim();
+
+    if (!email || !phone || !username || !nickname || !password1 || !password2 || !postCode || !address) {
+      alert("모든 항목을 입력해주세요.");
+      return;
+    }
+
+    if (password1 !== password2) {
+      alert("비밀번호가 일치하지 않습니다.");
+      return;
+    }
+
+    const verified = await checkEmailVerified(email);
+    if (!verified) {
+      alert("이메일 인증이 완료되지 않았습니다.");
+      return;
+    } else {
+      showEmailVerifiedMessage();
+    }
+
+    const payload = {
+      email, phone, username, nickname, password1, password2,
+      postCode, address, detailAddress
+    };
+    const url = isAdmin ? "/api/admin/join" : "/api/join";
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.status === 201) {
+        const data = await response.json();
+        showToast("가입이 완료되었습니다!", "/login", 2000);
+        document.getElementById("joinForm").reset();
+        const resultElem = document.getElementById("resultMessage");
+        if (resultElem) {
+          resultElem.innerHTML = `<div class="alert alert-success">가입 성공! 이메일: ${data.email}</div>`;
+        }
+        document.getElementById("emailVerifiedMessage").style.display = "none";
+      } else {
+        const msg = await response.text();
+        throw new Error(msg);
+      }
+    } catch (err) {
+      const resultElem = document.getElementById("resultMessage");
+      if (resultElem) {
+        resultElem.innerHTML = `<div class="alert alert-danger">가입 실패: ${err.message}</div>`;
+      }
+    }
+  }
 </script>
 </body>
 </html>

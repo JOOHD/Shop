@@ -22,9 +22,9 @@ public interface AddressRepository extends JpaRepository<Addresses, Long> {
     List<Addresses> findAllByMemberId(Long memberId);
 
     @Transactional
-    @Modifying(clearAutomatically = true) // @Query 는 기본적으로 SELECT만 가능하기 때문에 UPDATE/DELETE 하려면 @Modifying 필요
-    @Query("UPDATE Addresses a SET a.isDefaultAddress = false WHERE a.member.id = :memberId AND a.addressId != :excludeId")
-    void resetDefaultAddresses(@Param("memberId") Long memberId, @Param("excludeId") Long excludeId);
+    @Modifying
+    @Query("UPDATE Addresses a SET a.isDefaultAddress = false WHERE a.member.id = :memberId")
+    void resetDefaultAddressForMember(@Param("memberId") Long memberId);
 
     /*
         포인트 정리

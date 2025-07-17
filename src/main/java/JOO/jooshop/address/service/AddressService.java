@@ -41,7 +41,7 @@ public class AddressService {
         addressRepository.save(addresses);
 
         if (addresses.isDefaultAddress()) {
-            resetDefaultAddress(memberId, addresses.getAddressId());
+            resetDefaultAddress(memberId);
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(addresses);
@@ -126,7 +126,7 @@ public class AddressService {
         Addresses address = findAddress(addressId);
         validateAddressOwner(memberId, address);
 
-        resetDefaultAddress(memberId, address.getAddressId());
+        resetDefaultAddress(memberId);
         address.setDefaultAddress(true);
         addressRepository.save(address);
 
@@ -152,8 +152,8 @@ public class AddressService {
     }
 
     // 메소드가 호출되면, JPQL 이 기존 주소가 있더라도 한 번에 UPDATE 쿼리가 날아가고 끝!
-    private void resetDefaultAddress(Long memberId, Long excludeAddressId) {
-        addressRepository.resetDefaultAddresses(memberId, excludeAddressId);
+    private void resetDefaultAddress(Long memberId) {
+        addressRepository.resetDefaultAddressForMember(memberId);
     }
 
 //    private void resetDefaultAddress(Long memberId, Long excludeAddressId) {

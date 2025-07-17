@@ -51,6 +51,7 @@ public class EmailMemberService {
         certificationRepository.save(cert);
 
         String link = backendUrl + "/api/email/verify?token=" + token;
+
         sendEmail(email, link);
     }
 

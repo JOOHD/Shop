@@ -31,13 +31,13 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MemberService {
 
-    private final MemberRepositoryV1 memberRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
     private final JWTUtil jwtUtil;
+    private final BCryptPasswordEncoder passwordEncoder;
     private final RedisRefreshTokenRepository redisRefreshTokenRepository;
+    private final EmailMemberService emailMemberService;
+    private final MemberRepositoryV1 memberRepository;
     private final ProfileRepository profileRepository;
     private final AddressRepository addressRepository;
-    private final EmailMemberService emailMemberService;
 
     @Transactional
     public Member registerMember(JoinMemberRequest request) {
@@ -54,14 +54,16 @@ public class MemberService {
                 request.getPhone(),
                 socialId);
 
-        memberRepository.save(member);
+        Member savedMember = memberRepository.save(member);
         profileRepository.save(Profiles.createMemberProfile(member));
+        addressRepository.resetDefaultAddressForMember(savedMember.getId());
 
         // 주소 저장 로직 추가
         AddressesReqeustDto addressDto = request.getAddress();
         if (addressDto != null) {
-            Addresses address = Addresses.createAddress(addressDto, member);
-            addressRepository.save(address);
+            Addresses newAddress = Addresses.createAddress(addressDto, member);
+            newAddress.setDefaultAddress(true);
+            addressRepository.save(newAddress);
         }
 
         sendVerificationEmail(member.getEmail());
