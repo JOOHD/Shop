@@ -17,14 +17,23 @@
 
     <div class="header-center">
         <a href="/" class="header-logo-link">
-            <img class="logo" src="/images/icons/mufc_icon.png"/>
+            <img class="logo" src="/logo/icons/mufc_icon.png"/>
         </a>
     </div>
 
+    <!-- 로그인 + 위시리스트 + 장바구니 아이콘 -->
     <div class="right-icons">
-        <a href="/login" title="로그인"><i class="fas fa-user"></i></a>
-        <a href="/wishlist" title="위시리스트"><i class="fas fa-heart"></i></a>
-        <a href="/cart" title="장바구니"><i class="fas fa-bag-shopping"></i></a>
+        <!-- 로그인 아이콘 + 모달 -->
+        <div class="login-container" onmouseenter="showLoginModal()" onmouseleave="hideLoginModal()">
+            <a href="#" title="로그인"><i class="fas fa-user icon-btn"></i></a>
+            <div id="login-modal" class="login-modal">
+                <button onclick="location.href='/login'" class="btn-login">로그인</button>
+                <p class="no-account">계정이 없으신가요? <a href="/join" class="signup-link">회원가입</a></p>
+            </div>
+        </div>
+
+        <a href="/wishlist" title="위시리스트"><i class="fas fa-heart icon-btn"></i></a>
+        <a href="/cart" title="장바구니"><i class="fas fa-bag-shopping icon-btn"></i></a>
     </div>
 </header>
 
@@ -43,7 +52,7 @@
 <aside class="search-sidebar" id="searchSidebar">
     <div class="search-header">
         <i class="fas fa-times" onclick="toggleSearchSidebar()"></i>
-        <img class="logo-small" src="/images/icons/mufc_icon.png" />
+        <img class="logo-small" src="/logo/icons/mufc_icon.png" />
     </div>
     <div class="search-box">
         <form action="/items/search" method="get">
@@ -71,6 +80,14 @@
 
 <!-- JS Script -->
 <script>
+
+    function showLoginModal() {
+        document.getElementById('login-modal').style.display = 'block';
+    }
+    function hideLoginModal() {
+        document.getElementById('login-modal').style.display = 'none';
+    }
+
     function toggleSidebar() {
         document.getElementById('sidebar').classList.toggle('active');
         document.getElementById('overlay').classList.toggle('active');

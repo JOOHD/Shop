@@ -1,4 +1,7 @@
-* { box-sizing: border-box; }
+/* --- 전역 스타일 및 기본 세팅 --- */
+* {
+    box-sizing: border-box;
+}
 
 body {
     margin: 0;
@@ -6,7 +9,7 @@ body {
     background-color: #f8f9fa;
 }
 
-/* --- HEADER --- */
+/* --- HEADER (상단 헤더 바) --- */
 .header-bar {
     height: 70px;
     display: flex;
@@ -20,6 +23,7 @@ body {
     z-index: 1000;
 }
 
+/* 헤더 좌측/우측 아이콘 컨테이너 */
 .left-icons,
 .right-icons {
     display: flex;
@@ -27,6 +31,7 @@ body {
     gap: 20px;
 }
 
+/* 헤더 아이콘 스타일 */
 .left-icons i,
 .right-icons i {
     font-size: 20px;
@@ -34,10 +39,20 @@ body {
     color: #111;
 }
 
+/* 아이콘 마우스 오버 시 빨간색으로 변경 */
+.left-icons i:hover,
+.right-icons i:hover,
+.login-container i:hover {
+    color: #DA291C;
+    cursor: pointer;
+}
+
+/* 로고 이미지 크기 */
 .logo {
     height: 40px;
 }
 
+/* 헤더 중앙 영역: 로고 위치 조정용 */
 .header-center {
     display: flex;
     justify-content: center;
@@ -51,35 +66,41 @@ body {
     align-items: center;
 }
 
-/* --- HERO BANNER --- */
+/* --- HERO BANNER (메인 배너 영역) --- */
 .hero {
     position: relative;
-    width: 100%;
-    height: 500px;
-    background: url('/images/hero_kit.jpg') no-repeat center center;
+    background-image: url('/logo/banner/mufc_background.jpg'); /* ← 배경 이미지 경로 */
     background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 100vh;
     display: flex;
-    align-items: flex-end;
-    padding: 40px;
+    align-items: center;
+    justify-content: center;
     color: white;
+    text-align: center;
 }
 
+/* 배너 내 텍스트 컨테이너 */
 .hero-content {
-    background: rgba(0, 0, 0, 0.5);
-    padding: 20px 30px;
+    background: rgba(0, 0, 0, 0.4); /* 반투명 검정 배경 */
+    padding: 20px 40px;
     border-radius: 10px;
 }
 
+/* 배너 타이틀 */
 .hero-content h1 {
     font-size: 2.5rem;
     margin: 0;
 }
 
+/* 배너 부제목 */
 .hero-content p {
     font-size: 1.1rem;
     margin: 10px 0 20px 0;
 }
 
+/* 배너 내 쇼핑 버튼 */
 .hero-content .btn-shop {
     padding: 10px 30px;
     font-size: 1rem;
@@ -91,15 +112,16 @@ body {
     font-weight: bold;
 }
 
+/* 쇼핑 버튼 호버 시 배경색 진하게 */
 .hero-content .btn-shop:hover {
     background-color: #b52018;
 }
 
-/* --- 사이드바 (카테고리) --- */
+/* --- 사이드바 (카테고리 메뉴) --- */
 .sidebar {
     position: fixed;
     top: 0;
-    left: -250px;
+    left: -250px; /* 기본은 화면 밖으로 숨김 */
     width: 250px;
     height: 100%;
     background-color: #fff;
@@ -110,35 +132,42 @@ body {
     z-index: 1100;
 }
 
+/* 사이드바 활성화 시 화면에 보임 */
 .sidebar.active {
     left: 0;
 }
 
+/* 사이드바 제목 */
 .sidebar h3 {
     font-size: 1.2rem;
     margin-bottom: 20px;
     color: #212529;
 }
 
+/* 카테고리 리스트 기본 스타일 제거 */
 .sidebar ul {
     list-style: none;
     padding: 0;
 }
 
+/* 각 카테고리 항목 간격 */
 .sidebar ul li {
     margin: 15px 0;
 }
 
+/* 카테고리 링크 스타일 */
 .sidebar ul li a {
     color: #495057;
     text-decoration: none;
     font-size: 1rem;
 }
 
+/* 링크 마우스 오버 시 밑줄 */
 .sidebar ul li a:hover {
     text-decoration: underline;
 }
 
+/* --- 오버레이 (사이드바 열릴 때 배경 어둡게) --- */
 .overlay {
     position: fixed;
     top: 0;
@@ -150,15 +179,16 @@ body {
     z-index: 1099;
 }
 
+/* 오버레이 활성화 시 화면에 표시 */
 .overlay.active {
     display: block;
 }
 
-/* --- 검색 사이드바 --- */
+/* --- 검색 사이드바 (모바일/사이드 검색창) --- */
 .search-sidebar {
     position: fixed;
     top: 0;
-    left: -100%;
+    left: -100%; /* 기본 화면 밖으로 숨김 */
     width: 100%;
     max-width: 500px;
     height: 100%;
@@ -169,26 +199,31 @@ body {
     padding: 20px;
 }
 
+/* 검색 사이드바 활성화 시 왼쪽에서 슬라이드로 나타남 */
 .search-sidebar.active {
     left: 0;
 }
 
+/* 검색창 헤더 - 닫기 아이콘 및 로고 배치 */
 .search-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
+/* 검색창 닫기 아이콘 스타일 */
 .search-header i {
     font-size: 24px;
     cursor: pointer;
     color: #DA291C;
 }
 
+/* 검색창 로고 크기 */
 .logo-small {
     height: 36px;
 }
 
+/* 검색 입력창 영역 */
 .search-box {
     margin-top: 30px;
     display: flex;
@@ -197,12 +232,14 @@ body {
     padding: 10px 0;
 }
 
+/* 검색 아이콘 */
 .search-box i {
     font-size: 18px;
     margin-right: 10px;
     color: #555;
 }
 
+/* 검색 입력창 */
 .search-box input {
     flex-grow: 1;
     border: none;
@@ -211,17 +248,19 @@ body {
     color: #222;
 }
 
-/* --- 본문 콘텐츠 --- */
+/* --- 본문 콘텐츠 영역 --- */
 .main-content {
     padding: 30px;
 }
 
+/* 썸네일 그리드 레이아웃 */
 .thumbnail-grid {
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
 }
 
+/* 썸네일 카드 스타일 */
 .thumbnail {
     width: 240px;
     background-color: white;
@@ -232,17 +271,93 @@ body {
     box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
+/* 썸네일 이미지 */
 .thumbnail img {
     width: 100%;
     height: auto;
 }
 
+/* 썸네일 호버 시 약간 확대 */
 .thumbnail:hover {
     transform: scale(1.03);
 }
 
+/* 썸네일 제목 텍스트 */
 .thumb-title {
     padding: 10px;
     font-weight: bold;
     text-align: center;
+}
+
+/* --- 로그인 아이콘 --- */
+.login-container i {
+    color: #111; /* 기본 검정색 */
+    font-size: 20px;
+    cursor: pointer;
+    transition: color 0.2s ease-in-out;
+}
+
+/* 로그인 아이콘 마우스 오버 시 빨간색 */
+.login-container i:hover {
+    color: #DA291C;
+}
+
+/* --- 로그인 모달 --- */
+.login-modal {
+    position: absolute;
+    top: 40px;
+    right: 0;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 20px;
+    z-index: 1300;
+    width: 200px;
+    display: none; /* 기본 숨김 */
+    text-align: center;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* 로그인 버튼 스타일 */
+.btn-login {
+    background-color: #DA291C;
+    color: white;
+    padding: 10px 0;
+    width: 100%;
+    border: none;
+    border-radius: 20px;
+    font-size: 15px;
+    cursor: pointer;
+    margin-bottom: 12px;
+    font-weight: bold;
+}
+
+/* 로그인 버튼 호버 시 배경색 진하게 */
+.btn-login:hover {
+    background-color: #b52018;
+}
+
+/* 회원가입 안내 문구 */
+.no-account {
+    font-size: 14px;
+    color: #555;
+    margin: 0;
+}
+
+/* 회원가입 링크 스타일 */
+.signup-link {
+    color: #DA291C;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* 회원가입 링크 호버 시 밑줄 */
+.signup-link:hover {
+    text-decoration: underline;
+}
+
+/* --- 모달 페이드인 애니메이션 --- */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
 }
