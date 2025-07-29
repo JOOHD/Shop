@@ -4,46 +4,20 @@
     <title>UNITED SHOP</title>
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/home.css">  <!-- 분리한 CSS 파일 경로 -->
+    <link rel="stylesheet" href="/css/home.css">
 </head>
 <body>
 
-<!-- HEADER -->
-<header class="header-bar">
-    <div class="left-icons">
-        <i class="fas fa-bars" title="메뉴" onclick="toggleSidebar()"></i>
-        <i class="fas fa-search" title="검색" onclick="toggleSearchSidebar()"></i>
-    </div>
+<!-- HEADER Fragment Include -->
+<div th:replace="fragments/header :: header"></div>
 
-    <div class="header-center">
-        <a href="/" class="header-logo-link">
-            <img class="logo" src="/logo/icons/mufc_icon.png"/>
-        </a>
-    </div>
-
-    <!-- 로그인 + 위시리스트 + 장바구니 아이콘 -->
-    <div class="right-icons">
-        <!-- 로그인 아이콘 + 모달 -->
-        <div class="login-container" onmouseenter="showLoginModal()" onmouseleave="hideLoginModal()">
-            <a href="#" title="로그인"><i class="fas fa-user icon-btn"></i></a>
-            <div id="login-modal" class="login-modal">
-                <button onclick="location.href='/login'" class="btn-login">로그인</button>
-                <p class="no-account">계정이 없으신가요? <a href="/join" class="signup-link">회원가입</a></p>
-            </div>
-        </div>
-
-        <a href="/wishlist" title="위시리스트"><i class="fas fa-heart icon-btn"></i></a>
-        <a href="/cart" title="장바구니"><i class="fas fa-bag-shopping icon-btn"></i></a>
-    </div>
-</header>
-
-<!-- 사이드바 (카테고리) -->
+<!-- 사이드바 -->
 <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 <aside class="sidebar" id="sidebar">
     <h3>카테고리</h3>
     <ul>
         <li><a href="/items?category=shoes">축구화</a></li>
-        <li><a href="/items?category=jersey">유니폼</a></li>
+        <li><a href="/product">유니폼</a></li>
         <li><a href="/items?category=accessory">악세사리</a></li>
     </ul>
 </aside>
@@ -75,24 +49,24 @@
 
 <!-- Main Content -->
 <main class="main-content">
-
+    <!-- 콘텐츠 영역 -->
 </main>
 
-<!-- JS Script -->
-<script>
+<!-- FOOTER Fragment Include -->
+<div th:replace="fragments/footer :: footer"></div>
 
+<!-- JS -->
+<script>
     function showLoginModal() {
         document.getElementById('login-modal').style.display = 'block';
     }
     function hideLoginModal() {
         document.getElementById('login-modal').style.display = 'none';
     }
-
     function toggleSidebar() {
         document.getElementById('sidebar').classList.toggle('active');
         document.getElementById('overlay').classList.toggle('active');
     }
-
     function toggleSearchSidebar() {
         document.getElementById('searchSidebar').classList.toggle('active');
     }

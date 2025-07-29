@@ -170,7 +170,7 @@ public class SecurityConfig {
                 }))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/logout", "/", "/auth/**", "/oauth2/**").permitAll()
+                        .requestMatchers("/login", "/logout", "/", "/auth/**", "/oauth2/**", "/products/**").permitAll()
                         .requestMatchers("/admin", "/api/v1/inventory/**").hasRole("ADMIN")
                         .anyRequest().permitAll()
                 )

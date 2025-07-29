@@ -1,20 +1,19 @@
 body {
-    font-family: 'Noto Sans KR', sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background: #fff;
-    margin: 0;
+  font-family: 'Noto Sans KR', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #fff;
+  margin: 0;
 }
 
-/* overlay 스타일 */
 .modal-overlay {
   display: none;
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0,0,0,0.4); /* 반투명 검정 배경 */
-  z-index: 90; /* 모달보다 아래에 */
+  background-color: rgba(0,0,0,0.4);
+  z-index: 90;
 }
 
 .modal-overlay.show {
@@ -22,141 +21,106 @@ body {
 }
 
 .login-container {
-    width: 360px;
-    padding: 0; /* padding 제거 */
-    border-radius: 10px;
-    box-shadow: none; /* 그림자 제거 */
-    position: relative;
-    text-align: center;
-    /* min-height 추가하여 빈 박스 방지 */
-    min-height: 0;
-}
-
-.login-icon {
-    font-size: 30px;
-    color: #6a1b9a;
-    cursor: pointer;
+  width: 100%;
+  max-width: 400px;
+  position: relative;
+  text-align: center;
 }
 
 .login-modal {
-    display: none;
-    flex-direction: column;
-    gap: 15px;
-    margin-top: 0; /* margin-top 제거 */
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 25px rgba(0,0,0,0.2);
-    position: fixed; /* absolute -> fixed */
-    top: 20%;          /* 화면 상단 근처 위치 */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100%;
-    max-width: 360px;
-    z-index: 100;
+  display: none;
+  flex-direction: column;
+  background: white;
+  padding: 32px 24px;
+  border-radius: 10px;
+  box-shadow: 0 4px 25px rgba(0,0,0,0.2);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 40px);
+  max-width: 400px;
+  z-index: 100;
 }
 
 .login-modal.show {
-    display: flex;
+  display: flex;
 }
 
 .modal-header {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
     font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.back-button {
+    font-size: 24px;
     cursor: pointer;
+    color: #333;
+    padding: 6px 10px;
 }
 
 .modal-body input {
-    width: 100%;
-    padding: 14px;
-    margin: 8px 0;
-    border: 1px solid #ccc;
-    border-radius: 30px;
-    font-size: 14px;
-    box-sizing: border-box;
+  width: 100%;
+  padding: 14px;
+  margin: 8px 0;
+  border: none;
+  border-bottom: 1px solid #ccc;
+  font-size: 14px;
+  background: transparent;
 }
 
-.modal-body button[type="submit"] {
-    width: 100%;
-    background-color: #e30613;
-    color: white;
-    border: none;
-    padding: 14px;
-    font-size: 16px;
-    font-weight: bold;
-    border-radius: 30px;
-    cursor: pointer;
-    margin-top: 10px;
+.submit-btn {
+  width: 100%;
+  background-color: #ccc;
+  color: white;
+  border: none;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 8px;
+  margin-top: 16px;
+  cursor: pointer;
 }
 
 .find-links {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    margin-top: 10px;
+  display: flex;
+  justify-content: space-around;
+  font-size: 12px;
+  margin: 20px 0;
+  color: #777;
 }
 
 .find-links a {
-    text-decoration: underline;
-    color: #333;
+  color: #444;
+  text-decoration: none;
 }
 
-.separator {
-    display: flex;
-    align-items: center;
-    margin: 20px 0;
+.social-login {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
 }
 
-.separator::before,
-.separator::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background: #ccc;
-}
-
-.separator span {
-    margin: 0 10px;
-    font-size: 13px;
-    color: #333;
-}
-
-/* 소셜 로그인 버튼 - 이미지 버튼 전환 스타일 */
 .social-login button {
-    width: 100%;
-    padding: 0;
-    border: none;
-    background: none;
-    cursor: pointer;
-    display: block;
-    margin-bottom: 12px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 48px;
+  width: 100%;
 }
 
 .social-login button img {
-    display: block;
-    width: 100%;      /* 버튼 너비 꽉 채움 */
-    max-width: 320px; /* 최대 너비 제한 */
-    height: auto;     /* 비율 유지 */
-    border-radius: 30px;
-}
-
-/* (기존 스타일 참고) */
-/*
-.social-login .facebook {
-    color: #1877f2;
-}
-.social-login .google {
-    color: #db4437;
-}
-.social-login .apple {
-    background-color: black;
-    color: white;
-    border: none;
-}
-*/
-
-/* 회원가입 버튼 별도 스타일 */
-.signup-btn:hover {
-    background-color: #45a049 !important;
+  width: 100%;
+  max-width: 360px;
+  height: 48px;
+  object-fit: contain;
+  display: block;
 }

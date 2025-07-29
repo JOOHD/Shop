@@ -2,38 +2,33 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8" />
-    <title>로그인 모달</title>
-    <!-- 기존 CSS 파일 링크 -->
+    <title>로그인</title>
     <link rel="stylesheet" href="/css/login.css" />
-    <!-- FontAwesome (필요시) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
 <body>
 <div class="login-container">
-    <!-- 배경 오버레이 -->
     <div class="modal-overlay show" id="modalOverlay"></div>
 
-    <!-- 로그인 모달 (초기 show 상태) -->
     <div class="login-modal show" id="loginModal">
-        <!-- 모달 헤더: 닫기 버튼 -->
         <div class="modal-header">
-            <span class="close-icon" title="닫기">&times;</span>
+            <span class="back-button" title="뒤로 가기">&#8592;</span>
         </div>
 
-        <!-- 모달 바디: 로그인 폼 -->
         <div class="modal-body">
             <form>
-                <input type="text" placeholder="이메일" required /><br />
-                <input type="password" placeholder="암호" required /><br />
-                <button type="submit">로그인</button>
+                <label><input type="email" placeholder="이메일 주소" required /></label>
+                <label><input type="password" placeholder="비밀번호" required /></label>
+                <button type="submit" class="submit-btn">로그인</button>
             </form>
 
-            <!-- 구분선 -->
-            <div class="separator">
-                <span>또는</span>
+            <div class="find-links">
+                <a href="#">이메일 가입</a>
+                <span>|</span>
+                <a href="#">이메일 찾기</a>
+                <span>|</span>
+                <a href="#">비밀번호 찾기</a>
             </div>
 
-            <!-- 소셜 로그인 버튼 -->
             <div class="social-login">
                 <button id="kakaoLoginBtn" type="button" aria-label="카카오 로그인">
                     <img src="/logo/icons/kakao_login_button.png" alt="카카오 로그인" />
@@ -46,43 +41,37 @@
     </div>
 </div>
 
-<script defer>
-    document.addEventListener("DOMContentLoaded", () => {
-        const loginModal = document.getElementById("loginModal");
-        const modalOverlay = document.getElementById("modalOverlay");
-        const closeIcon = document.querySelector(".close-icon");
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  // 모달 요소 및 버튼 가져오기
+  const loginModal = document.getElementById("loginModal");
+  const backButton = document.querySelector(".back-button"); // ← 버튼
 
-        // 모달 닫기 함수 (모달과 오버레이 모두 숨김)
-        function closeModal() {
-            loginModal.classList.remove("show");
-            modalOverlay.classList.remove("show");
-        }
+  // 모달 닫기 함수 (모달과 오버레이 모두 숨김)
+  function closeModal() {
+    loginModal.classList.remove("show");
+    modalOverlay.classList.remove("show");
+  }
 
-        // 닫기 버튼 클릭 시 모달 닫기
-        closeIcon.addEventListener("click", (e) => {
-            e.stopPropagation();
-            closeModal();
-        });
+  // 뒤로 가기(←) 버튼 클릭 시 home.html 이동
+  backButton.addEventListener("click", () => {
+    window.location.href = "/";
+  });
 
-        // 오버레이 클릭 시 모달 닫기
-        modalOverlay.addEventListener("click", () => {
-            closeModal();
-        });
+  // 소셜 로그인 URL (실제 값으로 교체 필요)
+  const kakaoLoginUrl = "https://kauth.kakao.com/oauth/authorize?client_id=YOUR_KAKAO_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&response_type=code";
+  const naverLoginUrl = "https://nid.naver.com/oauth2.0/authorize?client_id=YOUR_NAVER_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&response_type=code&state=STATE_STRING";
 
-        // 실제 소셜 로그인 URL 넣기
-        const kakaoLoginUrl = "https://kauth.kakao.com/oauth/authorize?client_id=YOUR_KAKAO_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&response_type=code";
-        const naverLoginUrl = "https://nid.naver.com/oauth2.0/authorize?client_id=YOUR_NAVER_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&response_type=code&state=STATE_STRING";
+  // 카카오 로그인 버튼 클릭 시 리디렉션
+  document.getElementById("kakaoLoginBtn").addEventListener("click", () => {
+    window.location.href = kakaoLoginUrl;
+  });
 
-        // 카카오 로그인 버튼 클릭 이벤트
-        document.getElementById("kakaoLoginBtn").addEventListener("click", () => {
-            window.location.href = kakaoLoginUrl;
-        });
-
-        // 네이버 로그인 버튼 클릭 이벤트
-        document.getElementById("naverLoginBtn").addEventListener("click", () => {
-            window.location.href = naverLoginUrl;
-        });
-    });
+  // 네이버 로그인 버튼 클릭 시 리디렉션
+  document.getElementById("naverLoginBtn").addEventListener("click", () => {
+    window.location.href = naverLoginUrl;
+  });
+});
 </script>
 </body>
 </html>
