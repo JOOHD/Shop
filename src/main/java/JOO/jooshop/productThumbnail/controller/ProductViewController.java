@@ -2,8 +2,10 @@ package JOO.jooshop.productThumbnail.controller;
 
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.repository.ProductRepositoryV1;
+import JOO.jooshop.product.service.ProductServiceV1;
 import JOO.jooshop.productThumbnail.entity.ProductThumbnail;
 import JOO.jooshop.productThumbnail.repository.ProductThumbnailRepositoryV1;
+import JOO.jooshop.productThumbnail.service.ProductThumbnailServiceV1;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,20 +22,21 @@ import java.util.NoSuchElementException;
 public class ProductViewController {
 
     private final ProductRepositoryV1 productRepository;
-    private final ProductThumbnailRepositoryV1 thumbnailRepository;
+    private final ProductThumbnailServiceV1 productThumbnailService;
 
-    @GetMapping("/{productId}")
-    public String productPage(@PathVariable Long productId, Model model) {
+    @GetMapping
+    public String productList(Model model) {
+        List<Product> products = productThumbnailService.getAllProductsWithThumbnails();
+        model.addAttribute("products", products);
+        return "products/productList";
+    }
+
+    @GetMapping("/{productId}") // 상품 상세
+    public String productDetail(@PathVariable Long productId, Model model) {
         Product product = productRepository.findByProductId(productId)
                 .orElseThrow(() -> new NoSuchElementException("상품 없음"));
 
-        List<String> thumbnails = thumbnailRepository.findByProduct_ProductId(productId)
-                .stream()
-                .map(ProductThumbnail::getImagePath)
-                .toList();
-
         model.addAttribute("product", product);
-        model.addAttribute("thumbnailPaths", thumbnails);
-        return "products/product"; // product.html
+        return "products/productDetail"; // productList.html
     }
 }

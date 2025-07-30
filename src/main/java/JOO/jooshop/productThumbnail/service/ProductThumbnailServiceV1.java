@@ -3,6 +3,7 @@ package JOO.jooshop.productThumbnail.service;
 import JOO.jooshop.global.authorization.RequiresRole;
 import JOO.jooshop.members.entity.enums.MemberRole;
 import JOO.jooshop.product.entity.Product;
+import JOO.jooshop.product.repository.ProductRepositoryV1;
 import JOO.jooshop.productThumbnail.entity.ProductThumbnail;
 import JOO.jooshop.productThumbnail.repository.ProductThumbnailRepositoryV1;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ public class ProductThumbnailServiceV1 {
             static 아래에서 찾기 위해 경로 설정
      */
     private final ProductThumbnailRepositoryV1 productThumbnailRepository;
+    private final ProductRepositoryV1 productRepository;
 
     /**
      * 썸네일 등록
@@ -81,7 +83,7 @@ public class ProductThumbnailServiceV1 {
         String filePath = uploadsDir + fileName;
         log.info("*************filePath check" + filePath);
         // DB에 저장할 경로 문자열
-        String dbFilePath = "/uploads/thumbnails/" + fileName;
+        String dbFilePath = "uploads/thumbnails/" + fileName;
 
         Path path = Paths.get(filePath); // Path 객체 생성
         Files.createDirectories(path.getParent()); // 디렉토리 생성
@@ -123,5 +125,9 @@ public class ProductThumbnailServiceV1 {
     //썸네일 조회
     public List<ProductThumbnail> getProductThumbnails(Long productId) {
         return productThumbnailRepository.findByProduct_ProductId(productId);
+    }
+
+    public List<Product> getAllProductsWithThumbnails() {
+        return productRepository.findAll();
     }
 }
