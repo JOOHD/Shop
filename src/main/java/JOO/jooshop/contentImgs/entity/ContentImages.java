@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "content_imgs")
 @NoArgsConstructor // 디폴트 생성자
-public class ContentImages {
+public class ContentImages { // json api 용 컨트롤러 (productViewController 와 연관성 없음)
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "content_img_id")

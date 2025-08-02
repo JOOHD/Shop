@@ -1,0 +1,141 @@
+.product-detail-container {
+  max-width: 1100px;
+  margin: 40px auto;
+  display: flex;
+  gap: 40px;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+/* 왼쪽 이미지 영역 */
+.image-section {
+  flex: 1 1 500px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.main-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+/* 오른쪽 정보 영역 */
+.info-section {
+  flex: 1 1 500px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+/* 상품명 */
+.product-name {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+/* 가격 영역 */
+.price-info {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.original-price {
+  font-size: 1.2rem;
+  color: #888;
+  text-decoration: line-through;
+}
+
+.discount-rate {
+  font-size: 1rem;
+  color: #e60023;
+  font-weight: 600;
+}
+
+.discounted-price {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #e60023;
+}
+
+/* 사이즈 선택 */
+.size-selection label {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.size-options {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.size-options button {
+  padding: 8px 14px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.size-options button:hover {
+  background-color: #007bff;
+  color: #fff;
+  border-color: #007bff;
+}
+
+/* 액션 버튼 */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.customize-btn,
+.add-cart-btn {
+  padding: 14px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.customize-btn {
+  background-color: #6c757d;
+  color: white;
+}
+
+.customize-btn:hover {
+  background-color: #5a6268;
+}
+
+.add-cart-btn {
+  background-color: #e46060;
+  color: white;
+}
+
+.add-cart-btn:hover {
+  background-color: #b34040;
+}
+
+/* 반응형: 화면이 좁으면 세로 정렬 */
+@media (max-width: 900px) {
+  .product-detail-container {
+    flex-direction: column;
+  }
+
+  .image-section, .info-section {
+    flex: none;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto 30px;
+  }
+}

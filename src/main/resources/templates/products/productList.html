@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>상품 목록</title>
     <link rel="stylesheet" href="/css/fragments/header.css">
-    <link rel="stylesheet" href="/css/product.css">
+    <link rel="stylesheet" href="/css/productList.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -57,7 +57,7 @@
                     <span class="discounted-price" th:text="'₩' + ${#numbers.formatInteger(product.price * (1 - product.discountRate / 100.0), 0, 'COMMA')}">₩0</span>
                 </p>
                 <p class="price" th:unless="${product.isDiscount}">
-                   <span class="discount-price" th:text="'₩' + ${#numbers.formatInteger(product.price, 0, 'COMMA')}">₩0</span>
+                    <span class="discount-price" th:text="'₩' + ${#numbers.formatInteger(product.price, 0, 'COMMA')}">₩0</span>
                 </p>
 
                 <!-- 상품명 -->

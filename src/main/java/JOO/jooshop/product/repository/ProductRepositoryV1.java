@@ -1,15 +1,12 @@
 package JOO.jooshop.product.repository;
 
+import org.springframework.data.repository.query.Param;
 import JOO.jooshop.product.entity.Product;
-import JOO.jooshop.product.entity.enums.ProductType;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,5 +18,6 @@ public interface ProductRepositoryV1 extends JpaRepository<Product, Long> {
     List<Product> findAll();
 
     // 상품 조회
-    Optional<Product> findByProductId(Long productId);
+    @Query("SELECT p FROM Product p JOIN FETCH p.productThumbnails WHERE p.id = :id")
+    Optional<Product> findByProductId(@Param("id") Long productId);
 }

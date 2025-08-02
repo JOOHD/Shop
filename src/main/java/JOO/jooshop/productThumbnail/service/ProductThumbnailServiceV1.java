@@ -83,7 +83,7 @@ public class ProductThumbnailServiceV1 {
         String filePath = uploadsDir + fileName;
         log.info("*************filePath check" + filePath);
         // DB에 저장할 경로 문자열
-        String dbFilePath = "uploads/thumbnails/" + fileName;
+        String dbFilePath = "uploads/thumbnails/" + fileName; //
 
         Path path = Paths.get(filePath); // Path 객체 생성
         Files.createDirectories(path.getParent()); // 디렉토리 생성

@@ -104,7 +104,8 @@ body {
 
 .discount-rate {
   font-size: 12px;
-  color: #999;
+  color: #e53935; /* 빨간색으로 변경 (productDetail.html 스타일과 유사하게) */
+  font-weight: bold;
 }
 
 .discounted-price {
