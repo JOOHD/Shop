@@ -1,79 +1,86 @@
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
     <title>회원 가입</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
-
 </head>
 <body>
-<div class="container">
-    <h2 class="mt-4 mb-4">회원 가입</h2>
+<div class="container mt-5">
+    <h2 class="mb-4">회원 가입</h2>
     <form id="joinForm">
+
+        <!-- 이메일 입력 -->
         <div class="form-group">
             <label for="email">이메일</label>
             <div class="input-group">
-                <input type="email" class="form-control" id="email" placeholder="이메일을 입력하세요" required />
+                <input type="email" class="form-control" id="email" placeholder="이메일을 입력하세요" required>
                 <div class="input-group-append">
-                    <button class="btn btn-outline-secondary" type="button" onclick="requestEmailVerification()">인증</button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="requestEmailVerification()">인증</button>
                 </div>
             </div>
-            <small id="emailVerifiedMessage" class="form-text text-success" style="display:none; margin-top:5px;">
+            <small id="emailVerifiedMessage" class="form-text text-success d-none mt-1">
                 이메일 인증이 완료되었습니다.
             </small>
         </div>
 
+        <!-- 기본 정보 입력 -->
         <div class="form-group">
             <label for="username">이름</label>
-            <input type="text" class="form-control" id="username" placeholder="이름을 입력하세요" required />
+            <input type="text" class="form-control" id="username" placeholder="이름을 입력하세요" required>
         </div>
 
         <div class="form-group">
             <label for="nickname">닉네임</label>
-            <input type="text" class="form-control" id="nickname" placeholder="닉네임을 입력하세요" required />
+            <input type="text" class="form-control" id="nickname" placeholder="닉네임을 입력하세요" required>
         </div>
 
         <div class="form-group">
             <label for="phone">전화번호</label>
-            <input type="tel" class="form-control" id="phone" placeholder="예: 010-1234-5678" required />
+            <input type="tel" class="form-control" id="phone" placeholder="예: 010-1234-5678" required>
         </div>
 
         <div class="form-group">
             <label for="password1">비밀번호</label>
-            <input type="password" class="form-control" id="password1" placeholder="비밀번호를 입력하세요" required />
+            <input type="password" class="form-control" id="password1" placeholder="비밀번호를 입력하세요" required>
         </div>
 
         <div class="form-group">
             <label for="password2">비밀번호 확인</label>
-            <input type="password" class="form-control" id="password2" placeholder="비밀번호를 다시 입력하세요" required />
+            <input type="password" class="form-control" id="password2" placeholder="비밀번호를 다시 입력하세요" required>
         </div>
 
+        <!-- 주소 입력 -->
         <div class="form-group">
             <label for="postCode">우편번호</label>
             <div class="input-group">
-                <input type="text" class="form-control" id="postCode" placeholder="우편번호" readonly required />
-                <button type="button" class="btn btn-outline-secondary" onclick="execDaumPostcode()">주소찾기</button>
+                <input type="text" class="form-control" id="postCode" placeholder="우편번호" readonly required>
+                <div class="input-group-append">
+                    <button type="button" class="btn btn-outline-secondary" onclick="execDaumPostcode()">주소찾기</button>
+                </div>
             </div>
         </div>
 
         <div class="form-group">
             <label for="address">주소</label>
-            <input type="text" class="form-control" id="address" placeholder="주소" readonly required />
+            <input type="text" class="form-control" id="address" placeholder="주소" readonly required>
         </div>
 
         <div class="form-group">
             <label for="detailAddress">상세 주소</label>
-            <input type="text" class="form-control" id="detailAddress" placeholder="상세 주소" />
+            <input type="text" class="form-control" id="detailAddress" placeholder="상세 주소">
         </div>
 
-        <button type="button" class="btn btn-primary" onclick="submitJoin(false)">일반 회원 가입</button>
-        <button type="button" class="btn btn-danger ml-2" onclick="submitJoin(true)">관리자 가입</button>
+        <!-- 가입 버튼 -->
+        <div class="d-flex">
+            <button type="button" class="btn btn-primary mr-2" onclick="submitJoin(false)">일반 회원 가입</button>
+            <button type="button" class="btn btn-danger" onclick="submitJoin(true)">관리자 가입</button>
+        </div>
     </form>
-
 </div>
 
 <script>
-   // 다음 우편번호 서비스 실행 함수
   function execDaumPostcode() {
     new daum.Postcode({
       oncomplete: function(data) {
@@ -84,131 +91,88 @@
     }).open();
   }
 
-  // 이메일 인증 요청 함수
   async function requestEmailVerification() {
     const email = document.getElementById("email").value.trim();
-    if (!email) {
-      alert("이메일을 입력하세요.");
-      return;
-    }
+    if (!email) return alert("이메일을 입력하세요.");
 
     try {
-      const response = await fetch('/api/email/verify-request', {
+      const res = await fetch('/api/email/verify-request', {
         method: 'POST',
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
       });
-
-      if (response.ok) {
-        alert("인증 메일을 발송했습니다. 이메일을 확인하세요.");
-      } else {
-        const errorText = await response.text();
-        alert("메일 발송 실패: " + errorText);
-      }
-    } catch (error) {
-      alert("서버와 통신 중 오류가 발생했습니다.");
-      console.error(error);
+      res.ok ? alert("인증 메일 발송 완료.") : alert("실패: " + await res.text());
+    } catch (err) {
+      alert("오류 발생");
+      console.error(err);
     }
   }
 
-  // 이메일 인증 여부 체크 함수
   async function checkEmailVerified(email) {
-    if (!email) return false;
-
     try {
-      const response = await fetch(`/api/email/verify-check?email=${encodeURIComponent(email)}`, {
-        method: 'GET',
-      });
-      if (!response.ok) {
-        return false;
-      }
-      const data = await response.json();
+      const res = await fetch(`/api/email/verify-check?email=${encodeURIComponent(email)}`);
+      const data = await res.json();
       return data.verified === true;
-    } catch (error) {
-      console.error("이메일 인증 확인 중 오류:", error);
+    } catch (err) {
+      console.error(err);
       return false;
     }
   }
 
-  // 이메일 인증 완료 메시지 보여주기
   function showEmailVerifiedMessage() {
-    const msgElem = document.getElementById("emailVerifiedMessage");
-    if (msgElem) {
-      msgElem.style.display = "block";
-    }
+    document.getElementById("emailVerifiedMessage").classList.remove("d-none");
   }
 
-  // 토스트 메시지 보여주기 (간단한 alert 대체 가능)
-  function showToast(message, redirectUrl = null, duration = 2000) {
-    alert(message);
-    if (redirectUrl) {
-      setTimeout(() => {
-        window.location.href = redirectUrl;
-      }, duration);
-    }
-  }
-
-  // 회원가입 제출 함수
   async function submitJoin(isAdmin) {
-    const email = document.getElementById("email").value.trim();
-    const phone = document.getElementById("phone").value.trim();
-    const username = document.getElementById("username").value.trim();
-    const nickname = document.getElementById("nickname").value.trim();
-    const password1 = document.getElementById("password1").value.trim();
-    const password2 = document.getElementById("password2").value.trim();
-    const postCode = document.getElementById("postCode").value.trim();
-    const address = document.getElementById("address").value.trim();
-    const detailAddress = document.getElementById("detailAddress").value.trim();
-
-    if (!email || !phone || !username || !nickname || !password1 || !password2 || !postCode || !address) {
-      alert("모든 항목을 입력해주세요.");
-      return;
+    const values = ["email", "username", "nickname", "phone", "password1", "password2", "postCode", "address"];
+    const data = {};
+    for (let id of values) {
+      const val = document.getElementById(id).value.trim();
+      if (!val) return alert("모든 항목을 입력하세요.");
+      data[id] = val;
     }
+    data.detailAddress = document.getElementById("detailAddress").value.trim();
 
-    if (password1 !== password2) {
-      alert("비밀번호가 일치하지 않습니다.");
-      return;
-    }
+    if (data.password1 !== data.password2) return alert("비밀번호 불일치");
 
-    const verified = await checkEmailVerified(email);
-    if (!verified) {
-      alert("이메일 인증이 완료되지 않았습니다.");
-      return;
-    } else {
-      showEmailVerifiedMessage();
-    }
+    if (!(await checkEmailVerified(data.email))) return alert("이메일 인증 필요");
+    showEmailVerifiedMessage();
 
     const payload = {
-      email, phone, username, nickname, password1, password2,
-      postCode, address, detailAddress
+      email: data.email,
+      username: data.username,
+      nickname: data.nickname,
+      phone: data.phone,
+      password1: data.password1,
+      password2: data.password2,
+      address: {
+        postCode: data.postCode,
+        address: data.address,
+        detailAddress: data.detailAddress,
+        addressName: "기본 주소",
+        recipient: data.username,
+        recipientPhone: data.phone,
+        defaultAddress: true
+      }
     };
+
     const url = isAdmin ? "/api/admin/join" : "/api/join";
 
     try {
-      const response = await fetch(url, {
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
 
-      if (response.status === 201) {
-        const data = await response.json();
-        showToast("가입이 완료되었습니다!", "/login", 2000);
-        document.getElementById("joinForm").reset();
-        const resultElem = document.getElementById("resultMessage");
-        if (resultElem) {
-          resultElem.innerHTML = `<div class="alert alert-success">가입 성공! 이메일: ${data.email}</div>`;
-        }
-        document.getElementById("emailVerifiedMessage").style.display = "none";
+      if (res.status === 201 || res.ok) {
+        alert("가입 성공!");
+        window.location.href = "/login";
       } else {
-        const msg = await response.text();
-        throw new Error(msg);
+        alert("가입 실패: " + await res.text());
       }
     } catch (err) {
-      const resultElem = document.getElementById("resultMessage");
-      if (resultElem) {
-        resultElem.innerHTML = `<div class="alert alert-danger">가입 실패: ${err.message}</div>`;
-      }
+      alert("에러 발생: " + err.message);
     }
   }
 </script>

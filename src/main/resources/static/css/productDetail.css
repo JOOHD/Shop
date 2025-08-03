@@ -97,7 +97,7 @@
   gap: 16px;
 }
 
-.customize-btn,
+.order-btn,
 .add-cart-btn {
   padding: 14px 0;
   font-size: 1.1rem;
@@ -108,12 +108,12 @@
   transition: background-color 0.3s ease;
 }
 
-.customize-btn {
+.order-btn {
   background-color: #6c757d;
   color: white;
 }
 
-.customize-btn:hover {
+.order-btn:hover {
   background-color: #5a6268;
 }
 

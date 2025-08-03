@@ -54,6 +54,8 @@ public class MemberService {
                 request.getPhone(),
                 socialId);
 
+        member.setCertifiedByEmail(true);
+
         Member savedMember = memberRepository.save(member);
         profileRepository.save(Profiles.createMemberProfile(member));
         addressRepository.resetDefaultAddressForMember(savedMember.getId());

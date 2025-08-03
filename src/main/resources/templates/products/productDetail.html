@@ -48,12 +48,16 @@
 
     <!-- 액션 버튼 -->
     <div class="action-buttons">
-      <button class="customize-btn">맞춤형 제품</button>
-      <button class="add-cart-btn">장바구니에 추가</button>
+      <a href="/cart" class="add-cart-btn">장바구니에 담기</a>
     </div>
   </section>
 
 </main>
-
+<script>
+    document.querySelector(".add-cart-btn").addEventListener("click", function () {
+        // 예: 장바구니에 상품 담는 처리 후 페이지 이동
+        window.location.href = "/cart";
+    });
+</script>
 </body>
 </html>

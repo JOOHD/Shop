@@ -15,9 +15,9 @@
         </div>
 
         <div class="modal-body">
-            <form>
-                <label><input type="email" placeholder="이메일 주소" required /></label>
-                <label><input type="password" placeholder="비밀번호" required /></label>
+            <form id="loginForm">
+                <label><input type="email" id="email" placeholder="이메일 주소" required /></label>
+                <label><input type="password" id="password" placeholder="비밀번호" required /></label>
                 <button type="submit" class="submit-btn">로그인</button>
             </form>
 
@@ -43,22 +43,44 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  // 모달 요소 및 버튼 가져오기
   const loginModal = document.getElementById("loginModal");
-  const backButton = document.querySelector(".back-button"); // ← 버튼
+  const backButton = document.querySelector(".back-button");
+  const modalOverlay = document.getElementById("modalOverlay");
+  const loginForm = document.getElementById("loginForm");
 
-  // 모달 닫기 함수 (모달과 오버레이 모두 숨김)
-  function closeModal() {
-    loginModal.classList.remove("show");
-    modalOverlay.classList.remove("show");
-  }
-
-  // 뒤로 가기(←) 버튼 클릭 시 home.html 이동
+  // 뒤로가기 버튼 클릭 시 홈으로 이동
   backButton.addEventListener("click", () => {
     window.location.href = "/";
   });
 
-  // 소셜 로그인 URL (실제 값으로 교체 필요)
+  // 로그인 폼 제출 이벤트 처리
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    try {
+      const response = await fetch('/api/login', {  // 실제 로그인 API 경로로 변경하세요
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      if (response.ok) {
+        // 로그인 성공 시 홈으로 이동
+        window.location.href = "/";
+      } else {
+        const errorText = await response.text();
+        alert("로그인 실패: " + errorText);
+      }
+    } catch (error) {
+      alert("서버와 통신 중 오류가 발생했습니다.");
+      console.error(error);
+    }
+  });
+
+  // 소셜 로그인 URL (실제 값으로 변경 필요)
   const kakaoLoginUrl = "https://kauth.kakao.com/oauth/authorize?client_id=YOUR_KAKAO_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&response_type=code";
   const naverLoginUrl = "https://nid.naver.com/oauth2.0/authorize?client_id=YOUR_NAVER_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&response_type=code&state=STATE_STRING";
 
