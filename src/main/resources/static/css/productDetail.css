@@ -90,6 +90,29 @@
   border-color: #007bff;
 }
 
+.size-btn.selected {
+    background-color: #333;
+    color: #fff;
+}
+
+/* 수량 박스 */
+.quantity-selection input[type="number"] {
+  width: 60px;  /* 적당한 너비 지정 */
+  padding: 6px 8px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+/* 사이즈 버튼 */
+.size-options button {
+  padding: 10px 20px;  /* 충분한 패딩 */
+  font-size: 1rem;     /* 텍스트 크기 조절 */
+  min-width: 50px;     /* 최소 너비 지정 */
+  text-align: center;
+}
+
 /* 액션 버튼 */
 .action-buttons {
   display: flex;

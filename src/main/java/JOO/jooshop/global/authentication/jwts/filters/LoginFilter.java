@@ -63,10 +63,6 @@ public class LoginFilter extends CustomJsonEmailPasswordAuthenticationFilter {
 
     /**
      * 로그인 요청을 처리하고 인증 시도
-     * @param request from which to extract parameters and perform the authentication
-     * @param response the response, which may be needed if the implementation has to do a
-     * redirect as part of a multi-stage authentication process (such as OIDC).
-     * @return
      * @throws AuthenticationException
      * @throws IOException
      */
@@ -116,7 +112,6 @@ public class LoginFilter extends CustomJsonEmailPasswordAuthenticationFilter {
      * @param response
      * @param chain
      * @param authentication the object returned from the <tt>attemptAuthentication</tt>
-     * method.
      * @throws IOException
      * @throws ServletException
      */
