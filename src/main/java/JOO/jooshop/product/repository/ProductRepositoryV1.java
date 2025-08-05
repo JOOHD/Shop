@@ -19,11 +19,14 @@ public interface ProductRepositoryV1 extends JpaRepository<Product, Long> {
     List<Product> findAll();
 
     // 상품 조회
-    @Query("SELECT new com.example.dto.ProductDetailDto(p.productName, m.size, t.thumbnailUrl) " +
+    Optional<Product> findByProductId(@Param("id") Long productId);
+
+    // 상품 조회 (view용)
+    @Query("SELECT new JOO.jooshop.product.model.ProductDetailDto(p, m.size, t.imagePath) " +
             "FROM Product p " +
             "JOIN p.productManagements m " +
             "JOIN p.productThumbnails t " +
             "WHERE p.productId = :id")
-    List<ProductDetailDto> findByProductId(@Param("id") Long productId);
+    List<ProductDetailDto> findProductDetailById(@Param("id") Long productId);
 
 }

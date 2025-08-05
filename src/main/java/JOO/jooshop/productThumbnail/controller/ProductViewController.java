@@ -1,7 +1,9 @@
 package JOO.jooshop.productThumbnail.controller;
 
+import JOO.jooshop.global.Exception.ResponseMessageConstants;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.product.entity.Product;
+import JOO.jooshop.product.model.ProductDetailDto;
 import JOO.jooshop.product.repository.ProductRepositoryV1;
 import JOO.jooshop.productThumbnail.entity.ProductThumbnail;
 import JOO.jooshop.productThumbnail.service.ProductThumbnailServiceV1;
@@ -46,11 +48,13 @@ public class ProductViewController { // view 용 컨트롤러
     public String productDetail(@PathVariable("productId") Long productId,
                                 @CookieValue(name = "accessAuthorization", required = false) String accessTokenWithPrefix,
                                 Model model) {
-        // 상품 조회
-        Product product = productRepository.findByProductId(productId)
-                .orElseThrow(() -> new NoSuchElementException("상품 없음"));
+        // 사이즈 조회
+        List<ProductDetailDto> details = productRepository.findProductDetailById(productId);
+        if (details.isEmpty()) {
+            throw new NoSuchElementException(ResponseMessageConstants.PRODUCT_NOT_FOUND);
+        }
 
-        model.addAttribute("product", product);
+        model.addAttribute("sizes", details);
 
         // JWT 에서 memberId 추출
         if (accessTokenWithPrefix != null && accessTokenWithPrefix.startsWith("Bearer+")) {

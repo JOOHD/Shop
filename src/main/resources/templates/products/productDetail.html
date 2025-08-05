@@ -42,9 +42,9 @@
       <label>사이즈</label>
       <div class="size-options">
         <button type="button"
-                th:each="mgt : ${product.productManagements}"
-                th:text="${mgt.size}"
-                th:attr="data-product-id=${mgt.productManagementId}"
+                th:each="dto : ${sizes}"
+                th:text="${dto.size}"
+                th:attr="data-product-id=${dto.productId}"
                 class="size-btn">
         </button>
       </div>
