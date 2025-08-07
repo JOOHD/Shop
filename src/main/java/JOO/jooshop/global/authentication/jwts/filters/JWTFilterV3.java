@@ -70,14 +70,6 @@ public class JWTFilterV3 extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        String uri = request.getRequestURI();
-
-        // /api/** 만 검사하고, 나머지 요청은 필터 패스
-        if (!uri.startsWith("/api/")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
         // 헤더에서 Access Token 시도
         Optional<String> authorizationOpt = TokenResolver.resolveTokenFromHeader(request);
 
@@ -146,6 +138,12 @@ public class JWTFilterV3 extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String uri = request.getRequestURI();
+        return !uri.startsWith("/api");  // /api/** 요청만 필터 타게 제한
     }
 
     private Authentication getAuthentication(String token) {

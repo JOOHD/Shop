@@ -129,9 +129,10 @@ public class SecurityConfig {
                                 "/api/verify",
                                 "/api/email/verify",
                                 "/api/email/verify-request",
-                                "/api/email/verify-check"
+                                "/api/email/verify-check",
+                                "/api/v1/categorys/**", "/api/v1/thumbnail/**", "/api/v1/members/**",
+                                "/api/v1/reissue/access", "/api/v1/reissue/refresh"
                         ).permitAll()
-                        .requestMatchers("/api/v1/categorys/**", "/api/v1/thumbnail/**", "/api/v1/members/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/profile/**").hasAnyRole("USER", "SELLER")
                         .requestMatchers(HttpMethod.POST, "/api/v1/products/**").hasAnyRole("ADMIN", "SELLER")

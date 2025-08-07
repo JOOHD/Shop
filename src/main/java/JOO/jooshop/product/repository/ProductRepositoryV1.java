@@ -24,9 +24,10 @@ public interface ProductRepositoryV1 extends JpaRepository<Product, Long> {
     // 상품 조회 (view용)
     @Query("SELECT new JOO.jooshop.product.model.ProductDetailDto(p, m.size, t.imagePath) " +
             "FROM Product p " +
-            "JOIN p.productManagements m " +
+            "JOIN p.productManagements m " +  // 다시 JOIN
             "JOIN p.productThumbnails t " +
             "WHERE p.productId = :id")
     List<ProductDetailDto> findProductDetailById(@Param("id") Long productId);
+
 
 }

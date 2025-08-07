@@ -48,27 +48,34 @@ public class ProductViewController { // view 용 컨트롤러
     public String productDetail(@PathVariable("productId") Long productId,
                                 @CookieValue(name = "accessAuthorization", required = false) String accessTokenWithPrefix,
                                 Model model) {
+
+        // 상품 조회
+        Product product = productRepository.findByProductId(productId)
+                .orElseThrow(() -> new NoSuchElementException(ResponseMessageConstants.PRODUCT_NOT_FOUND));
+
         // 사이즈 조회
         List<ProductDetailDto> details = productRepository.findProductDetailById(productId);
         if (details.isEmpty()) {
             throw new NoSuchElementException(ResponseMessageConstants.PRODUCT_NOT_FOUND);
         }
 
+        model.addAttribute("product", product);
         model.addAttribute("sizes", details);
 
-        // JWT 에서 memberId 추출
-        if (accessTokenWithPrefix != null && accessTokenWithPrefix.startsWith("Bearer+")) {
-            String accessToken = accessTokenWithPrefix.replace("Bearer+", "");
-
-            if (jwtUtil.validateToken(accessToken)) {
-                String memberId = jwtUtil.getMemberId(accessToken);
-                model.addAttribute("memberId", memberId); // view 에서 활용
-            } else {
-                model.addAttribute("memberId", null);
+        String memberId = null;
+        try {
+            if (accessTokenWithPrefix != null && accessTokenWithPrefix.startsWith("Bearer+")) {
+                String accessToken = accessTokenWithPrefix.replace("Bearer+", "");
+                if (jwtUtil.validateToken(accessToken)) {
+                    memberId = jwtUtil.getMemberId(accessToken);
+                }
             }
-        } else {
-            model.addAttribute("memberId", null); // 토큰이 없거나 형식이 잘못된 경우
+        } catch (Exception e) {
+            // 로그만 찍고 무시
+            log.warn("JWT 파싱 실패", e);
         }
+
+        model.addAttribute("memberId", memberId);
 
         return "products/productDetail"; // productList.html
     }

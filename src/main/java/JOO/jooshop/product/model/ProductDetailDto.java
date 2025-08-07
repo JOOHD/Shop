@@ -25,7 +25,7 @@ public class ProductDetailDto {
     private Integer discountRate;
     private Boolean isRecommend;
     private List<String> contentImages; // 썸네일 리스트 추가
-    private String size; // enum -> String 출력 용도
+    private Size size; // enum -> String 출력 용도
     private String thumbnailUrl; // 대표 이미지용
 
     // ProductService 클래스에서 modelMapper 를 사용하여 entity -> dto 변환을 구현 가능,
@@ -44,7 +44,12 @@ public class ProductDetailDto {
         this.contentImages = product.getContentImages().stream()
                 .map(ContentImages::getImagePath)
                 .toList();
-        this.size = size.name();
+        this.size = (size != null) ? size : null;
         this.thumbnailUrl = thumbnailUrl;
+    }
+
+    // 화면에 출력할 때 사용할 사람이 읽기 좋은 이름 반환 메서드 추가
+    public String getSizeDescription() {
+        return size != null ? size.getDescription() : "";
     }
 }

@@ -43,7 +43,7 @@
       <div class="size-options">
         <button type="button"
                 th:each="dto : ${sizes}"
-                th:text="${dto.size}"
+                th:text="${dto.sizeDescription}"
                 th:attr="data-product-id=${dto.productId}"
                 class="size-btn">
         </button>
