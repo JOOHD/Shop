@@ -32,7 +32,7 @@ public class QOrderProduct extends EntityPathBase<OrderProduct> {
 
     public final StringPath productName = createString("productName");
 
-    public final NumberPath<Long> quantity = createNumber("quantity", Long.class);
+    public final NumberPath<Integer> quantity = createNumber("quantity", Integer.class);
 
     public final BooleanPath returned = createBoolean("returned");
 

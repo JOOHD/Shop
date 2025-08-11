@@ -22,7 +22,7 @@ public class PaymentHistoryDto {
     private String productName;
     private String imagePath;
     private BigDecimal productPrice;
-    private Long productQuantity;
+    private int productQuantity;
     private String option;
     // Order 관련 field
     private String merchantUid; // 주문번호

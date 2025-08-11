@@ -73,11 +73,11 @@ public class PaymentHistory {
     private Boolean review = false;
 
     @Column(name = "quantity")
-    private Long quantity;
+    private int quantity;
 
     // 빌더에서 호출할 생성자 수정
     public PaymentHistory(String impUid, Member member, Orders orders, Product product,
-                          String productName, String productOption, Long quantity,
+                          String productName, String productOption, int quantity,
                           BigDecimal price, BigDecimal totalPrice, PaymentStatus statusType,
                           String payMethod, String bankCode, String bankName,
                           String buyerAddr, String buyerEmail) {

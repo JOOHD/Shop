@@ -35,7 +35,7 @@ import java.util.Optional;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class CustomLoginSuccessHandlerV2 extends SimpleUrlAuthenticationSuccessHandler {
+public class SocialLoginSuccessHandlerV2 extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JWTUtil jwtUtil;
 
@@ -47,6 +47,9 @@ public class CustomLoginSuccessHandlerV2 extends SimpleUrlAuthenticationSuccessH
 
     @Value("${spring.frontend.url}") // 로그인 성공 시, 리다이렉트 url
     private String frontendUrl;
+
+    @Value("${app.secure}")  // 25.08.11 추가
+    private boolean isSecure;
 
     @Override // 로그인 성공 시, 자동으로 실행
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
@@ -143,19 +146,16 @@ public class CustomLoginSuccessHandlerV2 extends SimpleUrlAuthenticationSuccessH
 
     }
 
-    private void setTokenResponseV1(HttpServletResponse response, String accessToken, String refreshToken) {
-        // [reponse Header] : Access Token 추가
-        response.addHeader("Authorization", "Bearer " + accessToken);
-        // [reponse Cookie] : Refresh Token 추가
-        response.addCookie(createCookie("refreshToken", refreshToken));
-        // HttpStatus 200 OK
-        response.setStatus(HttpStatus.OK.value());
-    }
-
     private void setTokenResponseV2(HttpServletResponse response, String accessToken, String refreshToken) throws IOException {
         // 1) 엑세스 토큰과 리프레시 토큰을 쿠키로 저장
-        CookieUtil.createCookieWithSameSite(response, "accessToken", accessToken,900);       // 15분
-        CookieUtil.createCookieWithSameSite(response, "refreshToken", refreshToken, 1209600); // 14일
+        if (isSecure) {
+            CookieUtil.createCookieWithSameSite(response, "accessToken", accessToken,900);       // 15분
+            CookieUtil.createCookieWithSameSite(response, "refreshAuthorization", refreshToken, 1209600); // 14일
+        } else {
+            CookieUtil.createCookieWithSameSiteForLocal(response, "accessToken", accessToken, 900);
+            CookieUtil.createCookieWithSameSiteForLocal(response, "refreshAuthorization", refreshToken, 1209600);
+        }
+
 
         // 2) 엑세스 토큰을 JSON 형식으로 응답 데이터에 포함하여 클라이언트에게 반환
         JsonObject responseData = new JsonObject();

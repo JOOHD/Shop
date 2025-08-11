@@ -46,7 +46,7 @@ public class OrderProduct {
     // 배송지 주소
 
     // 주문 수량
-    private Long quantity;
+    private int quantity;
 
     // 리뷰 작성 여부
     private boolean reviewed;
@@ -58,7 +58,7 @@ public class OrderProduct {
     public static OrderProduct createOrderProduct(Orders orders,
                                                   ProductManagement productManagement,
                                                   BigDecimal priceAtOrder,
-                                                  Long quantity) {
+                                                  int quantity) {
         return OrderProduct.builder()
                 .orders(orders)
                 .productManagement(productManagement)

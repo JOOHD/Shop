@@ -134,13 +134,13 @@ public class SocialLoginController {
             e.printStackTrace();
         }
 
-        System.out.println("oAuthToken.getAccess_token() : " + oAuthToken.getAccess_token());
+        System.out.println("oAuthToken.getAccessToken() : " + oAuthToken.getAccessToken());
 
         RestTemplate restTemplate2 = new RestTemplate();
 
         HttpHeaders headers2 = new HttpHeaders();
         headers2.add("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
-        headers2.add("Authorization", "Bearer " + oAuthToken.getAccess_token());
+        headers2.add("Authorization", "Bearer " + oAuthToken.getAccessToken());
 
         HttpEntity<MultiValueMap<String, String>> kakaoProfileRequest = new HttpEntity<>(headers2);
 

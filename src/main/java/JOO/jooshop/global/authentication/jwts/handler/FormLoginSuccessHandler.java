@@ -21,6 +21,9 @@ public class FormLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandl
     private final JWTUtil jwtUtil;
     private final String backendUrl;
 
+    @Value("${app.secure}")  // 추가
+    private boolean isSecure;
+
     public FormLoginSuccessHandler(JWTUtil jwtUtil, @Value("${spring.backend.url}") String backendUrl) {
         this.jwtUtil = jwtUtil;
         this.backendUrl = backendUrl;
@@ -39,9 +42,14 @@ public class FormLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandl
         String accessToken = jwtUtil.createAccessToken("access", userId, role);
         String refreshToken = jwtUtil.createRefreshToken("refresh", userId, role);
 
-        // 쿠키 세팅 (SameSite 옵션 포함)
-        CookieUtil.createCookieWithSameSite(response, "accessToken", accessToken, 900);         // 15분
-        CookieUtil.createCookieWithSameSite(response, "refreshToken", refreshToken, 1209600);  // 14일
+        // HTTPS / 로컬 분기
+        if (isSecure) {
+            CookieUtil.createCookieWithSameSite(response, "accessToken", accessToken, 900);
+            CookieUtil.createCookieWithSameSite(response, "refreshAuthorization ", refreshToken, 1209600);
+        } else {
+            CookieUtil.createCookieWithSameSiteForLocal(response, "accessToken", accessToken, 900);
+            CookieUtil.createCookieWithSameSiteForLocal(response, "refreshAuthorization ", refreshToken, 1209600);
+        }
 
         // JSON 응답 (optional, 필요 시)
         /*

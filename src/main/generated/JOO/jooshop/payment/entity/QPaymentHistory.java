@@ -52,7 +52,7 @@ public class QPaymentHistory extends EntityPathBase<PaymentHistory> {
 
     public final StringPath productOption = createString("productOption");
 
-    public final NumberPath<Long> quantity = createNumber("quantity", Long.class);
+    public final NumberPath<Integer> quantity = createNumber("quantity", Integer.class);
 
     public final BooleanPath review = createBoolean("review");
 

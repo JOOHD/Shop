@@ -28,12 +28,10 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Optional;
 
-import static JOO.jooshop.global.authentication.jwts.utils.CookieUtil.createCookie;
-
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class CustomLoginSuccessHandlerV1 extends SimpleUrlAuthenticationSuccessHandler {
+public class SocialLoginSuccessHandlerV1 extends SimpleUrlAuthenticationSuccessHandler {
 
     /*
         클래스 역할

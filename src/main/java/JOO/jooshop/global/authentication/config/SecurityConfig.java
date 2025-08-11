@@ -5,8 +5,8 @@ import JOO.jooshop.global.authentication.jwts.filters.CustomJsonEmailPasswordAut
 import JOO.jooshop.global.authentication.jwts.filters.JWTFilterV3;
 import JOO.jooshop.global.authentication.jwts.filters.LoginFilter;
 import JOO.jooshop.global.authentication.oauth2.custom.service.CustomOAuth2UserServiceV1;
-import JOO.jooshop.global.authentication.oauth2.handler.CustomLoginFailureHandler;
-import JOO.jooshop.global.authentication.oauth2.handler.CustomLoginSuccessHandlerV2;
+import JOO.jooshop.global.authentication.oauth2.handler.SocialLoginFailureHandler;
+import JOO.jooshop.global.authentication.oauth2.handler.SocialLoginSuccessHandlerV2;
 import JOO.jooshop.global.authorization.CustomAuthorizationRequestResolver;
 import JOO.jooshop.members.service.MemberService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -63,8 +63,8 @@ public class SecurityConfig {
     private final ClientRegistrationRepository clientRegistrationRepository;
 
     private final CustomOAuth2UserServiceV1 customOAuth2UserService;
-    private final CustomLoginSuccessHandlerV2 customLoginSuccessHandler;
-    private final CustomLoginFailureHandler customLoginFailureHandler;
+    private final SocialLoginSuccessHandlerV2 customLoginSuccessHandler;
+    private final SocialLoginFailureHandler socialLoginFailureHandler;
     private final FilterFactory filterFactory;
 
     @Value("${spring.frontend.url}")
@@ -92,7 +92,7 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationFailureHandler loginFailureHandler() {
-        return customLoginFailureHandler;
+        return socialLoginFailureHandler;
     }
 
     @Bean
@@ -151,7 +151,9 @@ public class SecurityConfig {
 
     @Bean
     @Order(2)
-    public SecurityFilterChain webSecurityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
+    public SecurityFilterChain webSecurityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager, MemberService memberService) throws Exception {
+
+        JWTFilterV3 jwtFilterV3 = filterFactory.createJWTFilter(memberService);
         http
                 .securityMatcher("/**")
                 .csrf(csrf -> csrf
@@ -191,9 +193,11 @@ public class SecurityConfig {
                         )
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                         .successHandler(customLoginSuccessHandler)
-                        .failureHandler(customLoginFailureHandler)
+                        .failureHandler(socialLoginFailureHandler)
                 )
                 .logout(logout -> logout.disable());
+
+        http.addFilterBefore(jwtFilterV3, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

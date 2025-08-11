@@ -30,7 +30,7 @@ public class QCart extends EntityPathBase<Cart> {
 
     public final JOO.jooshop.productManagement.entity.QProductManagement productManagement;
 
-    public final NumberPath<Long> quantity = createNumber("quantity", Long.class);
+    public final NumberPath<Integer> quantity = createNumber("quantity", Integer.class);
 
     public QCart(String variable) {
         this(Cart.class, forVariable(variable), INITS);

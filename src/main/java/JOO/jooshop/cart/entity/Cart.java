@@ -16,16 +16,6 @@ import java.math.BigDecimal;
 @Table(name = "cart")
 public class Cart {
 
-    /*@Id
-    @SequenceGenerator(
-            name = "cart_sequence",
-            sequenceName = "cart_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "cart_sequence"
-    )*/
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "cart_id")
@@ -41,12 +31,12 @@ public class Cart {
 
     @Column(name = "quantity", nullable = false)
     @Min(value = 0L)
-    private Long quantity; // 수량
+    private int quantity; // 수량
 
     @Column(name = "price", nullable = false)
     private BigDecimal price; // 가격
 
-    public Cart(Member member, ProductManagement productManagement, Long quantity, BigDecimal price) {
+    public Cart(Member member, ProductManagement productManagement, int quantity, BigDecimal price) {
         this.member = member;
         this.productManagement = productManagement;
         this.quantity = quantity;
@@ -55,7 +45,7 @@ public class Cart {
 
 
     // 수량 입력
-    public void setQuantity(Long quantity) {
+    public void setQuantity(int quantity) {
         this.quantity = quantity;
     }
 

@@ -15,19 +15,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -74,14 +69,14 @@ public class JWTFilterV3 extends OncePerRequestFilter {
         Optional<String> authorizationOpt = TokenResolver.resolveTokenFromHeader(request);
 
         // 쿠키에서 Access Token 시도
-        Optional<String> accessTokenCookieOpt = TokenResolver.resolveTokenFromCookie(request, "access_token");
+        Optional<String> accessTokenCookieOpt = TokenResolver.resolveTokenFromCookie(request, "accessToken");
 
         // Refresh Token 쿠키에서 가져오기
-        Optional<String> refreshAuthorizationOpt = TokenResolver.resolveTokenFromCookie(request, "refreshToken");
+        Optional<String> refreshAuthorizationOpt = TokenResolver.resolveTokenFromCookie(request, "refreshAuthorization ");
 
         log.info("[JWT Filter] 요청 URI: {}", request.getRequestURI());
         log.info("[JWT Filter] Authorization 헤더: {}", authorizationOpt);
-        log.info("[JWT Filter] access_token 쿠키: {}", accessTokenCookieOpt);
+        log.info("[JWT Filter] accessToken 쿠키: {}", accessTokenCookieOpt);
         log.info("[JWT Filter] RefreshAuthorization 쿠키: {}", refreshAuthorizationOpt);
 
         if (refreshAuthorizationOpt.isEmpty()) {
@@ -143,6 +138,12 @@ public class JWTFilterV3 extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String uri = request.getRequestURI();
+
+        // 정적 리소스나 로그인 페이지는 스킵
+        if (uri.startsWith("/css") || uri.startsWith("/js") || uri.startsWith("/images") || uri.equals("/login")) {
+            return true;
+        }
+
         return !uri.startsWith("/api");  // /api/** 요청만 필터 타게 제한
     }
 
@@ -177,8 +178,3 @@ public class JWTFilterV3 extends OncePerRequestFilter {
         );
     }
 }
-
-
-
-
-

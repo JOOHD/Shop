@@ -1,0 +1,17 @@
+package JOO.jooshop.cart.controller;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequiredArgsConstructor
+@RequestMapping("/cart")
+public class CartViewController {
+
+    @GetMapping
+    public String cartPage() {
+        return "carts/cart";
+    }
+}

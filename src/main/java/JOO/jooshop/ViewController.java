@@ -20,11 +20,6 @@ public class ViewController {
         return "members/login";
     }
 
-    @GetMapping("/cart")
-    public String formCart() {
-        return "carts/cart";
-    }
-
     @GetMapping("/order")
     public String formOrder() {
         return "orders/order";

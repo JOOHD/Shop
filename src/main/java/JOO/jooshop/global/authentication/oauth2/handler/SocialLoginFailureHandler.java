@@ -21,7 +21,7 @@ import java.util.Map;
  */
 @Slf4j
 @Component
-public class CustomLoginFailureHandler implements AuthenticationFailureHandler {
+public class SocialLoginFailureHandler implements AuthenticationFailureHandler {
 
     private ObjectMapper objectMapper = new ObjectMapper();
 

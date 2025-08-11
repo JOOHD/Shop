@@ -35,7 +35,7 @@ public class CartDto {
     private String productInfo;
     private Boolean isDiscount;
     private Boolean isSoldOut;
-    private Long quantity;
+    private int quantity;
     private String productThumbnail;
 
     public CartDto(Cart cart) {

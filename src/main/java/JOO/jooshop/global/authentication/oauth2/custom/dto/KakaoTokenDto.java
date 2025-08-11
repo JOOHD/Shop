@@ -12,7 +12,7 @@ public class KakaoTokenDto {
      */
 
     private String token_type;               // 토큰 타입 (Bearer)
-    private String access_token;             // 액세스 토큰 (API 요청 시 사용)
+    private String accessToken;             // 액세스 토큰 (API 요청 시 사용)
     private String id_token;                 // ID 토큰 (OIDC 기반 로그인 시 사용)
     private int expires_in;                  // 액세스 토큰 만료 시간(초 단위)
     private String refresh_token;            // 리프레시 토큰 (액세스 토큰 갱신 시 사용)

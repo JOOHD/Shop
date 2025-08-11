@@ -60,12 +60,12 @@ public class EmailVerificationController {
             Optional<Member> memberOpt = memberRepository.findByEmail(email);
             memberOpt.ifPresent(member -> {
                 String accessToken = jwtUtil.createAccessToken(
-                        "access_token",
+                        "accessToken",
                         String.valueOf(member.getId()),
                         member.getMemberRole().name()
                 );
 
-                Cookie cookie = new Cookie("access_token", accessToken);
+                Cookie cookie = new Cookie("accessToken", accessToken);
                 cookie.setHttpOnly(true);
                 cookie.setSecure(true);
                 cookie.setPath("/");

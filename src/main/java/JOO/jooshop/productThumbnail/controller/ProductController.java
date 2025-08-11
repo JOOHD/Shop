@@ -23,7 +23,7 @@ import java.util.NoSuchElementException;
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/products")
-public class ProductViewController { // view 용 컨트롤러
+public class ProductController { // view 용 컨트롤러
 
     private final JWTUtil jwtUtil;
     private final ProductRepositoryV1 productRepository;

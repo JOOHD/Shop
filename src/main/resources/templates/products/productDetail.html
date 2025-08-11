@@ -78,7 +78,9 @@
   // 장바구니 담기
   document.querySelector(".add-cart-btn").addEventListener("click", () => {
     const quantity = parseInt(document.getElementById("quantity").value);
-    const memberId = document.getElementById("memberId").value;
+
+    // memberId는 서버에서 로그인 정보로 가져오는 게 원칙 -> 클라이언트에 노출하지 말 것
+    // 아래는 예시, 실제로는 JWT 인증 후, 서버에서 MemberId 를 받도록 해야 된다.
 
     if (!selectedProductId) {
       alert("사이즈를 선택해주세요.");
@@ -91,27 +93,20 @@
     }
 
     fetch(`/api/v1/cart/add/${selectedProductId}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        memberId: memberId,
-        productMgtId: selectedProductId,
-        quantity: quantity
-      })
-    })
-    .then(res => {
-      if (!res.ok) throw new Error("서버 오류");
-      return res.text();
-    })
-    .then(msg => {
-      alert(msg);
-      window.location.href = "/cart";
-    })
-    .catch(err => {
-      alert("장바구니 추가 실패: " + err.message);
-    });
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include", // 쿠키(AccessToken) 포함
+    body: JSON.stringify({ quantity: quantity })
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("서버 오류");
+    return res.text();
+  })
+  .then(msg => {
+    alert(msg);
+    window.location.href = "/cart";  // 장바구니 페이지로 이동
+  })
+  .catch(err => alert("장바구니 추가 실패: " + err.message));
   });
 </script>
 </body>
