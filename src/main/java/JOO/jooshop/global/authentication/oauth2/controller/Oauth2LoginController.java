@@ -21,10 +21,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.apache.bcel.classfile.Code;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
-import org.springframework.cglib.core.Local;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -35,8 +33,6 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import java.io.IOException;
-
 /**
  * This class handles social login operations.
     - 카카오 소셜 로그인 기능 구현 클래스
@@ -46,7 +42,7 @@ import java.io.IOException;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-public class SocialLoginController {
+public class Oauth2LoginController {
 
     private final MemberRepositoryV1 memberRepository;
     private final RefreshRepository refreshRepository;

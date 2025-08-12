@@ -42,13 +42,16 @@ public class FormLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandl
         String accessToken = jwtUtil.createAccessToken("access", userId, role);
         String refreshToken = jwtUtil.createRefreshToken("refresh", userId, role);
 
+        // 여기에 accessToken 로그 추가
+        log.info("발급된 AccessToken: {}", accessToken);
+
         // HTTPS / 로컬 분기
         if (isSecure) {
             CookieUtil.createCookieWithSameSite(response, "accessToken", accessToken, 900);
-            CookieUtil.createCookieWithSameSite(response, "refreshAuthorization ", refreshToken, 1209600);
+            CookieUtil.createCookieWithSameSite(response, "refreshAuthorization", refreshToken, 1209600);
         } else {
             CookieUtil.createCookieWithSameSiteForLocal(response, "accessToken", accessToken, 900);
-            CookieUtil.createCookieWithSameSiteForLocal(response, "refreshAuthorization ", refreshToken, 1209600);
+            CookieUtil.createCookieWithSameSiteForLocal(response, "refreshAuthorization", refreshToken, 1209600);
         }
 
         // JSON 응답 (optional, 필요 시)

@@ -59,27 +59,4 @@ public class JoinApiController {
             return ResponseEntity.badRequest().body("닉네임을 입력해야 합니다.");
         }
     }
-
-
-    @PostMapping("/login")
-    public ResponseEntity<String> oauth2Login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
-        try {
-            String loginResult = memberService.login(loginRequest, response);
-            Cookie jwtCookie = new Cookie("accessToken", loginResult);
-            jwtCookie.setHttpOnly(true);
-            jwtCookie.setSecure(true);
-            jwtCookie.setPath("/");
-
-            Date expiration = jwtUtil.getExpiration(loginResult);
-            int maxAge = (int) ((expiration.getTime() - System.currentTimeMillis()) / 1000);
-            jwtCookie.setMaxAge(maxAge);
-            response.addCookie(jwtCookie);
-
-            return ResponseEntity.ok("로그인 성공, 환영합니다.");
-        } catch (InvalidCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("이메일 또는 비밀번호가 틀렸습니다.");
-        } catch (UnverifiedEmailException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("인증되지 않은 이메일입니다.");
-        }
-    }
 }

@@ -15,9 +15,10 @@
         </div>
 
         <div class="modal-body">
-            <form id="loginForm">
-                <label><input type="email" id="email" placeholder="이메일 주소" required /></label>
-                <label><input type="password" id="password" placeholder="비밀번호" required /></label>
+            <form id="formLogin" method="post" action="/formLogin">
+                <label><input type="email" id="username" name="username" placeholder="이메일 주소" required /></label>
+                <label><input type="password" id="password" name="password" placeholder="비밀번호" required /></label>
+                <input type="hidden" name="_csrf" value="${_csrf.token}" />
                 <button type="submit" class="submit-btn">로그인</button>
             </form>
 
@@ -43,56 +44,55 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const loginModal = document.getElementById("loginModal");
-  const backButton = document.querySelector(".back-button");
-  const modalOverlay = document.getElementById("modalOverlay");
-  const loginForm = document.getElementById("loginForm");
-
-  // 뒤로가기 버튼 클릭 시 홈으로 이동
-  backButton.addEventListener("click", () => {
-    window.location.href = "/";
-  });
-
-  // 로그인 폼 제출 이벤트 처리
-  loginForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
-
-    try {
-      const response = await fetch('/api/login', {  // 실제 로그인 API 경로로 변경하세요
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-
-      if (response.ok) {
-        // 로그인 성공 시 홈으로 이동
+    const backButton = document.querySelector(".back-button");
+    backButton.addEventListener("click", () => {
         window.location.href = "/";
-      } else {
-        const errorText = await response.text();
-        alert("로그인 실패: " + errorText);
-      }
-    } catch (error) {
-      alert("서버와 통신 중 오류가 발생했습니다.");
-      console.error(error);
-    }
-  });
+    });
 
-  // 소셜 로그인 URL (실제 값으로 변경 필요)
-  const kakaoLoginUrl = "https://kauth.kakao.com/oauth/authorize?client_id=YOUR_KAKAO_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&response_type=code";
-  const naverLoginUrl = "https://nid.naver.com/oauth2.0/authorize?client_id=YOUR_NAVER_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&response_type=code&state=STATE_STRING";
+    // ajax 로그인 (선택사항)
+    const formLogin = document.getElementById("formLogin");
 
-  // 카카오 로그인 버튼 클릭 시 리디렉션
-  document.getElementById("kakaoLoginBtn").addEventListener("click", () => {
-    window.location.href = kakaoLoginUrl;
-  });
+     formLogin.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-  // 네이버 로그인 버튼 클릭 시 리디렉션
-  document.getElementById("naverLoginBtn").addEventListener("click", () => {
-    window.location.href = naverLoginUrl;
-  });
+        const email = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value.trim();
+        const csrfToken = document.querySelector('input[name="_csrf"]').value;
+
+        try {
+            const response = await fetch('/formLogin', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: new URLSearchParams({
+                    username: email,
+                    password: password,
+                })
+            });
+
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else if (response.ok) {
+                window.location.href = "/";
+            } else {
+                const text = await response.text();
+                alert("로그인 실패: " + text);
+            }
+        } catch (error) {
+            alert("서버와 통신 중 오류가 발생했습니다.");
+            console.error(error);
+        }
+    });
+
+    // 소셜 로그인 버튼 링크
+    document.querySelector("#kakaoLoginBtn").addEventListener("click", () => {
+        window.location.href = "/api/socialLogin/authorization/kakao";
+    });
+    document.querySelector("#naverLoginBtn").addEventListener("click", () => {
+        window.location.href = "/api/socialLogin/authorization/naver";
+    });
 });
 </script>
 </body>

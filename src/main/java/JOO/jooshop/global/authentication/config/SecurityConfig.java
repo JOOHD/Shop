@@ -1,12 +1,13 @@
 package JOO.jooshop.global.authentication.config;
 
 import JOO.jooshop.global.authentication.factory.FilterFactory;
-import JOO.jooshop.global.authentication.jwts.filters.CustomJsonEmailPasswordAuthenticationFilter;
 import JOO.jooshop.global.authentication.jwts.filters.JWTFilterV3;
 import JOO.jooshop.global.authentication.jwts.filters.LoginFilter;
+import JOO.jooshop.global.authentication.jwts.handler.FormLoginFailureHandler;
+import JOO.jooshop.global.authentication.jwts.handler.FormLoginSuccessHandler;
 import JOO.jooshop.global.authentication.oauth2.custom.service.CustomOAuth2UserServiceV1;
-import JOO.jooshop.global.authentication.oauth2.handler.SocialLoginFailureHandler;
-import JOO.jooshop.global.authentication.oauth2.handler.SocialLoginSuccessHandlerV2;
+import JOO.jooshop.global.authentication.oauth2.handler.Oauth2LoginFailureHandler;
+import JOO.jooshop.global.authentication.oauth2.handler.Oauth2LoginSuccessHandlerV2;
 import JOO.jooshop.global.authorization.CustomAuthorizationRequestResolver;
 import JOO.jooshop.members.service.MemberService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,7 +16,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -26,46 +26,52 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 
+import java.util.Arrays;
 import java.util.Collections;
 
-/**
- * SecurityConfig
- *
- * Spring Security 설정을 구성하는 핵심 클래스입니다.
- *
- * ✔ API 경로(/api/**)와 웹 경로(/)** 를 분리하여 각각 SecurityFilterChain을 적용합니다.
- * ✔ 필터(LoginFilter, JWTFilterV3)는 Spring Bean으로 등록하지 않고 수동 생성하여 순환 참조를 방지합니다.
- * ✔ 필터 생성은 별도의 FilterFactory를 통해 수행되며, MemberService 등 필요한 의존성을 생성 시점에 직접 주입합니다.
- */
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    /**
-     * 1. API용 SecurityFilterChain (JWT 기반 인증)
-     *
-     * - Stateless 정책
-     * - JWTFilter → LoginFilter 순서로 필터 적용
-     * - 인증되지 않은 요청은 JWTFilter에서 차단
-     * - 로그인 요청(/api/login)은 LoginFilter에서 처리
-     */
-
     private final ObjectMapper objectMapper;
-    private final RedisTemplate<String, String> redisTemplate;
     private final ClientRegistrationRepository clientRegistrationRepository;
-
     private final CustomOAuth2UserServiceV1 customOAuth2UserService;
-    private final SocialLoginSuccessHandlerV2 customLoginSuccessHandler;
-    private final SocialLoginFailureHandler socialLoginFailureHandler;
+    private final FormLoginSuccessHandler formLoginSuccessHandler;
+    private final FormLoginFailureHandler formLoginFailureHandler;
+    private final Oauth2LoginSuccessHandlerV2 oauth2LoginSuccessHandler;
+    private final Oauth2LoginFailureHandler oauth2LoginFailureHandler;
     private final FilterFactory filterFactory;
+
+    // 권한별 URL 그룹핑
+    private static final String[] PUBLIC_API = {
+            "/api/join",
+            "/api/admin/join",
+            "/api/verify",
+            "/api/email/**",
+            "/api/v1/categorys/**",
+            "/api/v1/thumbnail/**",
+            "/api/v1/members/**",
+            "/api/v1/reissue/access",
+            "/api/v1/reissue/refresh",
+            "/api/v1/inquiry/**"
+    };
+
+    private static final String[] ROLE_USER_OR_SELLER = {
+            "/api/v1/profile/**",
+            "/api/v1/cart/**",
+            "/api/v1/order/**"
+    };
+
+    private static final String[] ROLE_ADMIN = {
+            "/api/v1/products/**",
+            "/api/v1/inventory/**",
+            "/api/v1/inquiry/reply/**"
+    };
 
     @Value("${spring.frontend.url}")
     private String frontendUrl;
@@ -85,37 +91,15 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    public AuthenticationSuccessHandler loginSuccessHandler() {
-        return customLoginSuccessHandler;
-    }
-
-    @Bean
-    public AuthenticationFailureHandler loginFailureHandler() {
-        return socialLoginFailureHandler;
-    }
-
-    @Bean
-    public CustomJsonEmailPasswordAuthenticationFilter customJsonUsernamePasswordAuthenticationFilter(
-            AuthenticationManager authenticationManager) {
-        return new CustomJsonEmailPasswordAuthenticationFilter(authenticationManager, objectMapper);
-    }
-
     /**
-     * 2. Web용 SecurityFilterChain (Form Login + OAuth2)
-     *
-     * - CSRF 쿠키 설정 적용
-     * - OAuth2 로그인 및 일반 Form 로그인 지원
-     * - 세션 정책은 IF_REQUIRED (OAuth2 및 일반 인증 시 세션 유지 필요)
+     * 1. API용 SecurityFilterChain (JWT + OAuth2 SocialLogin)
      */
     @Bean
     @Order(1)
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http,
                                                       AuthenticationManager authenticationManager,
-                                                      FilterFactory filterFactory,
                                                       MemberService memberService) throws Exception {
 
-        // 의존성 순환 없이 안전하게 필터 생성
         LoginFilter loginFilter = filterFactory.createLoginFilter(authenticationManager, memberService);
         JWTFilterV3 jwtFilter = filterFactory.createJWTFilter(memberService);
 
@@ -124,36 +108,43 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/api/join", "/api/admin/join",
-                                "/api/verify",
-                                "/api/email/verify",
-                                "/api/email/verify-request",
-                                "/api/email/verify-check",
-                                "/api/v1/categorys/**", "/api/v1/thumbnail/**", "/api/v1/members/**",
-                                "/api/v1/reissue/access", "/api/v1/reissue/refresh"
-                        ).permitAll()
+                        .requestMatchers(PUBLIC_API).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/profile/**").hasAnyRole("USER", "SELLER")
-                        .requestMatchers(HttpMethod.POST, "/api/v1/products/**").hasAnyRole("ADMIN", "SELLER")
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/products/**").hasAnyRole("ADMIN", "SELLER")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/products/**").hasAnyRole("ADMIN", "SELLER")
-                        .requestMatchers("/api/v1/inquiry/reply/**").hasAnyRole("ADMIN", "SELLER")
-                        .requestMatchers("/api/v1/reissue/access", "/api/v1/reissue/refresh").permitAll()
-                        .requestMatchers("/api/v1/inquiry/**").permitAll()
-                        .requestMatchers("/api/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, ROLE_USER_OR_SELLER).hasAnyRole("USER", "SELLER")
+                        .requestMatchers(HttpMethod.PUT, ROLE_USER_OR_SELLER).hasAnyRole("USER", "SELLER")
+                        .requestMatchers(HttpMethod.DELETE, ROLE_USER_OR_SELLER).hasAnyRole("USER", "SELLER")
+                        .requestMatchers(HttpMethod.POST, ROLE_ADMIN).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, ROLE_ADMIN).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, ROLE_ADMIN).hasRole("ADMIN")
+                        .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(loginFilter, JWTFilterV3.class);
+                .addFilterBefore(jwtFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(loginFilter, JWTFilterV3.class)
+
+                // OAuth2 Social Login API 처리
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/login")
+                        .authorizationEndpoint(auth -> auth
+                                .authorizationRequestResolver(
+                                        new CustomAuthorizationRequestResolver(clientRegistrationRepository, "/oauth2/authorization")
+                                )
+                        )
+                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                        .successHandler(oauth2LoginSuccessHandler)
+                        .failureHandler(oauth2LoginFailureHandler)
+                );
 
         return http.build();
     }
 
+    /**
+     * 2. Web용 SecurityFilterChain (Form Login + 일반 웹 페이지)
+     */
     @Bean
     @Order(2)
-    public SecurityFilterChain webSecurityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager, MemberService memberService) throws Exception {
-
+    public SecurityFilterChain webSecurityFilterChain(HttpSecurity http, MemberService memberService) throws Exception {
         JWTFilterV3 jwtFilterV3 = filterFactory.createJWTFilter(memberService);
+
         http
                 .securityMatcher("/**")
                 .csrf(csrf -> csrf
@@ -163,7 +154,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
                     config.setAllowedOrigins(Collections.singletonList(frontendUrl));
-                    config.setAllowedMethods(Collections.singletonList("*"));
+                    config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                     config.setAllowedHeaders(Collections.singletonList("*"));
                     config.setAllowCredentials(true);
                     config.setMaxAge(3600L);
@@ -173,31 +164,20 @@ public class SecurityConfig {
                 }))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/logout", "/", "/auth/**", "/oauth2/**", "/products/**").permitAll()
-                        .requestMatchers("/admin", "/api/v1/inventory/**").hasRole("ADMIN")
+                        .requestMatchers("/formLogin", "/logout", "/", "/auth/**", "/products/**").permitAll()
+                        .requestMatchers("/admin").hasRole("ADMIN")
                         .anyRequest().permitAll()
                 )
                 .formLogin(form -> form
-                        .loginPage("/login")
-                        .loginProcessingUrl("/login")
-                        .successHandler(loginSuccessHandler())
-                        .failureHandler(loginFailureHandler())
+                        .loginPage("/login")                  // 로그인 페이지 GET
+                        .loginProcessingUrl("/formLogin")     // 로그인 인증 POST
+                        .successHandler(formLoginSuccessHandler)
+                        .failureHandler(formLoginFailureHandler)
                         .permitAll()
-                )
-                .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/login")
-                        .authorizationEndpoint(auth -> auth
-                                .authorizationRequestResolver(
-                                        new CustomAuthorizationRequestResolver(clientRegistrationRepository, "/oauth2/authorization")
-                                )
-                        )
-                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                        .successHandler(customLoginSuccessHandler)
-                        .failureHandler(socialLoginFailureHandler)
                 )
                 .logout(logout -> logout.disable());
 
-        http.addFilterBefore(jwtFilterV3, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtFilterV3, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

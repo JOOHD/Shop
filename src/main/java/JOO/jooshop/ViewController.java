@@ -15,10 +15,6 @@ public class ViewController {
     public String formJoin() {
         return "members/join";
     }
-    @GetMapping("/login")
-    public String formLogin() {
-        return "members/login";
-    }
 
     @GetMapping("/order")
     public String formOrder() {

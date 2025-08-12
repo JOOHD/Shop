@@ -72,7 +72,7 @@ public class JWTFilterV3 extends OncePerRequestFilter {
         Optional<String> accessTokenCookieOpt = TokenResolver.resolveTokenFromCookie(request, "accessToken");
 
         // Refresh Token 쿠키에서 가져오기
-        Optional<String> refreshAuthorizationOpt = TokenResolver.resolveTokenFromCookie(request, "refreshAuthorization ");
+        Optional<String> refreshAuthorizationOpt = TokenResolver.resolveTokenFromCookie(request, "refreshAuthorization");
 
         log.info("[JWT Filter] 요청 URI: {}", request.getRequestURI());
         log.info("[JWT Filter] Authorization 헤더: {}", authorizationOpt);

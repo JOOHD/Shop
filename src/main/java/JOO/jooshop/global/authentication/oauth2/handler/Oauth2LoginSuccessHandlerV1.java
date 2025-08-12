@@ -31,7 +31,7 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class SocialLoginSuccessHandlerV1 extends SimpleUrlAuthenticationSuccessHandler {
+public class Oauth2LoginSuccessHandlerV1 extends SimpleUrlAuthenticationSuccessHandler {
 
     /*
         클래스 역할
