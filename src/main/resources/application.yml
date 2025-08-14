@@ -72,6 +72,7 @@ logging:
     org.springframework.security : DEBUG
     org.springframework.security.web: DEBUG
     org.springframework.security.oauth2: DEBUG
+    org.springframework.security.web.csrf.CsrfFilter: DEBUG
 
 app:
   secure: false   # 배포 환경은 true, 로컬은 false로 설정

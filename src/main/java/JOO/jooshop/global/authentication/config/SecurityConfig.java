@@ -56,8 +56,7 @@ public class SecurityConfig {
             "/api/v1/categorys/**",
             "/api/v1/thumbnail/**",
             "/api/v1/members/**",
-            "/api/v1/reissue/access",
-            "/api/v1/reissue/refresh",
+            "/api/v1/reissue/**",
             "/api/v1/inquiry/**"
     };
 
@@ -93,6 +92,19 @@ public class SecurityConfig {
 
     /**
      * 1. API용 SecurityFilterChain (JWT + OAuth2 SocialLogin)
+     * 클라이언트 요청
+     *       │
+     *       ▼
+     * [LoginFilter] -- 로그인 요청일 때 → 인증 + JWT 발급
+     *       │
+     *       ▼
+     * [JWTFilterV3] -- JWT가 있으면 인증 처리
+     *       │
+     *       ▼
+     * [UsernamePasswordAuthenticationFilter] -- (기존 Form Login용) 이후 필터 체인 진행
+     *       │
+     *       ▼
+     * Controller/Service 접근
      */
     @Bean
     @Order(1)
@@ -117,9 +129,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, ROLE_ADMIN).hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, ROLE_ADMIN).hasRole("ADMIN")
                         .anyRequest().authenticated()
-                )
-                .addFilterBefore(jwtFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(loginFilter, JWTFilterV3.class)
+                );
+                http.addFilterBefore(loginFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
+                http.addFilterBefore(jwtFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
 
                 // OAuth2 Social Login API 처리
                 .oauth2Login(oauth2 -> oauth2
@@ -149,6 +161,7 @@ public class SecurityConfig {
                 .securityMatcher("/**")
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers(new AntPathRequestMatcher("/api/**"))
+                        // 쿠키 기반 토큰 (XSRF-TOKEN) 사용, JS에서 hidden input _csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 )
                 .cors(cors -> cors.configurationSource(request -> {
@@ -164,13 +177,15 @@ public class SecurityConfig {
                 }))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/formLogin", "/logout", "/", "/auth/**", "/products/**").permitAll()
+                        .requestMatchers("/login", "/formLogin", "/logout", "/", "/auth/**", "/products/**").permitAll()
                         .requestMatchers("/admin").hasRole("ADMIN")
                         .anyRequest().permitAll()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")                  // 로그인 페이지 GET
                         .loginProcessingUrl("/formLogin")     // 로그인 인증 POST
+                        .usernameParameter("username")
+                        .passwordParameter("password")
                         .successHandler(formLoginSuccessHandler)
                         .failureHandler(formLoginFailureHandler)
                         .permitAll()
