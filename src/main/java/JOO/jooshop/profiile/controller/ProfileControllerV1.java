@@ -8,6 +8,7 @@ import JOO.jooshop.profiile.entity.enums.MemberAges;
 import JOO.jooshop.profiile.entity.enums.MemberGender;
 import JOO.jooshop.profiile.model.MemberDTO;
 import JOO.jooshop.profiile.model.MemberProfileDTO;
+import JOO.jooshop.profiile.model.ProfileUpdateDTO;
 import JOO.jooshop.profiile.repository.ProfileRepository;
 import JOO.jooshop.profiile.service.ProfileService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -66,6 +67,23 @@ public class ProfileControllerV1 {
         return memberProfileOpt;
     }
 
+    /* 프로필 수정 + joinedAt null 처리 통합 */
+    @PutMapping("/{memberId}")
+    public ResponseEntity<String> updateProfileAndJoinedAt(
+            @PathVariable("memberId") Long memberId,
+            @RequestBody ProfileUpdateDTO dto) {
+
+        try {
+            profileService.updateProfile(memberId, dto);
+            return ResponseEntity.ok("Profile updated and joinedAt processed successfully.");
+        } catch (NoSuchElementException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while updating profile and joinedAt.");
+        }
+    }
+
     /* 프로필 이미지 경로 조회 */
     @GetMapping("/image/{memberId}")
     public ResponseEntity<?> getProfileImage(@PathVariable("memberId") Long memberId) throws Exception {
@@ -98,9 +116,6 @@ public class ProfileControllerV1 {
     /**
      * 1. request.user.id 가 요구하는 프로필 정보의 id 과 같은지 체크
      * 2. 회원의 nickname 을 변경하고 저장
-     * @param memberId
-     * @param newNickname
-     * @return
      */
 
     /* 회원 닉네임 변경 */
@@ -167,20 +182,5 @@ public class ProfileControllerV1 {
             return ResponseEntity.notFound().build();
         }
     }
+
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

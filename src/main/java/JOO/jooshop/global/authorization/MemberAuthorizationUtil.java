@@ -11,26 +11,23 @@ import static JOO.jooshop.global.Exception.ResponseMessageConstants.*;
 public class MemberAuthorizationUtil {
 
     /*
-        클라이언트 요청 → 컨트롤러 @PathVariable memberId → verifyUserIdMatch(givenId)
-                                          ↓
-                             getLoginMemberId()  → 현재 로그인한 사용자 ID
-                             getLoginMemberRole() → 현재 로그인한 사용자 Role
-                                          ↓
-                로그인 사용자와 경로에 있는 사용자 ID가 다르면 예외 발생
-
-        1. getCustomUserDetails
-        - 현재 인증된 사용자 정보(Authentication) 를 SecurityContextHolder 에서 가져옴.
-        - authentication.getPrincipal()로 CustomUserDetails 객체를 얻음.
-
-        JWT token parsing
-        - Authorization 헤더에서 토큰을 꺼내고,
-        - jwtProvider 가 토큰을 검증 및 파싱해서 사용자 ID와 Role 을 리턴합니다.
+        MemberAuthorizationUtil 역할:
+        1. 현재 로그인한 사용자의 ID와 Role 정보를 가져옴
+        2. 요청 경로의 memberId와 로그인 사용자 ID를 비교
+        3. 필요 시 관리자 권한 체크
+        4. 권한이 맞지 않으면 SecurityException 발생
      */
 
+    // Utility 클래스이므로 인스턴스화 방지
     private MemberAuthorizationUtil() {
         throw new AssertionError();
     }
 
+    /**
+     * 현재 인증된 사용자 정보(CustomUserDetails) 반환
+     * - SecurityContextHolder에서 Authentication을 가져옴
+     * - 인증 정보 없으면 SecurityException 발생
+     */
     private static CustomUserDetails getCustomUserDetails() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) { // 로그인 안 되어 있는 경우
@@ -39,6 +36,11 @@ public class MemberAuthorizationUtil {
         return (CustomUserDetails) authentication.getPrincipal();
     }
 
+    /**
+     * 현재 로그인한 사용자 ID 반환
+     * - getCustomUserDetails()에서 ID 추출
+     * - ClassCastException 시 인증 실패로 처리
+     */
     public static Long getLoginMemberId() {
         try {
             return getCustomUserDetails().getMemberId();
@@ -47,6 +49,11 @@ public class MemberAuthorizationUtil {
         }
     }
 
+    /**
+     * 현재 로그인한 사용자 Role 반환
+     * - getCustomUserDetails()에서 Role 추출
+     * - ClassCastException 시 인증 실패로 처리
+     */
     public static MemberRole getLoginMemberRole() {
         try {
             return getCustomUserDetails().getMemberRole();
@@ -55,12 +62,19 @@ public class MemberAuthorizationUtil {
         }
     }
 
-    public static void verifyUserIdMatch(Long givenId) { // order/cart/address/payment/profile, memberId = givenId (요청받은)
+    /**
+     * 요청받은 memberId가 현재 로그인 사용자 ID와 일치하는지 확인
+     * - 일치하지 않고 ADMIN이 아니면 SecurityException 발생
+     * - 개인 프로필 접근, 주문, 장바구니 등에서 사용
+     *
+     * @param givenId 요청 PathVariable의 memberId
+     */
+    public static void verifyUserIdMatch(Long givenId) {
         Long loginMemberId = getLoginMemberId();        // 현재 로그인한 사용자 ID
         MemberRole memberRole = getLoginMemberRole();   // 현재 로그인한 사용자 역할
 
         if (!loginMemberId.equals(givenId) && memberRole != MemberRole.ADMIN) {
-            throw new SecurityException(ACCESS_DENIED+" : 요청 사용자와 로그인 사용자 불일치");
+            throw new SecurityException(ACCESS_DENIED + " : 요청 사용자와 로그인 사용자 불일치");
         }
     }
 }

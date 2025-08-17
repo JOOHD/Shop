@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
@@ -58,7 +59,7 @@ public class Member {
 
     @Column(name = "joined_at")
     @JsonProperty("joined_at")
-    private LocalDateTime joinedAt = LocalDateTime.now();
+    private LocalDateTime joinedAt;
 
     @Column(name = "is_active")
     private boolean active = true;
@@ -308,4 +309,13 @@ public class Member {
         this.nickname = newNickname;
     }
 
+    /**
+     * [profile 생성 시, null 방지]
+     */
+    @PrePersist
+    public void prePersist() {
+        if (this.joinedAt == null) {
+            this.joinedAt = LocalDateTime.now();
+        }
+    }
 }

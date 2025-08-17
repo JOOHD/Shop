@@ -2,7 +2,10 @@ package JOO.jooshop.members.repository;
 
 import JOO.jooshop.global.mail.entity.CertificationEntity;
 import JOO.jooshop.members.entity.Member;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -23,4 +26,9 @@ public interface MemberRepositoryV1 extends JpaRepository<Member, Long> {
     // socialId를 통해 회원 정보를 조회하는 메소드
     Optional<Member> findBySocialId(String socialId);
 
+    // profile 생성 시, joinedAt = null 방지
+    @Transactional
+    @Modifying
+    @Query("UPDATE Member m SET m.joinedAt = CURRENT_TIMESTAMP WHERE m.joinedAt IS NULL")
+    int fillNullJoinedAt();
 }

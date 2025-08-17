@@ -3,8 +3,13 @@ package JOO.jooshop.profiile.service;
 import JOO.jooshop.global.authorization.MemberAuthorizationUtil;
 import JOO.jooshop.global.authorization.RequiresRole;
 import JOO.jooshop.global.image.ImageUtil;
+import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.entity.enums.MemberRole;
+import JOO.jooshop.members.repository.MemberRepositoryV1;
 import JOO.jooshop.profiile.entity.Profiles;
+import JOO.jooshop.profiile.entity.enums.MemberAges;
+import JOO.jooshop.profiile.entity.enums.MemberGender;
+import JOO.jooshop.profiile.model.ProfileUpdateDTO;
 import JOO.jooshop.profiile.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +43,7 @@ public class ProfileService {
         - 캐싱 활숑하여 프로필 이미지 빈번한 조회 성능 최적화
      */
 
+    private final MemberRepositoryV1 memberRepository;
     private final ProfileRepository profileRepository;
 
     /* 프로필 생성(회원가입 시, INSERT) */
@@ -45,6 +51,37 @@ public class ProfileService {
     @RequiresRole({ MemberRole.USER, MemberRole.SELLER})
     public void saveProfileBySignup(Profiles memberProfiles) {
         profileRepository.save(memberProfiles);
+    }
+
+    /* 프로필 수정 */
+    @Transactional
+    public void updateProfile(Long memberId, ProfileUpdateDTO dto) {
+        // 1. Member entity 수정 (닉네임)
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NoSuchElementException("Member not found: " + memberId));
+
+        if (dto.getNickname() != null && !dto.getNickname().isBlank()) {
+            member.setNickname(dto.getNickname());
+            memberRepository.save(member);
+        }
+
+        // 2. Profiles 엔티티 수정 (나이, 성별)
+        Profiles profile = profileRepository.findByMemberId(memberId)
+                .orElseThrow(() -> new NoSuchElementException("Profile not found: " + memberId));
+
+        if (dto.getAge() != null && !dto.getAge().isBlank()) {
+            profile.updateMemberAge(MemberAges.valueOf(dto.getAge()));
+        }
+
+        if (dto.getGender() != null && !dto.getGender().isBlank()) {
+            profile.updateMemberGender(MemberGender.valueOf(dto.getGender()));
+        }
+
+        profileRepository.save(profile);
+
+        // 3. joinedAt null 처리 (Member 테이블 전체)
+        int updatedCount = memberRepository.fillNullJoinedAt();
+        log.info("Updated " + updatedCount + " members' joinedAt");
     }
 
     /* 프로필 이미지 조회 (SELECT) */
