@@ -1,25 +1,27 @@
+/* profile.css */
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #121212; /* 다크톤 배경 */
+    background-color: #f9f9f9; /* 밝은 화이트 톤 배경 */
     margin: 0;
     padding: 20px;
-    color: #f1f1f1;
+    color: #222; /* 텍스트는 다크 컬러 */
 }
 
 .profile-container {
     max-width: 600px;
     margin: 0 auto;
-    background: #1c1c1c; /* 어두운 배경 */
+    background: #ffffff; /* 화이트 배경 */
     padding: 30px;
     border-radius: 12px;
-    box-shadow: 0 0 15px rgba(218, 41, 28, 0.8);
-    border: 2px solid #DA291C;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); /* 은은한 그림자 */
+    border: 1px solid #e0e0e0; /* 얇은 회색 테두리 */
 }
 
 .profile-container h2 {
     text-align: center;
     margin-bottom: 30px;
-    color: #DA291C;
+    color: #DA291C; /* 포인트 컬러 */
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -37,9 +39,8 @@ body {
     height: 120px;
     border-radius: 50%;
     object-fit: cover;
-    border: 3px solid #DA291C;
-    box-shadow: 0 0 10px #DA291C;
-    background-color: #2a2a2a;
+    border: 2px solid #DA291C; /* 포인트 테두리 */
+    background-color: #f0f0f0;
 }
 
 .profile-actions {
@@ -63,12 +64,12 @@ body {
     font-weight: 700;
     font-size: 1rem;
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: 0 0 10px transparent;
+    box-shadow: 0 0 5px transparent;
 }
 
 .profile-actions button:hover {
     background-color: #b52018;
-    box-shadow: 0 0 15px #b52018;
+    box-shadow: 0 0 10px rgba(218, 41, 28, 0.3);
 }
 
 .profile-info p {
@@ -83,7 +84,7 @@ body {
     margin-right: 12px;
     min-width: 100px;
     display: inline-block;
-    color: #DA291C;
+    color: #DA291C; /* 포인트 컬러 */
     text-transform: uppercase;
     letter-spacing: 1.5px;
 }
@@ -92,63 +93,51 @@ body {
 .profile-info select,
 .profile-info textarea {
     padding: 8px 12px;
-    border: 2px solid #DA291C;
+    border: 1px solid #ccc; /* 연한 테두리 */
     border-radius: 30px;
     width: 70%;
     max-width: 400px;
     font-size: 15px;
-    background-color: #2a2a2a;
-    color: #f1f1f1;
+    background-color: #fcfcfc;
+    color: #222;
     transition: border-color 0.3s ease;
 }
 
 .profile-info input[type="text"]:focus,
 .profile-info select:focus,
 .profile-info textarea:focus {
-    border-color: #ff3b3b;
+    border-color: #DA291C;
     outline: none;
 }
 
 .profile-info textarea {
     resize: vertical;
-    background-color: #222;
-    color: #e0e0e0;
     border-radius: 15px;
     padding: 12px 16px;
     font-size: 14px;
     width: 100%;
     max-width: 100%;
+    background-color: #fcfcfc;
+    color: #222;
 }
 
-.profile-info button {
-    margin-left: 15px;
-    padding: 8px 18px;
+#updateProfileBtn {
+    margin-top: 20px;
+    padding: 12px 25px;
     background-color: #DA291C;
     border: none;
     border-radius: 30px;
     color: white;
     cursor: pointer;
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 1rem;
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: 0 0 10px transparent;
+    display: block;
+    width: 100%;
+    text-align: center;
 }
 
-.profile-info button:hover {
+#updateProfileBtn:hover {
     background-color: #b52018;
-    box-shadow: 0 0 15px #b52018;
-}
-
-.error-msg {
-    color: #ff6b6b;
-    margin-top: 12px;
-    text-align: center;
-    font-weight: 600;
-}
-
-.success-msg {
-    color: #a8ff9e;
-    margin-top: 12px;
-    text-align: center;
-    font-weight: 600;
+    box-shadow: 0 0 10px rgba(218, 41, 28, 0.3);
 }

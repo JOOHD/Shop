@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,11 +26,17 @@ public class LoginViewController {
     private final MemberService memberService;
     private final JWTUtil jwtUtil;
 
+    // 로그인 페이지 GET
     @GetMapping("/login")
-    public String formLogin() {
+    public String formLogin(Authentication authentication) {
+        // 이미 로그인 상태라면 홈으로 리다이렉트
+        if (authentication != null && authentication.isAuthenticated()) {
+            return "redirect:/";
+        }
         return "members/login";
     }
 
+    // 로그인 POST (API)
     @PostMapping("/api/login")
     @ResponseBody
     public ResponseEntity<String> oauth2Login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
@@ -40,6 +47,7 @@ public class LoginViewController {
             jwtCookie.setSecure(true);
             jwtCookie.setPath("/");
 
+            // 만료시간 계산 후 쿠키 maxAge 설정
             Date expiration = jwtUtil.getExpiration(loginResult);
             int maxAge = (int) ((expiration.getTime() - System.currentTimeMillis()) / 1000);
             jwtCookie.setMaxAge(maxAge);

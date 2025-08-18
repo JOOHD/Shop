@@ -18,6 +18,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -56,6 +57,9 @@ public class ProfileService {
     /* 프로필 수정 */
     @Transactional
     public void updateProfile(Long memberId, ProfileUpdateDTO dto) {
+        // 0. DTO 는 이미 updateProfile() 내에서 Member 를 조회할 때 데이터를 읽눈다.ㅑ
+        fillJoinedAtInNewTransaction();
+
         // 1. Member entity 수정 (닉네임)
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new NoSuchElementException("Member not found: " + memberId));
@@ -78,10 +82,12 @@ public class ProfileService {
         }
 
         profileRepository.save(profile);
+    }
 
-        // 3. joinedAt null 처리 (Member 테이블 전체)
-        int updatedCount = memberRepository.fillNullJoinedAt();
-        log.info("Updated " + updatedCount + " members' joinedAt");
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void fillJoinedAtInNewTransaction() {
+        int updated = memberRepository.fillNullJoinedAt();
+        log.info("Updated {} members' joinedAt", updated);
     }
 
     /* 프로필 이미지 조회 (SELECT) */
@@ -103,7 +109,7 @@ public class ProfileService {
     @RequiresRole({ MemberRole.USER, MemberRole.SELLER})
     public ResponseEntity<String> uploadProfileImageV3(@PathVariable("memberId") Long memberId, @RequestPart MultipartFile imageFile) {
         MemberAuthorizationUtil.verifyUserIdMatch(memberId);
-        String uploadsDir = "/src/main/resources/static/uploads/profileimg/";
+        String uploadsDir = "/src/main/resources/static/uploads/profileImgs/";
 
         String fileName = UUID.randomUUID().toString().replace("-", "") + imageFile.getOriginalFilename();
         String filePath = uploadsDir + fileName;

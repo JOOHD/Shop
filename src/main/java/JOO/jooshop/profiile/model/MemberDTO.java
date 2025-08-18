@@ -4,6 +4,8 @@ import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.entity.enums.MemberRole;
 import JOO.jooshop.members.entity.enums.SocialType;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 @Data
 public class MemberDTO {
@@ -57,6 +59,8 @@ public class MemberDTO {
                              member.isActive(),
                              member.isAdmin(),
                              member.isCertifiedByEmail(),
-                             member.getJoinedAt().toString());
+                             // joinedAt null 체크 후 변환
+                             member.getJoinedAt() != null ? member.getJoinedAt().toString() : ""
+        );
     }
 }

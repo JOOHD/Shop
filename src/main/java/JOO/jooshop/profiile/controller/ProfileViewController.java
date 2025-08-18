@@ -1,4 +1,4 @@
-package JOO.jooshop.profiile;
+package JOO.jooshop.profiile.controller;
 
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
@@ -37,6 +37,8 @@ public class ProfileViewController {
      */
     @GetMapping("/profile")
     public String profilePage(Principal principal, Model model) {
+        if (principal == null) return "redirect:/login"; // 로그인 안 되어 있으면 로그인 페이지로
+
         // 로그인 사용자 이메일 Member 조회
         Member member = memberRepository.findByEmail(principal.getName())
                 .orElseThrow(() -> new IllegalArgumentException("로그인된 사용자를 찾을 수 없습니다."));
@@ -44,18 +46,27 @@ public class ProfileViewController {
         // profilesOpt : memberId 로 조회한 프로필 엔티티 Optional (없으면 빈 값 반환)
         Optional<Profiles> profilesOpt = profileRepository.findByMemberId(member.getId());
 
-        if (profilesOpt.isPresent()) {
+        MemberDTO memberDTO = MemberDTO.createMemberDto(member);
+
+        MemberProfileDTO memberProfileDTO = profilesOpt
+                .map(profiles -> MemberProfileDTO.createMemberProfileDto(profiles, memberDTO))
+                .orElseGet(() -> new MemberProfileDTO(null, memberDTO, null, null, "", null, null, "", ""));
+
+        model.addAttribute("member", memberProfileDTO);
+
+        return "members/profile"; // profile.html
+    }
+}
+/*
+    if (profilesOpt.isPresent()) {
             Profiles profiles = profilesOpt.get();;
 
             // DTO 변환
             MemberDTO memberDTO = MemberDTO.createMemberDto(member);
             MemberProfileDTO memberProfileDTO = MemberProfileDTO.createMemberProfileDto(profiles, memberDTO);
 
-            model.addAttribute("profile", memberProfileDTO);
+            model.addAttribute("member", memberProfileDTO);
         } else {
-            model.addAttribute("profile", null);
+            model.addAttribute("member", null);
         }
-
-        return "profile"; // profile.html
-    }
-}
+ */

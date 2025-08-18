@@ -38,7 +38,6 @@ import java.util.Collections;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final ObjectMapper objectMapper;
     private final ClientRegistrationRepository clientRegistrationRepository;
     private final CustomOAuth2UserServiceV1 customOAuth2UserService;
     private final FormLoginSuccessHandler formLoginSuccessHandler;
@@ -178,6 +177,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/formLogin", "/logout", "/", "/auth/**", "/products/**").permitAll()
+                        .requestMatchers("/profile").authenticated() // 로그인 필수
                         .requestMatchers("/admin").hasRole("ADMIN")
                         .anyRequest().permitAll()
                 )

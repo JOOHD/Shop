@@ -311,6 +311,7 @@ public class Member {
 
     /**
      * [profile 생성 시, null 방지]
+     * 신규 insert 시 null 방지
      */
     @PrePersist
     public void prePersist() {

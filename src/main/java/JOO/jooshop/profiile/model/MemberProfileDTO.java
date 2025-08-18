@@ -9,7 +9,7 @@ import lombok.Data;
 public class MemberProfileDTO {
 
     private Long profileId;
-    private MemberDTO member;
+    private MemberDTO info;
     private String profileImgName;
     private String profileImgPath;
     private String introduction;
@@ -18,9 +18,9 @@ public class MemberProfileDTO {
     private String createdAt;
     private String updatedAt;
 
-    public MemberProfileDTO(Long profileId, MemberDTO member, String profileImgName, String profileImgPath, String introduction, MemberAges memberAges, MemberGender memberGender, String createdAt, String updatedAt) {
+    public MemberProfileDTO(Long profileId, MemberDTO info, String profileImgName, String profileImgPath, String introduction, MemberAges memberAges, MemberGender memberGender, String createdAt, String updatedAt) {
         this.profileId = profileId;
-        this.member = member;
+        this.info = info;
         this.profileImgName = profileImgName;
         this.profileImgPath = profileImgPath;
         this.introduction = introduction;
