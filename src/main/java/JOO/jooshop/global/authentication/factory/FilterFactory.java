@@ -17,10 +17,11 @@ public class FilterFactory {
 
     private final ObjectMapper objectMapper;
     private final JWTUtil jwtUtil;
+    private final MemberService memberService;
     private final RefreshRepository refreshRepository;
     private final RedisTemplate<String, String> redisTemplate;
 
-    public LoginFilter createLoginFilter(AuthenticationManager authenticationManager, MemberService memberService) {
+    public LoginFilter createLoginFilter(AuthenticationManager authenticationManager) {
         LoginFilter loginFilter = new LoginFilter(
                 authenticationManager,
                 objectMapper,
@@ -32,7 +33,7 @@ public class FilterFactory {
         return loginFilter;
     }
 
-    public JWTFilterV3 createJWTFilter(MemberService memberService) {
+    public JWTFilterV3 createJWTFilter() {
         return new JWTFilterV3(jwtUtil, redisTemplate, memberService);
     }
 }
