@@ -12,7 +12,7 @@
     z-index: 1000;
 }
 
-/* 헤더 좌측/우측 아이콘 컨테이너 */
+/* 좌측/우측 아이콘 컨테이너 */
 .left-icons,
 .right-icons {
     display: flex;
@@ -20,28 +20,24 @@
     gap: 20px;
 }
 
-/* 헤더 아이콘 스타일 */
+/* 공통 아이콘 스타일 */
 .left-icons i,
-.right-icons i {
+.right-icons i,
+.login-container i {
     font-size: 20px;
     cursor: pointer;
     color: #111;
+    transition: color 0.2s ease-in-out;
 }
 
-/* 아이콘 마우스 오버 시 빨간색으로 변경 */
+/* 아이콘 마우스 오버 시 빨간색 */
 .left-icons i:hover,
 .right-icons i:hover,
 .login-container i:hover {
     color: #DA291C;
-    cursor: pointer;
 }
 
-/* 로고 이미지 크기 */
-.logo {
-    height: 40px;
-}
-
-/* 헤더 중앙 영역: 로고 위치 조정용 */
+/* 헤더 중앙 로고 */
 .header-center {
     display: flex;
     justify-content: center;
@@ -55,17 +51,8 @@
     align-items: center;
 }
 
-/* --- 로그인 아이콘 --- */
-.login-container i {
-    color: #111;
-    font-size: 20px;
-    cursor: pointer;
-    transition: color 0.2s ease-in-out;
-}
-
-/* 로그인 아이콘 마우스 오버 시 빨간색 */
-.login-container i:hover {
-    color: #DA291C;
+.logo {
+    height: 40px;
 }
 
 /* --- 로그인 모달 --- */
@@ -93,15 +80,16 @@
     border: none;
     border-radius: 20px;
     font-size: 15px;
+    font-weight: bold;
     cursor: pointer;
     margin-bottom: 12px;
-    font-weight: bold;
 }
 
 .btn-login:hover {
     background-color: #b52018;
 }
 
+/* 회원가입 텍스트 */
 .no-account {
     font-size: 14px;
     color: #555;

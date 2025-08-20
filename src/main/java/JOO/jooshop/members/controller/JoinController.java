@@ -2,14 +2,10 @@ package JOO.jooshop.members.controller;
 
 import JOO.jooshop.global.Exception.customException.ExistingMemberException;
 import JOO.jooshop.global.Exception.customException.InvalidCredentialsException;
-import JOO.jooshop.global.Exception.customException.UnverifiedEmailException;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.mail.service.EmailMemberService;;
-import JOO.jooshop.members.model.LoginRequest;
 import JOO.jooshop.members.model.JoinMemberRequest;
 import JOO.jooshop.members.service.MemberService;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,14 +13,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
 import java.util.function.Consumer;
 
 @RestController
 @RequiredArgsConstructor
 @Slf4j
 @RequestMapping("/api")
-public class JoinApiController {
+public class JoinController {
 
     private final JWTUtil jwtUtil;
     private final MemberService memberService;

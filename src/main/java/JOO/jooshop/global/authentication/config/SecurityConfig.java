@@ -108,10 +108,11 @@ public class SecurityConfig {
     @Bean
     @Order(1)
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http,
-                                                      AuthenticationManager authenticationManager ) throws Exception {
+                                                      AuthenticationManager authenticationManager,
+                                                      MemberService memberService) throws Exception {
 
-        LoginFilter loginFilter = filterFactory.createLoginFilter(authenticationManager);
-        JWTFilterV3 jwtFilter = filterFactory.createJWTFilter();
+        LoginFilter loginFilter = filterFactory.createLoginFilter(authenticationManager, memberService);
+        JWTFilterV3 jwtFilter = filterFactory.createJWTFilter(memberService);
 
         http
                 .securityMatcher("/api/**")
@@ -152,8 +153,8 @@ public class SecurityConfig {
      */
     @Bean
     @Order(2)
-    public SecurityFilterChain webSecurityFilterChain(HttpSecurity http) throws Exception {
-        JWTFilterV3 jwtFilterV3 = filterFactory.createJWTFilter();
+    public SecurityFilterChain webSecurityFilterChain(HttpSecurity http, MemberService memberService) throws Exception {
+        JWTFilterV3 jwtFilterV3 = filterFactory.createJWTFilter(memberService);
 
         http
                 .securityMatcher("/**")

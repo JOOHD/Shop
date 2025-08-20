@@ -12,16 +12,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
-public class LoginViewController {
+public class LoginController {
 
     private final MemberService memberService;
     private final JWTUtil jwtUtil;
@@ -34,6 +33,21 @@ public class LoginViewController {
             return "redirect:/";
         }
         return "members/login";
+    }
+
+    // 로그인 상태 확인 (currentUser)
+    @GetMapping("/user/me")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> currentUser(@CookieValue(value = "accessToken", required = false) String accessToken) {
+        Map<String, Object> res = new HashMap<>();
+        boolean loggedIn = false;
+
+        if (accessToken != null && jwtUtil.validateToken(accessToken)) {
+            loggedIn = true;
+        }
+        
+        res.put("loggedIn", loggedIn);
+        return ResponseEntity.ok(res);
     }
 
     // 로그인 POST (API)
