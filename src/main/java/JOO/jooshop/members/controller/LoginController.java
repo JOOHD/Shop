@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
@@ -27,27 +28,12 @@ public class LoginController {
 
     // 로그인 페이지 GET
     @GetMapping("/login")
-    public String formLogin(Authentication authentication) {
+    public String loginPage(Authentication authentication) {
         // 이미 로그인 상태라면 홈으로 리다이렉트
         if (authentication != null && authentication.isAuthenticated()) {
             return "redirect:/";
         }
-        return "members/login";
-    }
-
-    // 로그인 상태 확인 (currentUser)
-    @GetMapping("/user/me")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> currentUser(@CookieValue(value = "accessToken", required = false) String accessToken) {
-        Map<String, Object> res = new HashMap<>();
-        boolean loggedIn = false;
-
-        if (accessToken != null && jwtUtil.validateToken(accessToken)) {
-            loggedIn = true;
-        }
-        
-        res.put("loggedIn", loggedIn);
-        return ResponseEntity.ok(res);
+        return "members/login"; // 실제 로그인 페이지
     }
 
     // 로그인 POST (API)

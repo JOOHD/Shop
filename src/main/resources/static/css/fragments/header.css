@@ -1,4 +1,5 @@
-/* --- HEADER (상단 헤더 바) --- */
+/* Header 전체 스타일 */
+
 .header-bar {
     height: 70px;
     display: flex;
@@ -20,7 +21,7 @@
     gap: 20px;
 }
 
-/* 공통 아이콘 스타일 */
+/* 아이콘 공통 스타일 */
 .left-icons i,
 .right-icons i,
 .login-container i {
@@ -30,19 +31,19 @@
     transition: color 0.2s ease-in-out;
 }
 
-/* 아이콘 마우스 오버 시 빨간색 */
+/* 아이콘 마우스 오버 시 색상 변경 */
 .left-icons i:hover,
 .right-icons i:hover,
 .login-container i:hover {
     color: #DA291C;
 }
 
-/* 헤더 중앙 로고 */
+/* 중앙 로고 */
 .header-center {
+    flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
-    flex: 1;
 }
 
 .header-logo-link {
@@ -55,55 +56,48 @@
     height: 40px;
 }
 
-/* --- 로그인 모달 --- */
+/* 로그인 컨테이너 */
+.login-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+/* 로그인/마이페이지 모달 */
 .login-modal {
     position: absolute;
-    top: 40px;
+    top: 50px;
     right: 0;
     background-color: #ffffff;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    padding: 20px;
-    z-index: 1300;
-    width: 200px;
+    padding: 15px;
+    width: 220px;
     display: none;
-    text-align: center;
-    animation: fadeIn 0.3s ease-in-out;
+    text-align: left;
+    animation: fadeIn 0.2s ease-in-out;
 }
 
-/* 로그인 버튼 */
-.btn-login {
-    background-color: #DA291C;
-    color: white;
-    padding: 10px 0;
-    width: 100%;
-    border: none;
-    border-radius: 20px;
-    font-size: 15px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-bottom: 12px;
-}
-
-.btn-login:hover {
-    background-color: #b52018;
-}
-
-/* 회원가입 텍스트 */
-.no-account {
+/* 로그인 전/후 모달 링크 스타일 */
+.login-modal p,
+.login-modal a {
+    margin: 5px 0;
     font-size: 14px;
-    color: #555;
-    margin: 0;
 }
 
-.signup-link {
-    color: #DA291C;
+#mypageModal a {
+    display: block;
+    padding: 6px 10px;
+    border-radius: 8px;
+    color: #111;
     text-decoration: none;
-    font-weight: bold;
+    margin: 3px 0;
+    transition: 0.2s;
 }
 
-.signup-link:hover {
-    text-decoration: underline;
+#mypageModal a:hover {
+    background-color: #f8f8f8;
+    color: #DA291C;
 }
 
 /* 페이드인 애니메이션 */
@@ -111,3 +105,4 @@
     from { opacity: 0; transform: translateY(-5px); }
     to { opacity: 1; transform: translateY(0); }
 }
+

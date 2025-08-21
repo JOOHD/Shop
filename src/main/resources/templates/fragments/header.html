@@ -1,128 +1,82 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>Header</title>
+  <link rel="stylesheet" th:href="@{/css/header.css}" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
 <body>
 
-<!-- 헤더 Fragment -->
 <header class="header-bar" th:fragment="header">
 
-  <!-- 좌측 아이콘 -->
   <div class="left-icons">
     <i class="fas fa-bars" title="메뉴" onclick="toggleSidebar()"></i>
     <i class="fas fa-search" title="검색" onclick="toggleSearchSidebar()"></i>
   </div>
 
-  <!-- 중앙 로고 -->
   <div class="header-center">
-    <a href="/" class="header-logo-link">
-      <img class="logo" src="/logo/icons/mufc_icon.png" alt="MUFC 로고" />
-    </a>
+    <a href="/" class="header-logo-link"><img class="logo" src="/logo/icons/mufc_icon.png" alt="MUFC 로고"/></a>
   </div>
 
-  <!-- 우측 아이콘 -->
   <div class="right-icons">
-
-    <!-- 로그인 컨테이너 -->
-    <div class="login-container" id="login-container"
-         onmouseenter="showLoginModal()" onmouseleave="hideLoginModal()">
-
-      <!-- 로그인 상태가 아닐 때 표시 -->
-      <a href="#" title="로그인" id="login-link">
-        <i class="fas fa-user icon-btn"></i>
-      </a>
-
-      <!-- 로그인 모달 -->
-      <div id="login-modal" class="login-modal">
-        <button onclick="location.href='/login'" class="btn-login">로그인</button>
-        <p class="no-account">
-          계정이 없으신가요?
-          <a href="/join" class="signup-link">회원가입</a>
-        </p>
+    <div class="login-container">
+      <!-- 비로그인 -->
+      <div th:if="${!loggedIn}">
+        <a href="/login" title="로그인" id="login-link"><i class="fas fa-user icon-btn"></i></a>
+        <div id="loginModal" class="login-modal">
+          <p>계정이 없으신가요? <a href="/join">회원가입</a></p>
+        </div>
       </div>
 
-      <!-- 로그인 상태일 때 표시 -->
-      <a href="/profile" title="마이페이지" id="mypage-link" style="display:none;">
-        <i class="fas fa-user-circle icon-btn"></i>
-      </a>
+      <!-- 로그인 -->
+      <div th:if="${loggedIn}">
+        <i class="fas fa-user-circle icon-btn" title="마이페이지" id="mypageIcon"></i>
+        <div id="mypageModal" class="login-modal">
+          <a href="/profile">내 정보</a>
+          <a href="/orders">주문 내역</a>
+          <a href="/wishlist">위시리스트</a>
+          <a href="/cart">장바구니</a>
+          <a href="/logout">로그아웃</a>
+        </div>
+      </div>
     </div>
-
-    <!-- 위시리스트 & 장바구니 -->
-    <a href="/wishlist" title="위시리스트"><i class="fas fa-heart icon-btn"></i></a>
-    <a href="/cart" title="장바구니"><i class="fas fa-bag-shopping icon-btn"></i></a>
-
   </div>
+
 </header>
 
 <script>
-  // 서버 JWT/세션 기반 로그인 상태 확인
-  async function checkLoginStatus() {
-    try {
-      const res = await fetch('/user/me', { credentials: 'include' });
-      if (!res.ok) return false;
-      const data = await res.json();
-      return data.loggedIn === true;
-    } catch (err) {
-      console.error('로그인 상태 확인 실패', err);
-      return false;
-    }
-  }
+function toggleSidebar() { console.log('사이드바 토글'); }
+function toggleSearchSidebar() { console.log('검색 토글'); }
 
-  async function updateLoginUI() {
-  const isLoggedIn = await checkLoginStatus();
+document.addEventListener('DOMContentLoaded', () => {
+    const mypageIcon = document.getElementById('mypageIcon');
+    const mypageModal = document.getElementById('mypageModal');
 
-  // 로그인 상태가 아니면 로그인 버튼/모달 표시
-  document.getElementById('login-link').style.display = isLoggedIn ? 'none' : 'inline-block';
-  document.getElementById('login-modal').style.display = 'none';
+    if(mypageIcon && mypageModal){
+        // 클릭 시 토글
+        mypageIcon.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const style = window.getComputedStyle(mypageModal);
+            mypageModal.style.display = (style.display === 'none') ? 'block' : 'none';
+        });
 
-  // 로그인 상태면 마이페이지 아이콘 표시
-  document.getElementById('mypage-link').style.display = isLoggedIn ? 'inline-block' : 'none';
-}
-
-  function showLoginModal() {
-    checkLoginStatus().then(isLoggedIn => {
-      if (!isLoggedIn) document.getElementById('login-modal').style.display = 'block';
-    });
-  }
-
-  function hideLoginModal() {
-    checkLoginStatus().then(isLoggedIn => {
-      if (!isLoggedIn) document.getElementById('login-modal').style.display = 'none';
-    });
-  }
-
-  // 로그인 POST
-  async function loginSubmit() {
-    const email = document.getElementById('login-email').value.trim();
-    const password = document.getElementById('login-password').value.trim();
-
-    if (!email || !password) {
-      alert('이메일과 비밀번호를 입력해주세요.');
-      return;
+        // 외부 클릭 시 닫기
+        document.addEventListener('click', (e) => {
+            if(!mypageIcon.contains(e.target) && !mypageModal.contains(e.target)){
+                mypageModal.style.display = 'none';
+            }
+        });
     }
 
-    try {
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-        credentials: 'include'
-      });
-
-      if (res.ok) {
-        window.dispatchEvent(new Event('loginSuccess'));
-        alert('로그인 성공!');
-      } else {
-        const msg = await res.text();
-        alert(msg);
-      }
-    } catch (err) {
-      console.error(err);
-      alert('로그인 중 오류가 발생했습니다.');
+    // 비로그인 로그인 아이콘 클릭 시 이동
+    const loginLink = document.getElementById('login-link');
+    if(loginLink){
+        loginLink.addEventListener('click', (e) => {
+            // preventDefault 제거 → 링크 정상 이동
+        });
     }
-  }
-
-  // 페이지 로드 시 초기화 & 로그인 성공 이벤트
-  document.addEventListener('DOMContentLoaded', updateLoginUI);
-  window.addEventListener('loginSuccess', updateLoginUI);
+});
 </script>
 
 </body>
