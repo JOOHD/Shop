@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
   <meta charset="UTF-8" />
   <title>Header</title>
@@ -10,36 +10,33 @@
 
 <header class="header-bar" th:fragment="header">
 
+  <!-- 좌측 아이콘 -->
   <div class="left-icons">
     <i class="fas fa-bars" title="메뉴" onclick="toggleSidebar()"></i>
     <i class="fas fa-search" title="검색" onclick="toggleSearchSidebar()"></i>
   </div>
 
+  <!-- 중앙 로고 -->
   <div class="header-center">
-    <a href="/" class="header-logo-link"><img class="logo" src="/logo/icons/mufc_icon.png" alt="MUFC 로고"/></a>
+    <a href="/" class="header-logo-link">
+      <img class="logo" src="/logo/icons/mufc_icon.png" alt="MUFC 로고"/>
+    </a>
   </div>
 
+  <!-- 우측 아이콘 -->
   <div class="right-icons">
-    <div class="login-container">
-      <!-- 비로그인 -->
-      <div th:if="${!loggedIn}">
-        <a href="/login" title="로그인" id="login-link"><i class="fas fa-user icon-btn"></i></a>
-        <div id="loginModal" class="login-modal">
-          <p>계정이 없으신가요? <a href="/join">회원가입</a></p>
-        </div>
-      </div>
+    <!-- 비로그인 -->
+    <div sec:authorize="isAnonymous()">
+      <a href="/login" title="로그인"><i class="fas fa-user"></i></a>
+    </div>
 
-      <!-- 로그인 -->
-      <div th:if="${loggedIn}">
-        <i class="fas fa-user-circle icon-btn" title="마이페이지" id="mypageIcon"></i>
-        <div id="mypageModal" class="login-modal">
-          <a href="/profile">내 정보</a>
-          <a href="/orders">주문 내역</a>
-          <a href="/wishlist">위시리스트</a>
-          <a href="/cart">장바구니</a>
-          <a href="/logout">로그아웃</a>
-        </div>
-      </div>
+    <!-- 로그인 -->
+    <div sec:authorize="isAuthenticated()">
+      <a href="/profile" title="내 정보"><i class="fas fa-user-circle"></i></a>
+      <a href="/orders" title="주문 내역"><i class="fas fa-box"></i></a>
+      <a href="/wishlist" title="위시리스트"><i class="fas fa-heart"></i></a>
+      <a href="/cart" title="장바구니"><i class="fas fa-shopping-cart"></i></a>
+      <a href="/logout" title="로그아웃"><i class="fas fa-sign-out-alt"></i></a>
     </div>
   </div>
 
@@ -48,35 +45,6 @@
 <script>
 function toggleSidebar() { console.log('사이드바 토글'); }
 function toggleSearchSidebar() { console.log('검색 토글'); }
-
-document.addEventListener('DOMContentLoaded', () => {
-    const mypageIcon = document.getElementById('mypageIcon');
-    const mypageModal = document.getElementById('mypageModal');
-
-    if(mypageIcon && mypageModal){
-        // 클릭 시 토글
-        mypageIcon.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const style = window.getComputedStyle(mypageModal);
-            mypageModal.style.display = (style.display === 'none') ? 'block' : 'none';
-        });
-
-        // 외부 클릭 시 닫기
-        document.addEventListener('click', (e) => {
-            if(!mypageIcon.contains(e.target) && !mypageModal.contains(e.target)){
-                mypageModal.style.display = 'none';
-            }
-        });
-    }
-
-    // 비로그인 로그인 아이콘 클릭 시 이동
-    const loginLink = document.getElementById('login-link');
-    if(loginLink){
-        loginLink.addEventListener('click', (e) => {
-            // preventDefault 제거 → 링크 정상 이동
-        });
-    }
-});
 </script>
 
 </body>

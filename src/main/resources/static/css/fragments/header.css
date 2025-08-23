@@ -1,5 +1,4 @@
 /* Header 전체 스타일 */
-
 .header-bar {
     height: 70px;
     display: flex;
@@ -23,8 +22,7 @@
 
 /* 아이콘 공통 스타일 */
 .left-icons i,
-.right-icons i,
-.login-container i {
+.right-icons i {
     font-size: 20px;
     cursor: pointer;
     color: #111;
@@ -33,8 +31,7 @@
 
 /* 아이콘 마우스 오버 시 색상 변경 */
 .left-icons i:hover,
-.right-icons i:hover,
-.login-container i:hover {
+.right-icons i:hover {
     color: #DA291C;
 }
 
@@ -56,53 +53,19 @@
     height: 40px;
 }
 
-/* 로그인 컨테이너 */
-.login-container {
-    position: relative;
+/* 로그인 시 유저 아이콘 나열 */
+.user-icons {
     display: flex;
     align-items: center;
+    gap: 18px;
 }
 
-/* 로그인/마이페이지 모달 */
-.login-modal {
-    position: absolute;
-    top: 50px;
-    right: 0;
-    background-color: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    padding: 15px;
-    width: 220px;
-    display: none;
-    text-align: left;
-    animation: fadeIn 0.2s ease-in-out;
-}
-
-/* 로그인 전/후 모달 링크 스타일 */
-.login-modal p,
-.login-modal a {
-    margin: 5px 0;
-    font-size: 14px;
-}
-
-#mypageModal a {
-    display: block;
-    padding: 6px 10px;
-    border-radius: 8px;
+.user-icons a {
     color: #111;
     text-decoration: none;
-    margin: 3px 0;
-    transition: 0.2s;
+    transition: color 0.2s ease-in-out;
 }
 
-#mypageModal a:hover {
-    background-color: #f8f8f8;
+.user-icons a:hover {
     color: #DA291C;
 }
-
-/* 페이드인 애니메이션 */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-5px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-

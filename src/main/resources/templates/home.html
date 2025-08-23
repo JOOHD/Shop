@@ -11,7 +11,7 @@
 <
 
 <!-- HEADER Fragment Include -->
-<div th:replace="fragments/header :: header"></div>
+<div th:replace="~{fragments/header :: header}"></div>
 
 <!-- 사이드바 -->
 <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
@@ -53,7 +53,7 @@
 </main>
 
 <!-- FOOTER Fragment Include -->
-<div th:replace="fragments/footer :: footer"></div>
+<div th:replace="~{fragments/footer :: footer}"></div>
 
 <!-- JS -->
 <script>
