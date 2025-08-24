@@ -50,7 +50,7 @@ public class CartController {
         Long memberId = userDetails.getMemberId(); // JWT 인증 정보에서 직접 추출
         Long createdId = cartService.addCart(memberId, productMgtId, request.getQuantity());
 
-        return ResponseEntity.ok("장바구니에 등록되었습니다. cart_id : " + createdId);
+        return ResponseEntity.ok("장바구니에 추가 되었습니다. cart_id : " + createdId);
     }
 
     /**

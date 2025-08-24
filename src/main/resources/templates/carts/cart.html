@@ -31,15 +31,43 @@
 </div>
 
 <script>
-    // 실제 로그인한 회원 ID로 변경 필요
-    const memberId = 1;
+    // [FIX] memberId 하드코딩 제거. 서버가 인증 주체에서 식별.
+    // const memberId = 1;
+
+    // [FIX] 공통 fetch 옵션 헬퍼: 쿠키 전송( HttpOnly JWT )
+    function withAuth(init = {}) {
+        return Object.assign(
+            {
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json', ...(init.headers || {}) }
+            },
+            init
+        );
+    }
+
+    // [FIX] 401/302 대응: API가 401 주면 로그인 페이지로 이동
+    async function handleJson(res) {
+        if (res.status === 401) {
+            alert('로그인이 필요합니다.');
+            location.href = '/login';
+            return Promise.reject(new Error('Unauthorized'));
+        }
+        if (res.status >= 300 && res.status < 400) {
+            // API 체인에서 리다이렉트가 오면(올 일 없게 수정했지만 방어)
+            alert('세션이 만료되었거나 권한이 없습니다.');
+            location.href = '/login';
+            return Promise.reject(new Error('Redirected'));
+        }
+        if (!res.ok) throw new Error('요청 실패: ' + res.status);
+        return res.json();
+    }
 
     // 서버에서 내 장바구니 상품 리스트 조회
     async function fetchCartItems() {
         try {
-            const res = await fetch(`/api/v1/cart/${memberId}`);
-            if (!res.ok) throw new Error('장바구니 불러오기 실패');
-            const cartItems = await res.json();
+            // [FIX] /api/v1/cart/{memberId} → /api/v1/cart/my
+            const res = await fetch(`/api/v1/cart/my`, withAuth());
+            const cartItems = await handleJson(res);
             renderCart(cartItems);
         } catch (err) {
             alert(err.message);
@@ -69,7 +97,7 @@
                   <small>상품 코드: ${item.productMgtId}</small>
                 </div>
                 <div class="price-info">
-                  <span>${item.price.toLocaleString()}원</span>
+                  <span>${Number(item.price).toLocaleString()}원</span>
                   <input type="number" min="1" value="${item.count}"
                     onchange="updateCount(${item.id}, this.value)" />
                   <button onclick="deleteCartItem(${item.id})">삭제</button>
@@ -88,33 +116,30 @@
             fetchCartItems(); // 수량 복구
             return;
         }
-        fetch(`/api/v1/cart/${cartId}`, {
+        fetch(`/api/v1/cart/${cartId}`, withAuth({
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ count: parseInt(newCount), memberId: memberId })
-        })
-            .then(res => {
-                if (!res.ok) throw new Error('수량 변경 실패');
-                return res.json();
-            })
-            .then(() => calculatePrice())
-            .catch(err => {
-                alert(err.message);
-                fetchCartItems(); // 복구
-            });
+            body: JSON.stringify({ quantity: parseInt(newCount, 10) }) // [FIX] 서버 DTO 키에 맞춤
+        }))
+        .then(handleJson)
+        .then(() => calculatePrice())
+        .catch(err => {
+            alert(err.message);
+            fetchCartItems(); // 복구
+        });
     }
 
     // 개별 삭제
     function deleteCartItem(cartId) {
         if (!confirm('삭제하시겠습니까?')) return;
 
-        fetch(`/api/v1/cart/${cartId}`, { method: 'DELETE' })
+        fetch(`/api/v1/cart/${cartId}`, withAuth({ method: 'DELETE' }))
             .then(res => {
+                if (res.status === 401) { alert('로그인이 필요합니다.'); location.href='/login'; return Promise.reject(); }
                 if (!res.ok) throw new Error('삭제 실패');
                 return res.text();
             })
             .then(() => fetchCartItems())
-            .catch(err => alert(err.message));
+            .catch(err => err && alert(err.message));
     }
 
     // 전체 선택 토글
@@ -131,10 +156,8 @@
 
         Promise.all(selected.map(cb => {
             const cartId = cb.dataset.cartId;
-            return fetch(`/api/v1/cart/${cartId}`, { method: 'DELETE' })
-                .then(res => {
-                    if (!res.ok) throw new Error('삭제 실패');
-                });
+            return fetch(`/api/v1/cart/${cartId}`, withAuth({ method: 'DELETE' }))
+                .then(res => { if (!res.ok) throw new Error('삭제 실패'); });
         }))
         .then(() => fetchCartItems())
         .catch(() => alert('삭제 실패'));
@@ -148,7 +171,7 @@
         items.forEach(item => {
             const priceText = item.querySelector('.price-info span').textContent.replace(/[^0-9]/g, '');
             const count = item.querySelector('input[type=number]').value;
-            totalPrice += parseInt(priceText) * count;
+            totalPrice += parseInt(priceText, 10) * parseInt(count, 10);
         });
 
         updatePriceSummary(totalPrice);

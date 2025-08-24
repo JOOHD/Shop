@@ -46,6 +46,9 @@ public class SecurityConfig {
     private final Oauth2LoginFailureHandler oauth2LoginFailureHandler;
     private final FilterFactory filterFactory;
 
+    @Value("${spring.frontend.url}")
+    private String frontendUrl;
+
     // 권한별 URL 그룹핑
     private static final String[] PUBLIC_API = {
             "/api/join",
@@ -71,9 +74,6 @@ public class SecurityConfig {
             "/api/v1/inquiry/reply/**"
     };
 
-    @Value("${spring.frontend.url}")
-    private String frontendUrl;
-
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
@@ -89,84 +89,83 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    /**
-     * 1. API용 SecurityFilterChain (JWT + OAuth2 SocialLogin)
-     * 클라이언트 요청
-     *       │
-     *       ▼
-     * [LoginFilter] -- 로그인 요청일 때 → 인증 + JWT 발급
-     *       │
-     *       ▼
-     * [JWTFilterV3] -- JWT가 있으면 인증 처리
-     *       │
-     *       ▼
-     * [UsernamePasswordAuthenticationFilter] -- (기존 Form Login용) 이후 필터 체인 진행
-     *       │
-     *       ▼
-     * Controller/Service 접근
-     */
+    // ================== 1) API Security Filter Chain ==================
     @Bean
     @Order(1)
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http,
                                                       AuthenticationManager authenticationManager,
                                                       MemberService memberService) throws Exception {
 
-        LoginFilter loginFilter = filterFactory.createLoginFilter(authenticationManager, memberService);
-        JWTFilterV3 jwtFilter = filterFactory.createJWTFilter(memberService);
+        var loginFilter = filterFactory.createLoginFilter(authenticationManager, memberService);
+        var jwtFilter = filterFactory.createJWTFilter(memberService);
 
         http
                 .securityMatcher("/api/**")
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .cors(cors -> cors.configurationSource(request -> {
+                    CorsConfiguration config = new CorsConfiguration();
+                    config.setAllowedOrigins(Collections.singletonList(frontendUrl));
+                    config.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","OPTIONS"));
+                    config.setAllowedHeaders(Collections.singletonList("*"));
+                    config.setAllowCredentials(true);
+                    config.setMaxAge(3600L);
+                    config.addExposedHeader("Set-Cookie");
+                    config.addExposedHeader("Authorization");
+                    return config;
+                }))
+                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_API).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, ROLE_USER_OR_SELLER).hasAnyRole("USER", "SELLER")
-                        .requestMatchers(HttpMethod.PUT, ROLE_USER_OR_SELLER).hasAnyRole("USER", "SELLER")
-                        .requestMatchers(HttpMethod.DELETE, ROLE_USER_OR_SELLER).hasAnyRole("USER", "SELLER")
+                        // [참고] 카트 GET도 인증 필요 (서버에서 사용자 식별)
+                        .requestMatchers(HttpMethod.POST, ROLE_USER_OR_SELLER).hasAnyRole("USER","SELLER")
+                        .requestMatchers(HttpMethod.PUT, ROLE_USER_OR_SELLER).hasAnyRole("USER","SELLER")
+                        .requestMatchers(HttpMethod.DELETE, ROLE_USER_OR_SELLER).hasAnyRole("USER","SELLER")
                         .requestMatchers(HttpMethod.POST, ROLE_ADMIN).hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, ROLE_ADMIN).hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, ROLE_ADMIN).hasRole("ADMIN")
                         .anyRequest().authenticated()
+                )
+                //  API 체인에서는 로그인/리다이렉트를 제거하고 401로 응답
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((req, res, e) -> {
+                            res.setStatus(401);
+                            res.setContentType("application/json;charset=UTF-8");
+                            res.getWriter().write("{\"message\":\"Unauthorized\"}");
+                        })
+                        .accessDeniedHandler((req, res, e) -> {
+                            res.setStatus(403);
+                            res.setContentType("application/json;charset=UTF-8");
+                            res.getWriter().write("{\"message\":\"Forbidden\"}");
+                        })
                 );
-                http.addFilterBefore(loginFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
-                http.addFilterBefore(jwtFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
 
-                // OAuth2 Social Login API 처리
-                .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/login")
-                        .authorizationEndpoint(auth -> auth
-                                .authorizationRequestResolver(
-                                        new CustomAuthorizationRequestResolver(clientRegistrationRepository, "/oauth2/authorization")
-                                )
-                        )
-                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                        .successHandler(oauth2LoginSuccessHandler)
-                        .failureHandler(oauth2LoginFailureHandler)
-                );
+        // [유지] 커스텀 필터 체인
+        http.addFilterBefore(loginFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
+
+        //  API 체인에서는 oauth2Login을 제거 (리다이렉트 유발 원인)
+        // .oauth2Login(...) 사용 금지
 
         return http.build();
     }
 
-    /**
-     * 2. Web용 SecurityFilterChain (Form Login + 일반 웹 페이지)
-     */
+    // ================== 2) Web Security Filter Chain ==================
     @Bean
     @Order(2)
     public SecurityFilterChain webSecurityFilterChain(HttpSecurity http, MemberService memberService) throws Exception {
-        JWTFilterV3 jwtFilterV3 = filterFactory.createJWTFilter(memberService);
+        var jwtFilterV3 = filterFactory.createJWTFilter(memberService);
 
         http
                 .securityMatcher("/**")
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers(new AntPathRequestMatcher("/api/**"))
-                        // 쿠키 기반 토큰 (XSRF-TOKEN) 사용, JS에서 hidden input _csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 )
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
                     config.setAllowedOrigins(Collections.singletonList(frontendUrl));
-                    config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    config.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","OPTIONS"));
                     config.setAllowedHeaders(Collections.singletonList("*"));
                     config.setAllowCredentials(true);
                     config.setMaxAge(3600L);
@@ -177,18 +176,29 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/formLogin", "/logout", "/", "/auth/**", "/products/**").permitAll()
-                        .requestMatchers("/profile").authenticated() // 로그인 필수
+                        .requestMatchers("/profile").authenticated()
                         .requestMatchers("/admin").hasRole("ADMIN")
                         .anyRequest().permitAll()
                 )
                 .formLogin(form -> form
-                        .loginPage("/login")                  // 로그인 페이지 GET
-                        .loginProcessingUrl("/formLogin")     // 로그인 인증 POST
+                        .loginPage("/login")
+                        .loginProcessingUrl("/formLogin")
                         .usernameParameter("username")
                         .passwordParameter("password")
                         .successHandler(formLoginSuccessHandler)
                         .failureHandler(formLoginFailureHandler)
                         .permitAll()
+                )
+                .oauth2Login(oauth2 -> oauth2   //  OAuth2는 Web 체인에만 둠
+                        .loginPage("/login")
+                        .authorizationEndpoint(authz -> authz
+                                .authorizationRequestResolver(
+                                        new CustomAuthorizationRequestResolver(clientRegistrationRepository, "/oauth2/authorization")
+                                )
+                        )
+                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                        .successHandler(oauth2LoginSuccessHandler)
+                        .failureHandler(oauth2LoginFailureHandler)
                 )
                 .logout(logout -> logout.disable());
 
