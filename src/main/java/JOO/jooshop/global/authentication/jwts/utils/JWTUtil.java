@@ -129,28 +129,28 @@ public class JWTUtil {
     }
 
     /**
-     * JWT에서 memberId 클레임 추출
+     * JWT memberId 클레임 추출
      */
     public String getMemberId(String token) {
         return parseToken(token).get(MEMBER_ID_KEY, String.class);
     }
 
     /**
-     * JWT에서 category 클레임 추출
+     * JWT category 클레임 추출
      */
     public String getCategory(String token) {
         return parseToken(token).get(CATEGORY_KEY, String.class);
     }
 
     /**
-     * JWT에서 role 클레임 추출 및 MemberRole enum으로 변환
+     * JWT role 클레임 추출 및 MemberRole enum으로 변환
      */
     public MemberRole getRole(String token) {
         return MemberRole.valueOf(parseToken(token).get(ROLE_KEY, String.class));
     }
 
     /**
-     * JWT에서 ID 필드(jti) 추출
+     * JWT ID 필드(jti) 추출
      */
     public String getId(String token) {
         return parseToken(token).getId();
