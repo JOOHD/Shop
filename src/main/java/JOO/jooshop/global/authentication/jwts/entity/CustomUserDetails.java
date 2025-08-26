@@ -26,9 +26,8 @@ public class CustomUserDetails implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         // SimpleGrantedAuthority 를 사용, '' 말고 "" 사용해야됨(문자, 문자열 리터럴 혼동)
         List<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority(customMemberDto.getMemberRole().name()));
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + customMemberDto.getMemberRole().name()));
         return authorities;
-
     }
 
     /*
