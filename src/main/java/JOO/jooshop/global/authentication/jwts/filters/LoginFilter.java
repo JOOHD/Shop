@@ -1,5 +1,6 @@
 package JOO.jooshop.global.authentication.jwts.filters;
 
+import JOO.jooshop.global.authentication.jwts.utils.CookieUtil;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.entity.Refresh;
@@ -30,7 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static JOO.jooshop.global.authentication.jwts.utils.CookieUtil.createCookie;
+import static JOO.jooshop.global.authentication.jwts.utils.CookieUtil.createCookieWithSameSiteForLocal;
 
 @Slf4j
 public class LoginFilter extends CustomJsonEmailPasswordAuthenticationFilter {
@@ -171,37 +172,7 @@ public class LoginFilter extends CustomJsonEmailPasswordAuthenticationFilter {
         return authentication.getAuthorities().stream()
                 .findFirst()
                 .map(GrantedAuthority::getAuthority)
-                .orElse("ROLE_USER"); // 기본 권한 설정. [따로 설정하지 않았을때]
-    }
-
-    /**
-     * 로그인 성공 시, -> [response header] : Access Token 추가, [response Cookie] : Refresh Token 추가
-     */
-    private void setTokenResponseV1(HttpServletResponse response, String accessToken, String refreshToken) {
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        // [reponse Header] : Access Token 추가
-        response.addHeader("Authorization", "Bearer " + accessToken);
-        // [reponse Cookie] : Refresh Token 추가
-        response.addCookie(createCookie("RefreshToken", refreshToken));
-        // HttpStatus 200 OK
-        response.setStatus(HttpStatus.OK.value());
-    }
-
-    /**
-     * [response.data] 에 Json 형태로 accessToken 을 넣어주고, 쿠키에 refreshToken 을 넣어주는 방식
-     */
-    private void addResponseDataV2(HttpServletResponse response, String accessToken, String refreshToken, String email) throws IOException {
-        // 액세스 토큰을 JsonObject 형식으로 응답 데이터에 포함하여 클라이언트에게 반환
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        // response.data 에 accessToken, refreshToken 담아주기.
-        JsonObject responseData = new JsonObject();
-        responseData.addProperty("accessToken", accessToken);
-        responseData.addProperty("refreshToken", refreshToken);
-        response.getWriter().write(responseData.toString());
-        // HttpStatus 200 OK
-        response.setStatus(HttpStatus.OK.value());
+                .orElse("USER"); // 기본 권한 설정. [따로 설정하지 않았을때]
     }
 
     /**
@@ -216,8 +187,8 @@ public class LoginFilter extends CustomJsonEmailPasswordAuthenticationFilter {
         responseData.addProperty("accessToken", accessToken);
         responseData.addProperty("refreshToken", refreshToken);
         response.getWriter().write(responseData.toString());
-        // 리프레시 토큰을 쿠키에 저장
-        response.addCookie(createCookie("refreshAuthorization", "Bearer+" +refreshToken));
+        // 리프레시 토큰을 쿠키에 저장 (로컬용)
+        CookieUtil.createCookieWithSameSiteForLocal(response, "refreshAuthorization", "Bearer+" + refreshToken, 1209600);
         // HttpStatus 200 OK
         response.setStatus(HttpStatus.OK.value());
     }

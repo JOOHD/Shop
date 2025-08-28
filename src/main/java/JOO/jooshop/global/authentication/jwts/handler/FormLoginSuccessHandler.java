@@ -38,7 +38,7 @@ public class FormLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandl
         String role = authentication.getAuthorities().stream()
                 .findFirst()
                 .map(auth -> auth.getAuthority())
-                .orElse("ROLE_USER");
+                .orElse("USER");
 
         String accessToken = jwtUtil.createAccessToken("access", userId, role);
         String refreshToken = jwtUtil.createRefreshToken("refresh", userId, role);
