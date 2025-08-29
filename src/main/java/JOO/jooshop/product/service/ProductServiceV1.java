@@ -11,6 +11,7 @@ import JOO.jooshop.product.model.ProductDetailDto;
 import JOO.jooshop.product.model.ProductDto;
 import JOO.jooshop.product.repository.ProductColorRepositoryV1;
 import JOO.jooshop.product.repository.ProductRepositoryV1;
+import JOO.jooshop.productManagement.entity.ProductManagement;
 import JOO.jooshop.productThumbnail.service.ProductThumbnailServiceV1;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -89,16 +90,35 @@ public class ProductServiceV1 {
      * @return
      */
     public ProductDetailDto productDetail(Long productId) {
+        // 상품 조회
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NoSuchElementException(PRODUCT_NOT_FOUND));
 
-        // 상품 조회 시, 조회수 증가
+        // 상품 조회 시 조회수 증가
         log.info("View Increment");
         productRankingService.increaseProductViews(productId);
 
-        // modelMapper, entity -> dto 변환 대상 클래스 타입
-        return modelMapper.map(product, ProductDetailDto.class);
+        // ProductManagement 옵션 전체 가져오기
+        List<ProductManagement> productMgtList = product.getProductManagements();
+        if (productMgtList.isEmpty()) {
+            throw new NoSuchElementException("상품 옵션을 찾을 수 없습니다.");
+        }
+
+        // 대표 이미지 (없으면 빈 문자열)
+        String thumbnailUrl = product.getProductThumbnails().stream()
+                .findFirst()
+                .map(t -> t.getImagePath().startsWith("/") ? t.getImagePath().substring(1) : t.getImagePath())
+                .orElse("");
+
+        // DTO 생성
+        ProductDetailDto dto = new ProductDetailDto(product, productMgtList, thumbnailUrl);
+
+        // 첫 번째 옵션의 inventoryId 세팅
+        dto.withInventoryId(productMgtList.get(0).getInventoryId());
+
+        return dto;
     }
+
 
     /**
      * 상품 정보 수정

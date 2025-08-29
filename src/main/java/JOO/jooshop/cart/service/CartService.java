@@ -36,7 +36,7 @@ public class CartService {
     /**
      * 장바구니 담기
      * @param memberId 인증된 사용자의 ID (클라이언트에서 직접 받지 않고, 서버에서 추출된 값이어야 함)
-     * @param productMgtId 상품 옵션 ID (상품관리 테이블 PK)
+     * @param inventoryId 상품 옵션 ID (상품관리 테이블 PK)
      * @param quantity 담을 수량
      * @return 생성 혹은 수정된 Cart 엔티티의 ID
      *
@@ -49,13 +49,13 @@ public class CartService {
      *  - 같은 상품+옵션이 이미 장바구니에 있으면 수량과 가격을 합산하여 업데이트
      *  - 없으면 새로운 Cart 엔티티를 생성하여 저장
      */
-    public Long addCart(Long memberId, Long productMgtId, int quantity) {
+    public Long addCart(Long memberId, Long inventoryId, int quantity) {
         // 1. 회원 정보 조회 (DB에서 실제 존재 확인)
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new NoSuchElementException(MEMBER_NOT_FOUND));
         // 2. 상품 옵션 조회 (상품 + 옵션이 유효한지 확인)
-        ProductManagement productMgt = productManagementRepository.findById(productMgtId)
-                .orElseThrow(() -> new NoSuchElementException(PRODUCT_NOT_FOUND + " productMgtId: " + productMgtId));
+        ProductManagement productMgt = productManagementRepository.findById(inventoryId)
+                .orElseThrow(() -> new NoSuchElementException(PRODUCT_NOT_FOUND + " inventoryId: " + inventoryId));
 
         // 3. 사용자 인증 검증 (현재 로그인된 사용장와 요청 userId가 일치하는지 확인)
         verifyUserIdMatch(memberId);

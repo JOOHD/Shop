@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title th:text="${product.productName}">상품 상세</title>
-  <link rel="stylesheet" href="/css/fragments/header.css" />
-  <link rel="stylesheet" href="/css/productDetail.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <meta charset="UTF-8" />
+    <title th:text="${product.productName}">상품 상세</title>
+    <link rel="stylesheet" href="/css/fragments/header.css" />
+    <link rel="stylesheet" href="/css/productDetail.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 <body>
 
@@ -15,100 +15,116 @@
 <!-- 상품 상세 컨테이너 -->
 <main class="product-detail-container">
 
-  <!-- 로그인 회원 ID hidden input (Spring 세션 기반) -->
-  <input type="hidden" id="memberId" th:value="${memberId}" />
+    <!-- 로그인 회원 ID hidden input (Spring 세션 기반) -->
+    <input type="hidden" id="memberId" th:value="${memberId}" />
 
-  <!-- 왼쪽: 대표 이미지 (첫번째 썸네일) -->
-  <section class="image-section">
-    <img
-            th:with="cleanPath=${product.productThumbnails[0].imagePath.startsWith('/') ? product.productThumbnails[0].imagePath.substring(1) : product.productThumbnails[0].imagePath}"
-            th:src="@{/{path}(path=${cleanPath})}"
-            alt="대표 이미지"
-            class="main-image" />
-  </section>
+    <!-- 왼쪽: 대표 이미지 -->
+    <section class="image-section">
+        <img th:src="@{/{path}(path=${product.thumbnailUrl})}"
+             alt="대표 이미지"
+             class="main-image" />
+    </section>
 
-  <!-- 오른쪽: 상품 정보 -->
-  <section class="info-section">
-    <h1 class="product-name" th:text="${product.productName}">상품명</h1>
 
-    <div class="price-info">
-      <span class="original-price" th:if="${product.isDiscount}" th:text="'₩' + ${#numbers.formatInteger(product.price, 0, 'COMMA')}"></span>
-      <span class="discount-rate" th:if="${product.isDiscount}" th:text="${product.discountRate + '% 할인'}"></span>
-      <span class="discounted-price" th:text="'₩' + ${#numbers.formatInteger(product.isDiscount ? product.price * (1 - product.discountRate / 100.0) : product.price, 0, 'COMMA')}"></span>
-    </div>
+    <!-- 오른쪽: 상품 정보 -->
+    <section class="info-section">
+        <h1 class="product-name" th:text="${product.productName}">상품명</h1>
 
-    <!-- 사이즈 선택 -->
-    <div class="size-selection">
-      <label>사이즈</label>
-      <div class="size-options">
-        <button type="button"
-                th:each="dto : ${sizes}"
-                th:text="${dto.sizeDescription}"
-                th:attr="data-product-id=${dto.productId}"
-                class="size-btn">
-        </button>
-      </div>
-    </div>
+        <div class="price-info">
+            <span class="original-price" th:if="${product.isDiscount}" th:text="'₩' + ${#numbers.formatInteger(product.price, 0, 'COMMA')}"></span>
+            <span class="discount-rate" th:if="${product.isDiscount}" th:text="${product.discountRate + '% 할인'}"></span>
+            <span class="discounted-price" th:text="'₩' + ${#numbers.formatInteger(product.isDiscount ? product.price * (1 - product.discountRate / 100.0) : product.price, 0, 'COMMA')}"></span>
+        </div>
 
-    <!-- 수량 선택 -->
-    <div class="quantity-selection">
-      <label for="quantity">수량</label>
-      <input type="number" id="quantity" name="quantity" value="1" min="1" />
-    </div>
+        <!-- 사이즈 선택 -->
+        <div class="size-selection">
+            <label>사이즈</label>
+            <div class="size-options">
+                <!-- product.productManagementList 반복 -->
+                <button type="button"
+                        th:each="dto : ${product.sizes}"
+                        th:text="${dto.size.description}"
+                        th:attr="data-inventory-id=${dto.inventoryId}"
+                        class="size-btn">
+                </button>
+            </div>
+        </div>
 
-    <!-- 장바구니 버튼 -->
-    <div class="action-buttons">
-      <button type="button" class="add-cart-btn">장바구니에 담기</button>
-    </div>
-  </section>
+        <!-- 수량 선택 -->
+        <div class="quantity-selection">
+            <label for="quantity">수량</label>
+            <input type="number" id="quantity" name="quantity" value="1" min="1" />
+        </div>
+
+        <!-- 장바구니 버튼 -->
+        <div class="action-buttons">
+            <button type="button" class="add-cart-btn">장바구니에 담기</button>
+        </div>
+    </section>
 
 </main>
 
 <script>
-  // 선택된 상품 ID
-  let selectedProductId = null;
+    // 선택된 상품 옵션(ProductManagement PK)
+    let selectedInventoryId = null;
 
-  // 사이즈 버튼 클릭 이벤트
-  document.querySelectorAll(".size-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      // 기존 선택 해제
-      document.querySelectorAll(".size-btn").forEach(b => b.classList.remove("selected"));
-      // 클릭한 버튼 선택
-      btn.classList.add("selected");
-      selectedProductId = btn.getAttribute("data-product-id");
+    // 사이즈 버튼 클릭 이벤트
+    document.querySelectorAll(".size-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            // 기존 선택 해제
+            document.querySelectorAll(".size-btn").forEach(b => b.classList.remove("selected"));
+            // 클릭한 버튼 선택
+            btn.classList.add("selected");
+            // ProductManagement PK 저장
+            selectedInventoryId = btn.getAttribute("data-inventory-id");
+        });
     });
-  });
 
-  // 장바구니 담기 이벤트
-  document.querySelector(".add-cart-btn").addEventListener("click", () => {
-    const quantity = parseInt(document.getElementById("quantity").value);
+    // 장바구니 담기 이벤트
+    document.querySelector(".add-cart-btn").addEventListener("click", () => {
+        const quantity = parseInt(document.getElementById("quantity").value);
 
-    if (!selectedProductId) {
-      alert("사이즈를 선택해주세요.");
-      return;
+        if (!selectedInventoryId) {
+            alert("사이즈를 선택해주세요.");
+            return;
+        }
+
+        if (quantity < 1) {
+            alert("수량은 1개 이상이어야 합니다.");
+            return;
+        }
+
+        fetch(`/api/v1/cart/add/${selectedInventoryId}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + getAccessTokenFromCookie()
+            },
+            credentials: "include",
+            body: JSON.stringify({ quantity: quantity })
+        })
+        .then(res => {
+            if (!res.ok) throw new Error("서버 오류");
+            return res.text();
+        })
+        .then(msg => {
+            alert(msg);
+            window.location.href = "/cart";
+        })
+        .catch(err => alert("장바구니 추가 실패: " + err.message));
+    });
+
+    // JWT AccessToken을 쿠키에서 가져오는 함수
+    function getAccessTokenFromCookie() {
+        const name = "accessToken=";
+        const decodedCookie = decodeURIComponent(document.cookie);
+        const ca = decodedCookie.split(';');
+        for(let i = 0; i < ca.length; i++) {
+            let c = ca[i].trim();
+            if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
+        }
+        return "";
     }
-
-    if (quantity < 1) {
-      alert("수량은 1개 이상이어야 합니다.");
-      return;
-    }
-
-    fetch(`/api/v1/cart/add/${selectedProductId}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include", // 쿠키 포함 (JWT)
-      body: JSON.stringify({ quantity: quantity })
-    })
-    .then(res => {
-      if (!res.ok) throw new Error("서버 오류");
-      return res.text();
-    })
-    .then(msg => {
-      alert(msg);
-      window.location.href = "/cart"; // 장바구니 페이지로 이동
-    })
-    .catch(err => alert("장바구니 추가 실패: " + err.message));
-  });
 </script>
 
 </body>

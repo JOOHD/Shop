@@ -42,13 +42,13 @@ public class CartController {
      * - @AuthenticationPrincipal 을 통해 CustomUserDetails(인증된 사용자 정보)를 받아서 memberId 추출
      * - 요청 바디에는 실제 필요한 데이터(quantity 등)만 받음
      */
-    @PostMapping("/add/{productMgtId}") // (POST /api/v1/cart/add...)
+    @PostMapping("/add/{productMgtId}") // URL: /api/v1/cart/add/{inventoryId}
     public ResponseEntity<String> addCart(@Valid @RequestBody CartRequestDto request,
-                                          @PathVariable("productMgtId") Long productMgtId,
+                                          @PathVariable("productMgtId") Long inventoryId,
                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
         
         Long memberId = userDetails.getMemberId(); // JWT 인증 정보에서 직접 추출
-        Long createdId = cartService.addCart(memberId, productMgtId, request.getQuantity());
+        Long createdId = cartService.addCart(memberId, inventoryId, request.getQuantity());
 
         return ResponseEntity.ok("장바구니에 추가 되었습니다. cart_id : " + createdId);
     }

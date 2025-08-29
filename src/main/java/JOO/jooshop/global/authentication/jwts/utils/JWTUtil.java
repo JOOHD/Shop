@@ -146,7 +146,12 @@ public class JWTUtil {
      * JWT role 클레임 추출 및 MemberRole enum으로 변환
      */
     public MemberRole getRole(String token) {
-        return MemberRole.valueOf(parseToken(token).get(ROLE_KEY, String.class));
+        String roleStr = parseToken(token).get(ROLE_KEY, String.class);
+        // ROLE_ 제거 후 변환
+        if (roleStr.startsWith("ROLE_")) {
+            roleStr = roleStr.substring(5);
+        }
+        return MemberRole.valueOf(roleStr);
     }
 
     /**
