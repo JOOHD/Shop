@@ -7,26 +7,20 @@ import JOO.jooshop.cart.model.CartUpdateDto;
 import JOO.jooshop.cart.service.CartService;
 import JOO.jooshop.global.Exception.ResponseMessageConstants;
 import JOO.jooshop.global.authentication.jwts.entity.CustomUserDetails;
-import JOO.jooshop.members.entity.Member;
-import JOO.jooshop.members.repository.MemberRepositoryV1;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/v1/cart")
 @RequiredArgsConstructor
-public class CartController {
+public class CartApiController {
 
-    private final MemberRepositoryV1 memberRepository;
     private final CartService cartService;
-    private final ModelMapper modelMapper;
 
     /**
      * 장바구니 담기
@@ -41,11 +35,13 @@ public class CartController {
      * - JWT 인증을 통해 서버에서 현재 로그인한 memberId 를 가져옴
      * - @AuthenticationPrincipal 을 통해 CustomUserDetails(인증된 사용자 정보)를 받아서 memberId 추출
      * - 요청 바디에는 실제 필요한 데이터(quantity 등)만 받음
+     *
+     * - ProductManagement = 옵션 조합 객체, inventoryId = 그 옵션 조합 객체의 고유 ID
      */
-    @PostMapping("/add/{productMgtId}") // URL: /api/v1/cart/add/{inventoryId}
+    @PostMapping("/add/{inventoryId}") // URL: /api/v1/cart/add/{inventoryId}
     public ResponseEntity<String> addCart(@Valid @RequestBody CartRequestDto request,
-                                          @PathVariable("productMgtId") Long inventoryId,
-                                          @AuthenticationPrincipal CustomUserDetails userDetails) {
+                                          @PathVariable("inventoryId") Long inventoryId,
+                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
         
         Long memberId = userDetails.getMemberId(); // JWT 인증 정보에서 직접 추출
         Long createdId = cartService.addCart(memberId, inventoryId, request.getQuantity());

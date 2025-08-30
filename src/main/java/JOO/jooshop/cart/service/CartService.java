@@ -48,6 +48,8 @@ public class CartService {
      *  - 인증된 memberId와 productManagementId, 수량(quantity)를 받아 처리
      *  - 같은 상품+옵션이 이미 장바구니에 있으면 수량과 가격을 합산하여 업데이트
      *  - 없으면 새로운 Cart 엔티티를 생성하여 저장
+     *
+     *  - ProductManagement = 옵션 조합 객체, inventoryId = 그 옵션 조합 객체의 고유 ID
      */
     public Long addCart(Long memberId, Long inventoryId, int quantity) {
         // 1. 회원 정보 조회 (DB에서 실제 존재 확인)
@@ -104,7 +106,7 @@ public class CartService {
 
         // 3. 조회된 엔티티 리스트를 DTO 리스트로 변환 후 반환
         return carts.stream()
-                .map(CartDto::fromEntity)
+                .map(CartDto::new) // 생성자 참조
                 .collect(Collectors.toList());
     }
 

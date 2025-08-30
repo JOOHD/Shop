@@ -42,7 +42,7 @@ public class ProductViewController { // view 용 컨트롤러
         return "products/productList";
     }
 
-    @GetMapping("/{productId}")
+    @GetMapping("/{productId}") // 상품 상세 정보
     public String productDetail(@PathVariable("productId") Long productId,
                                 @CookieValue(name = "accessAuthorization", required = false) String accessTokenWithPrefix,
                                 Model model) {

@@ -24,10 +24,10 @@ public class ProductManagementDto {
     private Boolean isRecommend;
 
     private Long inventoryId;
-    private Long productId; // Product 테이블의 pk 참조
-    private Long colorId; // ProductColor 테이블의 pk 참조
+    private Long productId;     // Product 테이블의 pk 참조
+    private Long colorId;       // ProductColor 테이블의 pk 참조
     private String color;
-    private Long categoryId; // ProductCategory 테이블의 pk 참조
+    private Long categoryId;    // ProductCategory 테이블의 pk 참조
     private String category;
     Size size; //enum
     private Long initialStock;
