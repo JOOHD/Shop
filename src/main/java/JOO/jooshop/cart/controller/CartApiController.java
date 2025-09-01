@@ -38,33 +38,26 @@ public class CartApiController {
      *
      * - ProductManagement = 옵션 조합 객체, inventoryId = 그 옵션 조합 객체의 고유 ID
      */
-    @PostMapping("/add/{inventoryId}") // URL: /api/v1/cart/add/{inventoryId}
+    /** =================== 장바구니 담기 =================== */
+    @PostMapping("/add/{inventoryId}")
     public ResponseEntity<String> addCart(@Valid @RequestBody CartRequestDto request,
                                           @PathVariable("inventoryId") Long inventoryId,
-                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
-        
-        Long memberId = userDetails.getMemberId(); // JWT 인증 정보에서 직접 추출
+                                          @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        Long memberId = userDetails.getMemberId(); // JWT 인증 정보에서 추출
         Long createdId = cartService.addCart(memberId, inventoryId, request.getQuantity());
 
         return ResponseEntity.ok("장바구니에 추가 되었습니다. cart_id : " + createdId);
     }
 
-    /**
-     * 내 장바구니 전체 조회
-     * @param userDetails 인증된 사용자 정보
-     */
+    /** =================== 내 장바구니 전체 조회 =================== */
     @GetMapping("/my")
     public List<CartDto> getMyCarts(@AuthenticationPrincipal CustomUserDetails userDetails) {
         Long memberId = userDetails.getMemberId();
-        return cartService.allCarts(memberId);
+        return cartService.allCarts(memberId); // 이미 서비스에서 DTO 변환 포함
     }
 
-    /**
-     * 장바구니 수량 수정
-     * @param cartId 수정할 장바구니 ID
-     * @param request 수량 수정 DTO
-     * @param userDetails 인증된 사용자 정보
-     */
+    /** =================== 장바구니 수량 수정 =================== */
     @PutMapping("/{cartId}")
     public ResponseEntity<CartDto> updateCart(
             @PathVariable Long cartId,
@@ -73,47 +66,37 @@ public class CartApiController {
 
         Long memberId = userDetails.getMemberId();
 
-        Cart updatedCart = cartService.updateCart(cartId, memberId, request.getQuantity());
-
-        CartDto updatedCartDto = new CartDto(updatedCart);
+        // 서비스에서 CartUpdateDto를 활용해 수정 후 DTO 변환
+        CartDto updatedCartDto = cartService.updateCart(cartId, request);
 
         return ResponseEntity.ok(updatedCartDto);
     }
 
-    /**
-     * 장바구니 단일 삭제
-     * @param cartId 삭제할 장바구니 ID
-     * @param userDetails 인증된 사용자 정보
-     */
+    /** =================== 장바구니 단일 삭제 =================== */
     @DeleteMapping("/{cartId}")
     public ResponseEntity<String> deleteCart(
             @PathVariable Long cartId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         Long memberId = userDetails.getMemberId();
-
         cartService.deleteCart(cartId, memberId);
 
         return ResponseEntity.ok(ResponseMessageConstants.DELETE_SUCCESS);
     }
 
-    /**
-     * 장바구니 여러 항목 삭제 (예시)
-     * @param cartIds 삭제할 장바구니 ID 리스트
-     * @param userDetails 인증된 사용자 정보
-     */
+    /** =================== 장바구니 여러 항목 삭제 =================== */
     @DeleteMapping("/batch-delete")
     public ResponseEntity<String> deleteCartList(
             @RequestBody List<Long> cartIds,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         Long memberId = userDetails.getMemberId();
-
         cartService.deleteCartList(cartIds, memberId);
 
         return ResponseEntity.ok(ResponseMessageConstants.DELETE_SUCCESS);
     }
 }
+
 
 
 

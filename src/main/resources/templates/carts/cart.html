@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko">
 <head>
     <meta charset="UTF-8" />
     <title>장바구니</title>
@@ -31,10 +31,7 @@
 </div>
 
 <script>
-    // [FIX] memberId 하드코딩 제거. 서버가 인증 주체에서 식별.
-    // const memberId = 1;
-
-    // [FIX] 공통 fetch 옵션 헬퍼: 쿠키 전송( HttpOnly JWT )
+    // ================== 공통 fetch 옵션 ==================
     function withAuth(init = {}) {
         return Object.assign(
             {
@@ -45,28 +42,20 @@
         );
     }
 
-    // [FIX] 401/302 대응: API가 401 주면 로그인 페이지로 이동
     async function handleJson(res) {
         if (res.status === 401) {
             alert('로그인이 필요합니다.');
             location.href = '/login';
             return Promise.reject(new Error('Unauthorized'));
         }
-        if (res.status >= 300 && res.status < 400) {
-            // API 체인에서 리다이렉트가 오면(올 일 없게 수정했지만 방어)
-            alert('세션이 만료되었거나 권한이 없습니다.');
-            location.href = '/login';
-            return Promise.reject(new Error('Redirected'));
-        }
         if (!res.ok) throw new Error('요청 실패: ' + res.status);
         return res.json();
     }
 
-    // 서버에서 내 장바구니 상품 리스트 조회
+    // ================== 장바구니 조회 ==================
     async function fetchCartItems() {
         try {
-            // [FIX] /api/v1/cart/{memberId} → /api/v1/cart/my
-            const res = await fetch(`/api/v1/cart/my`, withAuth());
+            const res = await fetch('/api/v1/cart/my', withAuth());
             const cartItems = await handleJson(res);
             renderCart(cartItems);
         } catch (err) {
@@ -74,7 +63,7 @@
         }
     }
 
-    // 장바구니 아이템 렌더링
+    // ================== 장바구니 렌더링 ==================
     function renderCart(cartItems) {
         const container = document.getElementById('cart-items');
         container.innerHTML = '';
@@ -90,15 +79,21 @@
             div.className = 'cart-item';
             div.innerHTML = `
                 <input type="checkbox" class="item-select" data-cart-id="${item.id}" />
-                <img src="${item.productThumbnailUrl || '/images/default-product.png'}" alt="${item.productName}" class="product-img" />
+                <img src="${item.productThumbnailUrl || '/images/default-product.png'}"
+                     alt="${item.productName}" class="product-img" />
                 <div class="product-info">
                   <strong>${item.productName}</strong><br />
                   <small>사이즈: ${item.size || '-'}</small><br />
-                  <small>상품 코드: ${item.inventoryId}</small>
                 </div>
                 <div class="price-info">
-                  <span>${Number(item.price).toLocaleString()}원</span>
-                  <input type="number" min="1" value="${item.count}"
+                  <span class="original-price">${Number(item.price).toLocaleString()}원</span><br />
+                  <span class="discount-amount" style="color:gray;">
+                    -${Number(item.discountAmount).toLocaleString()}원
+                  </span><br />
+                  <span class="final-price" style="color:red;font-weight:bold;">
+                    ${Number(item.finalPrice).toLocaleString()}원
+                  </span><br/>
+                  <input type="number" min="1" value="${item.quantity}"
                     onchange="updateCount(${item.id}, this.value)" />
                   <button onclick="deleteCartItem(${item.id})">삭제</button>
                 </div>
@@ -109,44 +104,47 @@
         calculatePrice();
     }
 
-    // 수량 변경 서버 요청
+    // ================== 수량 변경 ==================
     function updateCount(cartId, newCount) {
         if (newCount < 1) {
             alert('수량은 1 이상이어야 합니다.');
-            fetchCartItems(); // 수량 복구
+            fetchCartItems();
             return;
         }
         fetch(`/api/v1/cart/${cartId}`, withAuth({
             method: 'PUT',
-            body: JSON.stringify({ quantity: parseInt(newCount, 10) }) // [FIX] 서버 DTO 키에 맞춤
+            body: JSON.stringify({ quantity: parseInt(newCount, 10) })
         }))
-        .then(handleJson)
-        .then(() => calculatePrice())
-        .catch(err => {
-            alert(err.message);
-            fetchCartItems(); // 복구
-        });
+        .then(res => handleJson(res))
+        .then(() => fetchCartItems())
+        .catch(err => { alert(err.message); fetchCartItems(); });
     }
 
-    // 개별 삭제
+    // ================== 장바구니 담기 ==================
+    document.querySelectorAll('.add-cart-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const inventoryId = btn.dataset.inventoryId;
+            const quantity = parseInt(document.getElementById('quantity').value, 10);
+
+            fetch(`/api/v1/cart/add/${inventoryId}`, withAuth({
+                method: 'POST',
+                body: JSON.stringify({ quantity })
+            }))
+            .then(res => handleJson(res))
+            .then(() => fetchCartItems())
+            .catch(err => alert(err.message));
+        });
+    });
+
+    // ================== 삭제 ==================
     function deleteCartItem(cartId) {
         if (!confirm('삭제하시겠습니까?')) return;
 
         fetch(`/api/v1/cart/${cartId}`, withAuth({ method: 'DELETE' }))
-            .then(res => {
-                if (res.status === 401) { alert('로그인이 필요합니다.'); location.href='/login'; return Promise.reject(); }
-                if (!res.ok) throw new Error('삭제 실패');
-                return res.text();
-            })
+            .then(res => { if (!res.ok) throw new Error('삭제 실패'); return res.text(); })
             .then(() => fetchCartItems())
             .catch(err => err && alert(err.message));
     }
-
-    // 전체 선택 토글
-    document.getElementById('select-all').addEventListener('change', function () {
-        const checked = this.checked;
-        document.querySelectorAll('.item-select').forEach(cb => cb.checked = checked);
-    });
 
     // 선택 삭제
     document.getElementById('delete-selected').addEventListener('click', () => {
@@ -163,21 +161,26 @@
         .catch(() => alert('삭제 실패'));
     });
 
-    // 가격 계산 함수
+    // 전체 선택 토글
+    document.getElementById('select-all').addEventListener('change', function () {
+        const checked = this.checked;
+        document.querySelectorAll('.item-select').forEach(cb => cb.checked = checked);
+    });
+
+    // ================== 가격 계산 ==================
     function calculatePrice() {
         const items = document.querySelectorAll('.cart-item');
         let totalPrice = 0;
 
         items.forEach(item => {
-            const priceText = item.querySelector('.price-info span').textContent.replace(/[^0-9]/g, '');
-            const count = item.querySelector('input[type=number]').value;
-            totalPrice += parseInt(priceText, 10) * parseInt(count, 10);
+            const finalPriceText = item.querySelector('.final-price').textContent.replace(/[^0-9.]/g, '');
+            const count = parseInt(item.querySelector('input[type=number]').value, 10);
+            totalPrice += parseFloat(finalPriceText) * count;
         });
 
         updatePriceSummary(totalPrice);
     }
 
-    // 가격 요약 업데이트
     function updatePriceSummary(totalPrice) {
         const deliveryFee = totalPrice >= 50000 ? 0 : 5000;
         document.getElementById('total-price').textContent = totalPrice.toLocaleString() + '원';
@@ -185,7 +188,7 @@
         document.getElementById('total-payment').textContent = (totalPrice + deliveryFee).toLocaleString() + '원';
     }
 
-    // 초기 로드
+    // ================== 초기 로드 ==================
     fetchCartItems();
 </script>
 
