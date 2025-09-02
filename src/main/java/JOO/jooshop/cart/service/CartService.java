@@ -55,10 +55,10 @@ public class CartService {
         Cart existingCart = cartRepository.findByProductManagementAndMember(productMgt, member).orElse(null);
 
         if (existingCart != null) {
-            // 기존 수량 증가 + 가격 재계산
-            existingCart.setQuantity(existingCart.getQuantity() + quantity);
+            // 기존 수량 덮어쓰기
+            existingCart.setQuantity(quantity);
             existingCart.setPrice(productMgt.getProduct().getPrice()
-                    .multiply(BigDecimal.valueOf(existingCart.getQuantity())));
+                    .multiply(BigDecimal.valueOf(quantity)));
             return cartRepository.save(existingCart).getCartId();
         } else {
             // 새 Cart 생성

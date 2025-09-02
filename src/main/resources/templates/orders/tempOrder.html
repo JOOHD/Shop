@@ -9,52 +9,43 @@
 <div class="container mt-5">
   <h2 class="mb-4">임시 주문 내역 확인</h2>
 
-  <div id="orderSummary" class="mb-4">
-    <!-- 주문 정보가 여기에 표시됩니다 -->
-  </div>
-
+    <!-- ================== 적용 포인트 ==================
+    1. sessionStorage에서 orderDto 불러오기
+    2. 선택한 장바구니 상품 목록과 총액 표시
+    3. 결제/배송 정보 입력 후 order.html로 전달
+    ==================================================== -->
+  <div id="orderSummary" class="mb-4"></div>
   <button id="proceedToPayment" class="btn btn-success">결제 진행</button>
 </div>
 
 <script>
-  // 안전하게 orderDto 불러오기
-  const orderDtoStr = sessionStorage.getItem("orderDto");
+    const orderDtoStr = sessionStorage.getItem("orderDto");
 
-  if (!orderDtoStr) {
-    alert("주문 정보가 없습니다. 처음부터 다시 시도해 주세요.");
-    window.location.href = "/order";
-  } else {
-    const orderDto = JSON.parse(orderDtoStr);
+    if (!orderDtoStr) {
+      alert("주문 정보가 없습니다.");
+      window.location.href = "/cart";
+    } else {
+      const orderDto = JSON.parse(orderDtoStr);
 
-    console.log("orderDto:", orderDto);
+      // 상품 목록 + 가격 확인
+      const summaryDiv = document.getElementById("orderSummary");
+      summaryDiv.innerHTML = `
+        <ul class="list-group">
+            <li class="list-group-item"><strong>주문자명:</strong> ${orderDto.ordererName || "-"}</li>
+            <li class="list-group-item"><strong>전화번호:</strong> ${orderDto.phoneNumber || "-"}</li>
+            <li class="list-group-item"><strong>주소:</strong> (${orderDto.postCode || "-"}) ${orderDto.address || ""} ${orderDto.detailAddress || ""}</li>
+            <li class="list-group-item"><strong>결제 수단:</strong> ${orderDto.payMethod || "-"}</li>
+            <li class="list-group-item"><strong>장바구니 ID:</strong> ${orderDto.cartIds.join(", ")}</li>
+            <li class="list-group-item"><strong>총 결제 금액:</strong> ${Number(orderDto.totalPrice).toLocaleString()}원</li>
+        </ul>
+      `;
 
-    // totalPrice 값 확인 및 숫자 변환
-    const totalPriceNum = Number(orderDto.totalPrice);
-    console.log("orderDto.totalPrice (원본):", orderDto.totalPrice);
-    console.log("orderDto.totalPrice (Number 변환):", totalPriceNum);
-
-    // 숫자가 아닌 경우 처리
-    if (isNaN(totalPriceNum)) {
-      alert("총 결제 금액이 올바르지 않습니다.");
+      // 결제 진행 → order.html 이동
+      document.getElementById("proceedToPayment").addEventListener("click", function () {
+        sessionStorage.setItem("orderDto", JSON.stringify(orderDto)); // 최신 orderDto 저장
+        window.location.href = "/order"; // 최종 주문서 페이지
+      });
     }
-
-    const summaryDiv = document.getElementById("orderSummary");
-    summaryDiv.innerHTML = `
-      <ul class="list-group">
-          <li class="list-group-item"><strong>주문자명:</strong> ${orderDto.ordererName}</li>
-          <li class="list-group-item"><strong>전화번호:</strong> ${orderDto.phoneNumber}</li>
-          <li class="list-group-item"><strong>주소:</strong> (${orderDto.postCode}) ${orderDto.address} ${orderDto.detailAddress}</li>
-          <li class="list-group-item"><strong>결제 수단:</strong> ${orderDto.payMethod}</li>
-          <li class="list-group-item"><strong>장바구니 ID:</strong> ${orderDto.cartIds.join(", ")}</li>
-          <li class="list-group-item"><strong>총 결제 금액:</strong> ${isNaN(totalPriceNum) ? "알 수 없음" : totalPriceNum.toLocaleString()}원</li>
-      </ul>
-    `;
-
-    // 결제 페이지로 이동 이벤트
-    document.getElementById("proceedToPayment").addEventListener("click", function () {
-      window.location.href = "/payment";
-    });
-  }
 </script>
 </body>
 </html>

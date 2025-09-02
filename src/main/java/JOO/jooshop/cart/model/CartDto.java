@@ -16,28 +16,33 @@ public class CartDto {
     private Long id;                     // 장바구니 ID
     private String productName;          // 상품명
     private String size;                 // 옵션/사이즈
-    private double price;                // 단가 * 수량
-    private double discountAmount;       // 할인 금액
-    private double finalPrice;           // price - discountAmount
+    private double originalPrice;        // 원가 (단가)
+    private int discountRate;            // 할인율 (%)
+    private double finalPrice;           // 할인 적용된 단가
     private int quantity;                // 수량
+    private double totalPrice;           // (할인 적용 단가 * 수량)
     private String productThumbnailUrl;  // 썸네일
 
     /** Cart 엔티티에서 DTO 변환 + 계산 수행 */
     public static CartDto fromCart(Cart cart) {
-        BigDecimal unitPrice = cart.getProductManagement().getProduct().getPrice();
-        BigDecimal discountRate = cart.getProductManagement().getProduct().getDiscountRate() != null
-                ? BigDecimal.valueOf(cart.getProductManagement().getProduct().getDiscountRate())
-                : BigDecimal.ZERO;
+
         int quantity = cart.getQuantity();
 
-        // ---------------- 계산 로직 ----------------
-        // 단가에서 할인 적용 후 수량 곱
-        BigDecimal finalPriceBD = unitPrice.multiply(BigDecimal.ONE.subtract(discountRate))
-                .multiply(BigDecimal.valueOf(quantity));
-        // 원가 * 수량
-        BigDecimal priceBD = unitPrice.multiply(BigDecimal.valueOf(quantity));
-        // 할인금액
-        BigDecimal discountAmountBD = priceBD.subtract(finalPriceBD);
+        BigDecimal unitPrice = cart.getProductManagement().getProduct().getPrice();
+
+        // DB에 저장된 할인율 (%), null 이면 0
+        Integer discountRate = cart.getProductManagement().getProduct().getDiscountRate();
+        int appliedRate = (discountRate != null) ? discountRate : 0;
+
+        // 할인율 적용
+        BigDecimal discountMultiplier = BigDecimal.valueOf(100 - appliedRate)
+                .divide(BigDecimal.valueOf(100));
+
+        // 할인 적용도니 단가
+        BigDecimal finalPrice = unitPrice.multiply(discountMultiplier);
+
+        // 총액
+        BigDecimal totalPrice = finalPrice.multiply(BigDecimal.valueOf(quantity));
 
         // 썸네일 URL
         String thumbnailUrl = cart.getProductManagement().getProduct().getProductThumbnails().isEmpty()
@@ -48,10 +53,11 @@ public class CartDto {
                 .id(cart.getCartId())
                 .productName(cart.getProductManagement().getProduct().getProductName())
                 .size(cart.getProductManagement().getSize().toString())
-                .quantity(quantity)
-                .price(priceBD.doubleValue())
-                .discountAmount(discountAmountBD.doubleValue())
-                .finalPrice(finalPriceBD.doubleValue())
+                .originalPrice(unitPrice.doubleValue())          // 원가
+                .discountRate(appliedRate)                      // 할인율
+                .finalPrice(finalPrice.doubleValue())         // 할인 적용된 단가
+                .quantity(quantity)                             // 수량
+                .totalPrice(totalPrice.doubleValue())         // 총액
                 .productThumbnailUrl(thumbnailUrl)
                 .build();
     }

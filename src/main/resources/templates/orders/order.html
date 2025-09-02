@@ -7,130 +7,78 @@
     <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 </head>
 <body class="bg-light">
-<div class="container mt-5">
-    <h2 class="mb-4">주문서 작성</h2>
-    <form id="orderForm">
-        <!-- 이름 -->
-        <div class="mb-3">
-            <label for="ordererName" class="form-label">이름</label>
-            <input type="text" class="form-control" id="ordererName" required>
-        </div>
-
-        <!-- 전화번호 -->
-        <div class="mb-3">
-            <label for="phoneNumber" class="form-label">전화번호</label>
-            <input type="text" class="form-control" id="phoneNumber">
-        </div>
-
-        <!-- 우편번호 -->
-        <div class="mb-3">
-            <label for="postCode" class="form-label">우편번호</label>
-            <div class="input-group">
-                <input type="text" class="form-control" id="postCode" required>
-                <button type="button" class="btn btn-outline-secondary" onclick="execDaumPostcode()">주소찾기</button>
-            </div>
-        </div>
-
-        <!-- 주소 -->
-        <div class="mb-3">
-            <label for="address" class="form-label">주소</label>
-            <input type="text" class="form-control" id="address" required>
-        </div>
-
-        <!-- 상세 주소 -->
-        <div class="mb-3">
-            <label for="detailAddress" class="form-label">상세 주소</label>
-            <input type="text" class="form-control" id="detailAddress">
-        </div>
-
-        <!-- 결제 수단 -->
-        <div class="mb-3">
-            <label for="payMethod" class="form-label">결제 수단</label>
-            <select class="form-select" id="payMethod" required>
-                <option value="">선택하세요</option>
-                <option value="CARD">카드</option>
-                <option value="KAKAO">카카오페이</option>
-                <option value="NAVERPAY">네이버페이</option>
-            </select>
-        </div>
-
-        <!-- 장바구니 ID -->
-        <div class="mb-3">
-            <label for="cartIds" class="form-label">장바구니 ID 목록 (쉼표로 구분)</label>
-            <input type="text" class="form-control" id="cartIds" placeholder="예: 1,2,3">
-        </div>
-
-        <!-- 총 결제 금액 (readOnly) -->
-        <div class="mb-3">
-            <label for="totalPrice" class="form-label">총 결제 금액</label>
-            <input type="number" class="form-control" id="totalPrice" readonly>
-        </div>
-
-        <button type="submit" class="btn btn-primary">결제 화면으로 이동</button>
-    </form>
-</div>
+<!-- ================== 적용 포인트 ==================
+1. sessionStorage에서 orderDto 불러와 폼에 초기값 세팅
+2. 주문서 작성 후 서버 POST → orderDto 재저장
+==================================================== -->
+<form id="orderForm">
+    <input type="text" id="ordererName" required>
+    <input type="text" id="phoneNumber">
+    <input type="text" id="postCode" required>
+    <input type="text" id="address" required>
+    <input type="text" id="detailAddress">
+    <select id="payMethod" required>
+        <option value="">선택하세요</option>
+        <option value="CARD">카드</option>
+        <option value="KAKAO">카카오페이</option>
+        <option value="NAVERPAY">네이버페이</option>
+    </select>
+    <input type="text" id="cartIds" readonly>
+    <input type="number" id="totalPrice" readonly>
+    <button type="submit">결제 화면으로 이동</button>
+</form>
 
 <script>
-  // 주소 검색 함수 (전역)
-  function execDaumPostcode() {
-    new daum.Postcode({
-      oncomplete: function(data) {
-        document.getElementById('postCode').value = data.zonecode;
-        document.getElementById('address').value = data.roadAddress || data.jibunAddress;
-        document.getElementById('detailAddress').focus();
+    document.addEventListener("DOMContentLoaded", function() {
+      const orderDtoStr = sessionStorage.getItem("orderDto");
+      if (orderDtoStr) {
+        const orderDto = JSON.parse(orderDtoStr);
+
+        // 폼 초기값 세팅
+        document.getElementById("ordererName").value = orderDto.ordererName || "";
+        document.getElementById("phoneNumber").value = orderDto.phoneNumber || "";
+        document.getElementById("postCode").value = orderDto.postCode || "";
+        document.getElementById("address").value = orderDto.address || "";
+        document.getElementById("detailAddress").value = orderDto.detailAddress || "";
+        document.getElementById("payMethod").value = orderDto.payMethod || "";
+        document.getElementById("cartIds").value = orderDto.cartIds.join(",");
+        document.getElementById("totalPrice").value = orderDto.totalPrice || 0;
       }
-    }).open();
-  }
-
-  // 페이지 로드 시 sessionStorage에서 orderDto 불러와 폼에 초기값 세팅
-  document.addEventListener("DOMContentLoaded", function() {
-    const orderDtoStr = sessionStorage.getItem("orderDto");
-    if (orderDtoStr) {
-      const orderDto = JSON.parse(orderDtoStr);
-
-      document.getElementById("ordererName").value = orderDto.ordererName || "";
-      document.getElementById("phoneNumber").value = orderDto.phoneNumber || "";
-      document.getElementById("postCode").value = orderDto.postCode || "";
-      document.getElementById("address").value = orderDto.address || "";
-      document.getElementById("detailAddress").value = orderDto.detailAddress || "";
-      document.getElementById("payMethod").value = orderDto.payMethod || "";
-      document.getElementById("cartIds").value = orderDto.cartIds ? orderDto.cartIds.join(",") : "";
-      document.getElementById("totalPrice").value = orderDto.totalPrice || 0;
-    }
-  });
-
-  // 주문서 제출 처리
-  document.getElementById("orderForm").addEventListener("submit", function (e) {
-    e.preventDefault();
-
-    const orderDto = {
-      memberId: 1,
-      ordererName: document.getElementById("ordererName").value,
-      phoneNumber: document.getElementById("phoneNumber").value,
-      postCode: document.getElementById("postCode").value,
-      address: document.getElementById("address").value,
-      detailAddress: document.getElementById("detailAddress").value,
-      payMethod: document.getElementById("payMethod").value,
-      cartIds: document.getElementById("cartIds").value.split(',').map(id => parseInt(id.trim())),
-      totalPrice: Number(document.getElementById("totalPrice").value)
-    };
-
-    fetch("/api/v1/order/create", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify(orderDto)
-    })
-    .then(res => res.text())
-    .then(msg => {
-      alert("임시 주문 저장 완료. 결제 화면으로 이동합니다.");
-      sessionStorage.setItem("orderDto", JSON.stringify(orderDto));
-      window.location.href = "/tempOrder";
-    })
-    .catch(err => {
-      console.error(err);
-      alert("주문 생성 중 오류가 발생했습니다.");
     });
-  });
+
+    // 주문서 제출
+    document.getElementById("orderForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const orderDto = {
+        memberId: 1,
+        ordererName: document.getElementById("ordererName").value,
+        phoneNumber: document.getElementById("phoneNumber").value,
+        postCode: document.getElementById("postCode").value,
+        address: document.getElementById("address").value,
+        detailAddress: document.getElementById("detailAddress").value,
+        payMethod: document.getElementById("payMethod").value,
+        cartIds: document.getElementById("cartIds").value.split(',').map(id => parseInt(id.trim())),
+        totalPrice: Number(document.getElementById("totalPrice").value)
+      };
+
+      // 서버에 임시 주문 저장
+      fetch("/api/v1/order/create", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(orderDto)
+      })
+      .then(res => res.text())
+      .then(msg => {
+        alert("주문서 저장 완료. 결제 화면으로 이동합니다.");
+        sessionStorage.setItem("orderDto", JSON.stringify(orderDto)); // 최신 상태 저장
+        window.location.href = "/payment";
+      })
+      .catch(err => {
+        console.error(err);
+        alert("주문 생성 중 오류가 발생했습니다.");
+      });
+    });
 </script>
 </body>
 </html>

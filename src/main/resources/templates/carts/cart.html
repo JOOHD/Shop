@@ -86,16 +86,26 @@
                   <small>사이즈: ${item.size || '-'}</small><br />
                 </div>
                 <div class="price-info">
-                  <span class="original-price">${Number(item.price).toLocaleString()}원</span><br />
-                  <span class="discount-amount" style="color:gray;">
-                    -${Number(item.discountAmount).toLocaleString()}원
+                  <!--  원가 -->
+                  <span class="original-price" style="text-decoration: line-through; color: gray;">
+                    ${Number(item.originalPrice).toLocaleString()}원
                   </span><br />
+                  <!--  할인율 -->
+                  <span class="discount-rate" style="color: orange;">
+                    ${item.discountRate}% 할인
+                  </span><br />
+                  <!--  할인 적용 단가 -->
                   <span class="final-price" style="color:red;font-weight:bold;">
                     ${Number(item.finalPrice).toLocaleString()}원
                   </span><br/>
+                  <!--  수량 입력 -->
                   <input type="number" min="1" value="${item.quantity}"
                     onchange="updateCount(${item.id}, this.value)" />
-                  <button onclick="deleteCartItem(${item.id})">삭제</button>
+                  <button onclick="deleteCartItem(${item.id})">삭제</button><br/>
+                  <!--  총액 -->
+                  <span class="total-price">
+                    총액: ${Number(item.totalPrice).toLocaleString()}원
+                  </span>
                 </div>
             `;
             container.appendChild(div);
@@ -136,6 +146,37 @@
         });
     });
 
+    // ================== 바로 주문 클릭 시 orderDto 생성 ==================
+    document.getElementById('order-now').addEventListener('click', () => {
+        const selectedItems = [...document.querySelectorAll('.item-select:checked')];
+        if (selectedItems.length === 0) return alert("선택된 상품이 없습니다.");
+
+        // 체크된 장바구니 ID와 총 결제금액 계산
+        const cartIds = selectedItems.map(cb => parseInt(cb.dataset.cartId));
+        const totalPrice = selectedItems.reduce((sum, cb) => {
+            const itemDiv = cb.closest('.cart-item');
+            const totalText = itemDiv.querySelector('.total-price').textContent.replace(/[^0-9]/g,'');
+            return sum + parseInt(totalText, 10);
+        }, 0);
+        const deliveryFee = totalPrice >= 50000 ? 0 : 5000;
+
+        const orderDto = {
+            memberId: 1, // JWT 기반 로그인 사용자 ID를 서버에서 세팅 가능
+            cartIds: cartIds,
+            totalPrice: totalPrice + deliveryFee,
+            postCode: '',
+            address: '',
+            detailAddress: '',
+            ordererName: '',
+            phoneNumber: '',
+            payMethod: null,
+            merchantUid: null
+        };
+
+        sessionStorage.setItem("orderDto", JSON.stringify(orderDto));
+        window.location.href = "/tempOrder"; // 임시 주문 페이지로 이동
+    });
+
     // ================== 삭제 ==================
     function deleteCartItem(cartId) {
         if (!confirm('삭제하시겠습니까?')) return;
@@ -173,9 +214,9 @@
         let totalPrice = 0;
 
         items.forEach(item => {
-            const finalPriceText = item.querySelector('.final-price').textContent.replace(/[^0-9.]/g, '');
-            const count = parseInt(item.querySelector('input[type=number]').value, 10);
-            totalPrice += parseFloat(finalPriceText) * count;
+            // 총액 기준 합산
+            const totalText = item.querySelector('.total-price').textContent.replace(/[^0-9.]/g, '');
+            totalPrice += parseFloat(totalText);
         });
 
         updatePriceSummary(totalPrice);
