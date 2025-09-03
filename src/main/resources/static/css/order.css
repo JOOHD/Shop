@@ -1,0 +1,159 @@
+/* ======================= 기본 바디 스타일 ======================= */
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background-color: #f8f9fa;
+    color: #212529;
+    margin: 0;
+    padding: 0;
+}
+
+/* ======================= 주문서 컨테이너 ======================= */
+form#orderForm {
+    max-width: 800px;
+    margin: 30px auto 80px auto;
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ======================= 입력 카드 ======================= */
+.input-card {
+    background-color: #fef2f2;
+    padding: 15px 20px;
+    border-radius: 8px;
+    border: 1px solid #f5c2c2;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.input-card label {
+    font-weight: 500;
+    color: #495057;
+}
+
+form#orderForm input,
+form#orderForm select {
+    padding: 12px 15px;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+form#orderForm input:focus,
+form#orderForm select:focus {
+    outline: none;
+    border-color: #DA291C;
+    box-shadow: 0 0 0 0.2rem rgba(218,41,28,0.25);
+}
+
+input[readonly] {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+    color: #495057;
+}
+
+/* ======================= 결제 버튼 ======================= */
+form#orderForm button[type="submit"] {
+    width: 100%;
+    padding: 14px 0;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 8px;
+    background-color: #DA291C;
+    border-color: #DA291C;
+    color: #fff;
+    transition: all 0.3s;
+}
+
+form#orderForm button[type="submit"]:hover {
+    background-color: #a71d16;
+    border-color: #a71d16;
+}
+
+/* ======================= 상품 요약 카드 ======================= */
+.order-summary-card {
+    display: flex;
+    gap: 15px;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.order-summary-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.order-summary-card img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+}
+
+.order-summary-card .card-body {
+    padding: 15px 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.order-summary-card .product-name {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 5px;
+}
+
+.order-summary-card .product-price {
+    font-weight: 700;
+    color: #DA291C;
+    font-size: 1.1rem;
+}
+
+.order-summary-card .product-quantity {
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+/* ======================= 총 결제 금액 강조 ======================= */
+.total-price {
+    text-align: right;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #DA291C;
+    margin-top: 10px;
+}
+
+/* ======================= 반응형 ======================= */
+@media (max-width: 576px) {
+    form#orderForm {
+        padding: 20px;
+        gap: 15px;
+    }
+
+    .order-summary-card {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .order-summary-card img {
+        width: 100%;
+        height: auto;
+    }
+
+    form#orderForm input,
+    form#orderForm select,
+    form#orderForm button[type="submit"] {
+        font-size: 14px;
+        padding: 12px 0;
+    }
+}

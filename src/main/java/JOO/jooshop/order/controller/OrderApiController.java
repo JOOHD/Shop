@@ -1,25 +1,43 @@
 package JOO.jooshop.order.controller;
 
 import JOO.jooshop.global.authentication.jwts.entity.CustomUserDetails;
+import JOO.jooshop.order.entity.TemporaryOrderRedis;
 import JOO.jooshop.order.model.OrderDto;
+import JOO.jooshop.order.repository.RedisOrderRepository;
 import JOO.jooshop.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 
 @RestController
 @RequestMapping("/api/v1/order")
 @RequiredArgsConstructor
-public class OrderController {
+public class OrderApiController {
 
     private final OrderService orderService;
+    private final RedisOrderRepository redisOrderRepository;
+
+    @GetMapping("/temp/{memberId}")
+    public ResponseEntity<TemporaryOrderRedis> getTemporaryOrder(
+            @PathVariable Long memberId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        if (!userDetails.getMemberId().equals(memberId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        String redisKey = "tempOrder:" + memberId;
+        TemporaryOrderRedis tempOrder = redisOrderRepository.findById(redisKey)
+                .orElseThrow(() -> new NoSuchElementException("임시 주문 정보가 없습니다."));
+
+        return ResponseEntity.ok(tempOrder);
+    }
 
     /**
      * 장바구니 선택 후 주문 생성 -> Redis에 임시 주문 저장
