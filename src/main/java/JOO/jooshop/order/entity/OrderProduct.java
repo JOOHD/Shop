@@ -14,13 +14,8 @@ import java.math.BigDecimal;
 public class OrderProduct {
 
     /**
-     * 장바구니 (Cart) vs 주문 (OrderProduct)
-     * Cart : 결제가 이루어지지 않은 일시적인 상태
-     * OrderProduct : 사용자가 주문을 최종 확정할 때,
-     *      장바구니에 담긴 상품을 바탕으로 주문된 상품 정보가 OrderProduct 로 변환되어야 한다.
-     *
-     * productName과 priceAtOrder는 Product에서 이미 관리되고 있는 정보들이지만,
-     * 주문 당시의 가격과 상품명은 주문 내역에서 OrderProduct에 필요하므로 중복되는 부분은 아닙니다.
+     * Cart -> OrderProduct 변환
+     * 주문 당시 상품 정보를 그대로 보존
      */
 
     @Id
@@ -32,18 +27,22 @@ public class OrderProduct {
     @JoinColumn(name = "orders_id")
     private Orders orders;
 
-    // 상품과 연결
+    // 상품 옵션과 연결
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_management_id")
     private ProductManagement productManagement;
 
-    // 주문 당시 가격 (상품 가격 변동 대비)
+    // 주문 당시 가격
     private BigDecimal priceAtOrder;
 
-    // 상품명 (OrderProduct에서 직접 관리)
+    // 상품명
     private String productName;
-    
-    // 배송지 주소
+
+    // 상품 사이즈
+    private String productSize;
+
+    // 상품 이미지 URL (썸네일)
+    private String productImg;
 
     // 주문 수량
     private int quantity;
@@ -54,28 +53,39 @@ public class OrderProduct {
     // 반품 여부
     private boolean returned;
 
-    // 생성 메서드
+    /**
+     * 생성 메서드: 주문 확정 시 사용
+     */
     public static OrderProduct createOrderProduct(Orders orders,
                                                   ProductManagement productManagement,
                                                   BigDecimal priceAtOrder,
                                                   int quantity) {
+        var product = productManagement.getProduct();
+
         return OrderProduct.builder()
                 .orders(orders)
                 .productManagement(productManagement)
                 .priceAtOrder(priceAtOrder)
-                .productName(productManagement.getProduct().getProductName()) // 상품명 추가
+                .productName(product.getProductName())
+                .productSize(productManagement.getSize() != null ? productManagement.getSize().name() : null)
+                .productImg(product.getProductThumbnails().isEmpty() ? null
+                        : product.getProductThumbnails().get(0).getImagePath())
                 .quantity(quantity)
                 .reviewed(false)
                 .returned(false)
                 .build();
     }
 
-    // 리뷰 완료 메서드
+    /**
+     * 리뷰 완료 처리
+     */
     public void completeReview() {
         this.reviewed = true;
     }
 
-    // 반품 처리 메서드
+    /**
+     * 반품 처리
+     */
     public void returnProduct() {
         this.returned = true;
     }

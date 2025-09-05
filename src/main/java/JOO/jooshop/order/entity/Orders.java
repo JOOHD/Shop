@@ -21,6 +21,7 @@ import java.util.List;
 @Entity
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "orders")
 public class Orders {
 
@@ -94,37 +95,8 @@ public class Orders {
     @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime orderDay;
 
-
     @OneToMany(mappedBy = "orders")
     private List<PaymentHistory> paymentHistories = new ArrayList<>();
-
-    public Orders() {
-        this.orderDay = LocalDateTime.now();
-    }
-
-    public Orders(Member member,
-                  List<ProductManagement> productManagements,
-                  String ordererName,
-                  String productName,
-                  BigDecimal totalPrice,
-                  String phoneNumber,
-                  String postCode,
-                  String address,
-                  String detailAddress,
-                  PayMethod payMethod,
-                  String merchantUid) {
-        this.member = member;
-        this.productManagements = productManagements;
-        this.ordererName = ordererName;
-        this.productName = productName;
-        this.totalPrice = totalPrice;
-        this.phoneNumber = phoneNumber;
-        this.postCode = postCode;
-        this.address = address;
-        this.detailAddress = detailAddress;
-        this.payMethod = payMethod;
-        this.merchantUid = merchantUid;
-    }
 
     public void updatePayStatus(PaymentStatus paymentStatus) {
         this.paymentStatus = paymentStatus;

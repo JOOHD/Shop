@@ -10,7 +10,11 @@
 <div class="container mt-5">
     <h2 class="mb-4">임시 주문 내역 확인</h2>
     <div id="orderSummary" class="mb-4"></div>
-    <button id="proceedToPayment" class="btn btn-primary">결제 진행</button>
+    <form id="proceedForm" method="get" action="/order">
+        <!-- 장바구니 ID는 hidden으로 전달 -->
+        <input type="hidden" name="cartIds" id="cartIdsInput" />
+        <button type="submit" class="btn btn-primary">결제 진행</button>
+    </form>
 </div>
 
 <script>
@@ -24,7 +28,7 @@
         // 2️⃣ 없으면 서버 API 호출 (Redis)
         if (!orderDto) {
             try {
-                const memberId = 1; // 로그인한 사용자 ID
+                const memberId = 1; // TODO: 실제 로그인 사용자 ID로 교체
                 const res = await fetch(`/api/v1/order/temp/${memberId}`);
                 if (!res.ok) throw new Error("임시 주문 정보 없음");
                 orderDto = await res.json();
@@ -53,14 +57,11 @@
             });
         }
 
-        // 4️⃣ 구매자 정보
+        // 4️⃣ 구매자 정보 (주소/결제수단 제외)
         cardsHtml += `
             <ul class="list-group mt-4 mb-3">
                 <li class="list-group-item"><strong>주문자명:</strong> ${orderDto.ordererName || "-"}</li>
                 <li class="list-group-item"><strong>전화번호:</strong> ${orderDto.phoneNumber || "-"}</li>
-                <li class="list-group-item"><strong>주소:</strong> (${orderDto.postCode || "-"}) ${orderDto.address || ""} ${orderDto.detailAddress || ""}</li>
-                <li class="list-group-item"><strong>결제 수단:</strong> ${orderDto.payMethod || "-"}</li>
-                <li class="list-group-item"><strong>장바구니 ID:</strong> ${orderDto.cartIds.join(", ")}</li>
             </ul>
         `;
 
@@ -69,10 +70,12 @@
 
         summaryDiv.innerHTML = cardsHtml;
 
-        // 6️⃣ 결제 진행 버튼
-        document.getElementById("proceedToPayment").addEventListener("click", function () {
+        // 6️⃣ hidden input에 cartIds 주입
+        document.getElementById("cartIdsInput").value = orderDto.cartIds.join(",");
+
+        // 7️⃣ 결제 진행 버튼 시 sessionStorage 유지
+        document.getElementById("proceedForm").addEventListener("submit", function () {
             sessionStorage.setItem("orderDto", JSON.stringify(orderDto));
-            window.location.href = "/order";
         });
     })();
 </script>

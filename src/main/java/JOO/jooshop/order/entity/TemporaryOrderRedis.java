@@ -30,10 +30,13 @@ public class TemporaryOrderRedis implements Serializable {
 
     private Long memberId;
     private String username;
-    private List<Long> cartIds;
-    private List<String> productNames;
-    private BigDecimal totalPrice;
     private String phoneNumber;
+    private BigDecimal totalPrice;
+
+    private List<Long> cartIds;
+    private List<String> productNames;   // 상품명
+    private List<String> productSizes;   // 사이즈
+    private List<String> productImages;  // 이미지 URL
 
     @TimeToLive(unit = TimeUnit.MINUTES)
     private long expiration = 30; // TTL: 30분 후 자동 삭제

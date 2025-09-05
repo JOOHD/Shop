@@ -53,8 +53,8 @@ public class OrderApiController {
     /**
      * 주문서 작성 후 결제 -> 실제 주문 DB 저장
      */
-    @PostMapping("/done")
-    public ResponseEntity<Object> doneOrder(@RequestBody OrderDto orderDto,
+    @PostMapping("/confirm")
+    public ResponseEntity<Object> confirmOrder(@RequestBody OrderDto orderDto,
                                             @AuthenticationPrincipal CustomUserDetails userDetails) {
         orderService.confirmOrder(orderDto);
         return ResponseEntity.ok("주문이 확정되어 DB에 저장되었습니다.");

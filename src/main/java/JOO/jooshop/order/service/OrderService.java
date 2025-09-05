@@ -15,6 +15,7 @@ import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.productManagement.entity.ProductManagement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,7 +27,7 @@ import java.util.stream.Collectors;
 import static JOO.jooshop.global.authorization.MemberAuthorizationUtil.verifyUserIdMatch;
 
 @Slf4j
-@RestController
+@Service
 @RequestMapping("/api/v1/order")
 @RequiredArgsConstructor
 public class OrderService {
@@ -62,59 +63,67 @@ public class OrderService {
      * 실제 결제 전 단계에서 호출됩니다.
      */
     public Orders createOrder(List<Long> cartIds, OrderDto orderDto) {
-        List<Cart> carts = cartRepository.findAllById(cartIds);
+        var carts = cartRepository.findAllById(cartIds);
         Long memberId = carts.get(0).getMember().getId();
         verifyUserIdMatch(memberId);
+        var member = memberRepository.findById(memberId)
+                .orElseThrow();
 
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new NoSuchElementException("회원 정보를 찾을 수 없습니다."));
+        var orderProducts = carts.stream()
+                .map(cart -> {
+                    var pm = cart.getProductManagement();
+                    var product = pm.getProduct();
+                    return OrderProduct.builder()
+                            .orders(null)
+                            .productManagement(pm)
+                            .productName(product.getProductName())
+                            .productSize(pm.getSize() != null
+                                                      ? pm.getSize().name() : null)
+                            .productImg(product.getProductThumbnails().isEmpty() ? null
+                                                      : product.getProductThumbnails().get(0).getImagePath())
+                            .priceAtOrder(product.getPrice())
+                            .quantity(cart.getQuantity())
+                            .build();
+                });
 
-        // 장바구니가 모두 동일 회원의 것인지 검증
-        boolean sameMember = carts.stream()
-                .allMatch(cart -> cart.getMember().getId().equals(memberId));
-        if (!sameMember) {
-            throw new MemberNotMatchException("주문 생성에 실패했습니다. 회원 정보가 일치하지 않습니다.");
-        }
-
-        List<OrderProduct> orderProducts = createOrderProducts(carts);
-
-        // 주문 상품명 목록과 총 가격 계산
-        List<String> productNames = orderProducts.stream()
-                .map(OrderProduct::getProductName)
-                .collect(Collectors.toList());
-        BigDecimal totalPrice = orderProducts.stream()
-                .map(op -> op.getPriceAtOrder().multiply(BigDecimal.valueOf(op.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        // 주문 객체 생성 (임시, 저장되지 않음)
-        Orders orders = Orders.builder()
+        var finalOrder = Orders.builder()
                 .member(member)
-                .phoneNumber(getMemberPhoneNumber(carts))
-                .ordererName(member.getUsername())
-                .productName(String.join(",", productNames))
-                .productManagements(getProductManagements(orderProducts))
-                .postCode(orderDto.getPostCode())
-                .address(orderDto.getAddress())
-                .detailAddress(orderDto.getDetailAddress())
-                .merchantUid(orderDto.getMerchantUid())
-                .payMethod(orderDto.getPayMethod())
-                .totalPrice(totalPrice)
-                .build();
-
-        // Redis에 임시 주문 저장
-        saveTemporaryOrder(orderDto, carts);
-
-        return orders;
+                .orderName(tempOrder.getUsername)
     }
 
     /**
      * 임시 주문 정보를 Redis에 저장합니다.
+     * 
+     * 추가 수정 (25.09.05) -> 임시 주문 내역에 사용자 정보 불러오기
+     * TemporaryOrderRedis 클래스에 필요한 사용자 정보 필드 추가
      */
     private void saveTemporaryOrder(OrderDto orderDto, List<Cart> carts) {
-        List<Long> cartIds = carts.stream().map(Cart::getCartId).collect(Collectors.toList());
+        
+        // 장바구니 리스트
+        List<Long> cartIds = carts.stream()
+                .map(Cart::getCartId)
+                .collect(Collectors.toList());
+
+        // 상품명
         List<String> productNames = carts.stream()
                 .map(cart -> cart.getProductManagement().getProduct().getProductName())
                 .collect(Collectors.toList());
+
+        // 상품 사이즈
+        List<String> productSizes = carts.stream()
+                .map(cart -> cart.getProductManagement().getSize() != null
+                        ? cart.getProductManagement().getSize().name() : null)
+                .toList();
+
+        // 상품 이미지
+        List<String> productImages = carts.stream()
+                .map(cart -> {
+                            Product product = cart.getProductManagement().getProduct();
+                            return product.getProductThumbnails().isEmpty()
+                                    ? null
+                                    : product.getProductThumbnails().get(0).getImagePath();
+                })
+                .toList();
 
         BigDecimal totalPrice = carts.stream()
                 .map(this::calculateTotalPrice)
@@ -124,10 +133,12 @@ public class OrderService {
                 .id("tempOrder:" + orderDto.getMemberId())
                 .memberId(orderDto.getMemberId())
                 .username(orderDto.getOrdererName())
+                .phoneNumber(orderDto.getPhoneNumber())
                 .cartIds(cartIds)
                 .productNames(productNames)
+                .productSizes(productSizes)   // 객체에서 가져온 사이즈
+                .productImages(productImages) // 객체에서 가져온 이미지
                 .totalPrice(totalPrice)
-                .phoneNumber(orderDto.getPhoneNumber())
                 .build();
 
         redisOrderRepository.save(tempOrder);
