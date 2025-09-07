@@ -28,9 +28,13 @@ public class QOrderProduct extends EntityPathBase<OrderProduct> {
 
     public final NumberPath<java.math.BigDecimal> priceAtOrder = createNumber("priceAtOrder", java.math.BigDecimal.class);
 
+    public final StringPath productImg = createString("productImg");
+
     public final JOO.jooshop.productManagement.entity.QProductManagement productManagement;
 
     public final StringPath productName = createString("productName");
+
+    public final StringPath productSize = createString("productSize");
 
     public final NumberPath<Integer> quantity = createNumber("quantity", Integer.class);
 

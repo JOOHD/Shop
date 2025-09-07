@@ -33,25 +33,12 @@ import static JOO.jooshop.global.authorization.MemberAuthorizationUtil.verifyUse
 public class OrderService {
 
     /**
-     * 결제 프로세스 흐름 및 주문 저장 방식 설명
+     * 최종 흐름 요약
+     * OrderDto → 프론트에서 입력한 주문자/배송/결제 정보 (front 입력 값)
+     * TemporaryOrderRedis → OrderDto + Cart 데이터 합쳐 Redis에 임시 주문 저장 (임시 캐시용 요약본)
+     * OrderProduct → Cart 하나씩 꺼내서 주문 상품 단위로 변환 (최종 통합 주문)
      *
-     * [1] 사용자가 결제를 진행하면, 프론트에서 createOrder() 호출
-     *     - 선택된 장바구니(cartIds)와 배송정보(OrderDto)를 기반으로
-     *     - 주문 정보(상품명, 가격, 배송지 등)를 조합하여 Redis에 "임시 주문" 저장
-     *     - 실제 DB 저장은 아직 하지 않음 (임시 저장만 수행)
-     *
-     * [2] 결제가 완료되면, 프론트에서 confirmOrder() 호출
-     *     - Iamport(또는 다른 PG사)로부터 결제 성공 콜백 수신 후
-     *     - Redis에서 "tempOrder:{memberId}" 키로 임시 주문 정보 조회
-     *     - 조회된 정보와 결제 정보(OrderDto)를 조합해 실제 Orders 객체 생성
-     *         - 주문자 정보: memberId, 주문자명, 전화번호
-     *         - 배송지 정보: 우편번호, 주소, 상세주소
-     *         - 상품 정보: 상품명 목록
-     *         - 결제 정보: 결제 수단, 총 가격, merchantUid
-     *     - DB에 주문 정보 저장 (Orders 테이블)
-     *     - 이후 Redis에 저장된 임시 주문 정보는 삭제하거나 유지 여부를 선택 가능
-     *
-     * [3] 사용자는 '나의 주문 내역' 페이지에서 실제로 저장된 주문을 확인할 수 있음
+     * Orders → OrderDto + TemporaryOrderRedis + OrderProduct 합쳐 DB에 최종 주문 저장
      */
     private final RedisOrderRepository redisOrderRepository;
     private final CartRepository cartRepository;
@@ -59,76 +46,135 @@ public class OrderService {
     private final MemberRepositoryV1 memberRepository;
 
     /**
-     * 장바구니를 기반으로 임시 주문을 생성하고 Redis에 저장합니다.
-     * 실제 결제 전 단계에서 호출됩니다.
+     * ==========================================
+     * createOrder
+     * ==========================================
+     * 역할: 장바구니를 기반으로 임시 주문을 생성하고 Redis에 저장
+     *
+     * 흐름:
+     * 1. cartIds로 Cart 조회
+     * 2. 로그인 사용자와 memberId 검증
+     * 3. Cart → OrderProduct 변환 (주문 상품 단위)
+     * 4. OrderProduct에서 상품명 리스트 및 총 가격 계산
+     * 5. OrderDto + Cart 데이터를 TemporaryOrderRedis로 저장 (Redis)
+     * 6. Orders 객체를 DB 저장 전 상태로 생성하여 반환
+     *
+     * 데이터:
+     * - OrderDto: 프론트에서 입력된 주문자/배송/결제 정보
+     * - Cart: 장바구니 상품 정보
+     * - OrderProduct: Cart → 변환된 주문 상품 리스트
+     * - TemporaryOrderRedis: Redis에 임시 저장할 요약본
+     * - Orders: DB 저장 전 상태 (OrderProduct와 Orders는 아직 연결 X)
      */
     public Orders createOrder(List<Long> cartIds, OrderDto orderDto) {
+        // 1. Cart 조회
         var carts = cartRepository.findAllById(cartIds);
+
+        // 2. 사용자 인증
         Long memberId = carts.get(0).getMember().getId();
         verifyUserIdMatch(memberId);
-        var member = memberRepository.findById(memberId)
-                .orElseThrow();
+        var member = memberRepository.findById(memberId).orElseThrow();
 
+        // 3. Cart → OrderProduct 변환
         var orderProducts = carts.stream()
                 .map(cart -> {
                     var pm = cart.getProductManagement();
                     var product = pm.getProduct();
                     return OrderProduct.builder()
-                            .orders(null)
+                            .orders(null) // 아직 Orders와 연결되지 않음
                             .productManagement(pm)
                             .productName(product.getProductName())
-                            .productSize(pm.getSize() != null
-                                                      ? pm.getSize().name() : null)
+                            .productSize(pm.getSize() != null ? pm.getSize().name() : null)
                             .productImg(product.getProductThumbnails().isEmpty() ? null
-                                                      : product.getProductThumbnails().get(0).getImagePath())
+                                    : product.getProductThumbnails().get(0).getImagePath())
                             .priceAtOrder(product.getPrice())
                             .quantity(cart.getQuantity())
                             .build();
-                });
+                })
+                .toList();
 
-        var finalOrder = Orders.builder()
+        // 4. 상품명 리스트 및 총 가격 계산
+        var productNames = orderProducts.stream()
+                .map(OrderProduct::getProductName)
+                .toList();
+        var totalPrice = orderProducts.stream()
+                .map(op -> op.getPriceAtOrder().multiply(BigDecimal.valueOf(op.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // 5. Redis에 임시 주문 저장
+        saveTemporaryOrder(orderDto, carts);
+
+        // 6. DB 저장 전 Orders 객체 생성 (OrderProduct와 연결 전)
+        return Orders.builder()
                 .member(member)
-                .orderName(tempOrder.getUsername)
+                .ordererName(member.getUsername())
+                .phoneNumber(member.getPhone())
+                .productName(String.join(",", productNames))
+                .productManagements(orderProducts.stream().map(OrderProduct::getProductManagement).toList())
+                .totalPrice(totalPrice)
+                .payMethod(orderDto.getPayMethod())
+                .postCode(orderDto.getPostCode())
+                .address(orderDto.getAddress())
+                .detailAddress(orderDto.getDetailAddress())
+                .merchantUid(orderDto.getMerchantUid())
+                .build();
     }
 
     /**
-     * 임시 주문 정보를 Redis에 저장합니다.
-     * 
-     * 추가 수정 (25.09.05) -> 임시 주문 내역에 사용자 정보 불러오기
-     * TemporaryOrderRedis 클래스에 필요한 사용자 정보 필드 추가
+     * ==========================================
+     * saveTemporaryOrder
+     * ==========================================
+     * 역할: OrderDto + Cart 데이터를 Redis에 임시 저장
+     *
+     * 흐름:
+     * 1. Cart에서 필요한 정보 추출 (cartIds, productNames, sizes, 이미지)
+     * 2. 총 가격 계산
+     * 3. TemporaryOrderRedis 객체 생성
+     * 4. Redis에 저장
+     *
+     * 데이터:
+     * - 임시 주문 Redis key: "tempOrder:{memberId}"
+     * - 임시 주문 객체: 상품 요약 + 사용자 정보 + 총 가격
      */
     private void saveTemporaryOrder(OrderDto orderDto, List<Cart> carts) {
-        
-        // 장바구니 리스트
+
+        // 장바구니 id 리스트
         List<Long> cartIds = carts.stream()
                 .map(Cart::getCartId)
                 .collect(Collectors.toList());
 
-        // 상품명
+        // 상품명 리스트
         List<String> productNames = carts.stream()
                 .map(cart -> cart.getProductManagement().getProduct().getProductName())
                 .collect(Collectors.toList());
 
-        // 상품 사이즈
+        // 상품 사이즈 리스트
         List<String> productSizes = carts.stream()
                 .map(cart -> cart.getProductManagement().getSize() != null
                         ? cart.getProductManagement().getSize().name() : null)
                 .toList();
 
-        // 상품 이미지
+        // 상품 이미지 리스트
         List<String> productImages = carts.stream()
                 .map(cart -> {
-                            Product product = cart.getProductManagement().getProduct();
-                            return product.getProductThumbnails().isEmpty()
-                                    ? null
-                                    : product.getProductThumbnails().get(0).getImagePath();
+                    Product product = cart.getProductManagement().getProduct();
+                    return product.getProductThumbnails().isEmpty()
+                            ? null
+                            : product.getProductThumbnails().get(0).getImagePath();
                 })
                 .toList();
 
+        // 장바구니 수량
+        List<Integer> productQuantities = carts.stream()
+                .map(Cart::getQuantity)
+                .toList();
+
+        // 총 가격 계산
         BigDecimal totalPrice = carts.stream()
                 .map(this::calculateTotalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        // 임시 주문 객체 생성
         TemporaryOrderRedis tempOrder = TemporaryOrderRedis.builder()
                 .id("tempOrder:" + orderDto.getMemberId())
                 .memberId(orderDto.getMemberId())
@@ -136,40 +182,88 @@ public class OrderService {
                 .phoneNumber(orderDto.getPhoneNumber())
                 .cartIds(cartIds)
                 .productNames(productNames)
-                .productSizes(productSizes)   // 객체에서 가져온 사이즈
-                .productImages(productImages) // 객체에서 가져온 이미지
+                .productSizes(productSizes)
+                .productImages(productImages)
+                .productQuantities(productQuantities)
                 .totalPrice(totalPrice)
                 .build();
 
+        // Redis 저장
         redisOrderRepository.save(tempOrder);
         log.info("임시 주문 정보가 Redis에 저장되었습니다. (Redis 키: {})", tempOrder.getId());
     }
 
     /**
-     * Redis에 저장된 임시 주문 정보를 기반으로 최종 주문을 생성하고 DB에 저장합니다.
-     * 결제 완료 후 호출됩니다.
+     * ==========================================
+     * confirmOrder
+     * ==========================================
+     * 역할: 결제 완료 후 Redis 임시 주문 정보를 기반으로
+     * Orders와 OrderProduct를 최종 생성하고 DB에 저장
+     *
+     * 흐름:
+     * 1. Redis에서 임시 주문 조회
+     * 2. memberId 검증 및 조회
+     * 3. 임시 주문의 cartIds로 OrderProduct 생성
+     * 4. Orders 객체 생성
+     * 5. OrderProduct와 Orders 연결
+     * 6. DB에 Orders 저장
+     *
+     * 데이터:
+     * - Redis 임시 주문: TemporaryOrderRedis
+     * - Orders: DB 최종 주문
+     * - OrderProduct: Orders와 연관된 상품 상세
      */
     public Orders confirmOrder(OrderDto orderDto) {
-        String redisKey = "tempOrder:" + orderDto.getMemberId();
+        // 1. Redis 임시 주문 조회
+        var redisKey = "tempOrder:" + orderDto.getMemberId();
+        var tempOrder = redisOrderRepository.findById(redisKey)
+                .orElseThrow(() -> new IllegalArgumentException("임시 주문 정보가 없습니다."));
 
-        TemporaryOrderRedis temporaryOrderRedis = redisOrderRepository.findById(redisKey)
-                .orElseThrow(() -> new IllegalArgumentException("임시 주문 정보를 찾을 수 없습니다."));
+        // 2. 회원 조회
+        var member = memberRepository.findById(orderDto.getMemberId()).orElseThrow();
 
-        Orders finalOrder = Orders.builder()
-                .member(memberRepository.findById(orderDto.getMemberId()).orElseThrow())
+        // 3. OrderProduct 리스트 생성
+        var orderProducts = tempOrder.getCartIds().stream()
+                .map(cartRepository::findById)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(cart -> {
+                    var pm = cart.getProductManagement();
+                    var product = pm.getProduct();
+                    return OrderProduct.builder()
+                            .orders(null) // 이후 Orders와 연결
+                            .productManagement(pm)
+                            .productName(product.getProductName())
+                            .productSize(pm.getSize() != null ? pm.getSize().name() : null)
+                            .productImg(product.getProductThumbnails().isEmpty() ? null
+                                    : product.getProductThumbnails().get(0).getImagePath())
+                            .priceAtOrder(product.getPrice())
+                            .quantity(cart.getQuantity())
+                            .build();
+                }).toList();
+
+        // 4. Orders 객체 생성
+        var finalOrder = Orders.builder()
+                .member(member)
+                .ordererName(tempOrder.getUsername())
+                .phoneNumber(tempOrder.getPhoneNumber())
+                .productName(String.join(",", tempOrder.getProductNames()))
+                .productManagements(orderProducts.stream().map(OrderProduct::getProductManagement).toList())
+                .totalPrice(tempOrder.getTotalPrice())
                 .postCode(orderDto.getPostCode())
                 .address(orderDto.getAddress())
                 .detailAddress(orderDto.getDetailAddress())
-                .ordererName(orderDto.getOrdererName())
-                .phoneNumber(orderDto.getPhoneNumber())
                 .payMethod(orderDto.getPayMethod())
                 .merchantUid(generationMerchantUid())
-                .productName(String.join(",", temporaryOrderRedis.getProductNames()))
-                .totalPrice(temporaryOrderRedis.getTotalPrice())
                 .build();
 
-        Orders savedOrder = orderRepository.save(finalOrder);
-        log.info("주문이 생성되었습니다. 주문 번호: {}", savedOrder.getOrderId());
+        // 5. OrderProduct와 Orders 연결
+        orderProducts.forEach(op -> op.setOrders(finalOrder));
+        finalOrder.setOrderProducts(orderProducts);
+
+        // 6. DB에 저장
+        var savedOrder = orderRepository.save(finalOrder);
+        log.info("주문 확정 완료: {}", savedOrder.getOrderId());
 
         return savedOrder;
     }
@@ -188,47 +282,6 @@ public class OrderService {
     private String generationMerchantUid() {
         return LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
                 + "-" + UUID.randomUUID().toString().substring(0, 8);
-    }
-
-    /**
-     * 장바구니 목록을 기반으로 주문 상품 리스트를 생성합니다.
-     */
-    private List<OrderProduct> createOrderProducts(List<Cart> carts) {
-        List<OrderProduct> orderProducts = new ArrayList<>();
-        for (Cart cart : carts) {
-            ProductManagement pm = cart.getProductManagement();
-            Product product = pm.getProduct();
-
-            OrderProduct orderProduct = OrderProduct.builder()
-                    .orders(null)
-                    .productManagement(pm)
-                    .productName(product.getProductName())
-                    .priceAtOrder(product.getPrice())
-                    .quantity(cart.getQuantity())
-                    .build();
-
-            orderProducts.add(orderProduct);
-        }
-        return orderProducts;
-    }
-
-    /**
-     * OrderProduct 리스트로부터 ProductManagement 목록을 추출합니다.
-     */
-    private List<ProductManagement> getProductManagements(List<OrderProduct> orderProducts) {
-        return orderProducts.stream()
-                .map(OrderProduct::getProductManagement)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * 장바구니 첫 항목을 기준으로 회원 전화번호를 가져옵니다.
-     */
-    private String getMemberPhoneNumber(List<Cart> carts) {
-        Long memberId = carts.get(0).getMember().getId();
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new NoSuchElementException("회원 정보를 찾을 수 없습니다."));
-        return member.getPhone();
     }
 }
 

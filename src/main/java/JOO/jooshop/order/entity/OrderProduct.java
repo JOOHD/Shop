@@ -7,7 +7,8 @@ import lombok.*;
 import java.math.BigDecimal;
 
 @Entity
-@Getter
+@Data // 양방향 관계에서는 (toString() / equals() 인한 스택오버플로우 무한 버프 위험
+@ToString // 스택오버플로우 무한 루프 방지
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
@@ -15,7 +16,7 @@ public class OrderProduct {
 
     /**
      * Cart -> OrderProduct 변환
-     * 주문 당시 상품 정보를 그대로 보존
+     * 임시 주문 -> 실제 주문 확정 시, 상품 정보
      */
 
     @Id

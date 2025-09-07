@@ -26,17 +26,16 @@ public class TemporaryOrderRedis implements Serializable {
      */
 
     @Id
-    private String id; // Redis 키 값 (UUID 등으로 생성)
-
-    private Long memberId;
-    private String username;
-    private String phoneNumber;
-    private BigDecimal totalPrice;
-
-    private List<Long> cartIds;
-    private List<String> productNames;   // 상품명
-    private List<String> productSizes;   // 사이즈
-    private List<String> productImages;  // 이미지 URL
+    private String id;                  // Redis key: tempOrder:{memberId}
+    private Long memberId;              // 구매자 ID
+    private String username;            // 주문자명
+    private String phoneNumber;         // 전화번호
+    private List<Long> cartIds;         // 장바구니 ID
+    private List<String> productNames;  // 상품명
+    private List<String> productSizes;  // 상품 사이즈
+    private List<String> productImages; // 상품 이미지
+    private List<Integer> productQuantities; // 상품 수량 추가
+    private BigDecimal totalPrice;      // 총 결제 금액
 
     @TimeToLive(unit = TimeUnit.MINUTES)
     private long expiration = 30; // TTL: 30분 후 자동 삭제

@@ -45,8 +45,7 @@ public class OrderApiController {
     @PostMapping("/create")
     public ResponseEntity<String> createOrder(@RequestBody OrderDto orderDto,
                                               @AuthenticationPrincipal CustomUserDetails userDetails) {
-        List<Long> cartIds = orderDto.getCartIds(); // 장바구니 ID 목록을 가져옴
-        orderService.createOrder(cartIds, orderDto);
+        orderService.createOrder(orderDto.getCartIds(), orderDto);
         return ResponseEntity.ok("임시 주문이 Redis에 저장되었습니다.");
     }
 
