@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 @Builder
 public class CartDto {
     private Long id;                     // 장바구니 ID
+    private Long memberId;               // 로그인 사용자 ID
     private String productName;          // 상품명
     private String size;                 // 옵션/사이즈
     private double originalPrice;        // 원가 (단가)
@@ -59,6 +60,7 @@ public class CartDto {
                 .quantity(quantity)                             // 수량
                 .totalPrice(totalPrice.doubleValue())         // 총액
                 .productThumbnailUrl(thumbnailUrl)
+                .memberId(cart.getMember().getId())
                 .build();
     }
 }

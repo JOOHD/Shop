@@ -6,7 +6,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
-public class ViewController {
+public class HomeController {
 
     @GetMapping("/") // header.html login modal 로그인 시, 변경 관련
     public String home(Model model, Authentication authentication) {
@@ -14,23 +14,4 @@ public class ViewController {
         return "home"; // home.html 렌더링
     }
 
-    @GetMapping("/join")
-    public String formJoin() {
-        return "members/join";
-    }
-
-    @GetMapping("/order")
-    public String formOrder() {
-        return "orders/order";
-    }
-
-    @GetMapping("/tempOrder")
-    public String formTempOrder() {
-        return "orders/tempOrder";
-    }
-
-    @GetMapping("/payment")
-    public String formPayment() {
-        return "payments/payment";
-    }
 }

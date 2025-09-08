@@ -11,26 +11,33 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.function.Consumer;
 
-@RestController
+@Controller
 @RequiredArgsConstructor
 @Slf4j
-@RequestMapping("/api")
 public class JoinController {
 
     private final JWTUtil jwtUtil;
     private final MemberService memberService;
     private final EmailMemberService emailMemberService;
 
-    @PostMapping("/join")
+    @GetMapping("join")
+    public String joinPage() {
+        return "members/join";
+    }
+
+    @PostMapping("/api/join")
+    @ResponseBody
     public ResponseEntity<?> join(@RequestBody @Valid JoinMemberRequest request) {
         return handleJoin(request, memberService::registerMember, "회원가입 성공");
     }
 
-    @PostMapping("/admin/join")
+    @PostMapping("/api/admin/join")
+    @ResponseBody
     public ResponseEntity<?> joinAdmin(@RequestBody @Valid JoinMemberRequest request) {
         return handleJoin(request, memberService::registerAdmin, "관리자 등록 성공");
     }

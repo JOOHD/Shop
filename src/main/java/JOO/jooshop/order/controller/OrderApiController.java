@@ -23,6 +23,8 @@ public class OrderApiController {
     private final OrderService orderService;
     private final RedisOrderRepository redisOrderRepository;
 
+    // @AuthenticationPrincipal : 현재 로그인한 사용자의 인증 정보를 가져오는
+    // API : 보안 검증 용도 , View : HTML 렌더링 & JS 데이터 전달 용도
     @GetMapping("/temp/{memberId}")
     public ResponseEntity<TemporaryOrderRedis> getTemporaryOrder(
             @PathVariable Long memberId,

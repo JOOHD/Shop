@@ -97,8 +97,7 @@
         fetch(`/api/v1/cart/add/${selectedInventoryId}`, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + getAccessTokenFromCookie()
+                "Content-Type": "application/json"
             },
             credentials: "include",
             body: JSON.stringify({ quantity: quantity })
