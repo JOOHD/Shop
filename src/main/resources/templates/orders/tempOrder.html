@@ -7,12 +7,23 @@
 </head>
 <body>
 
-<h2>임시 주문 내역</h2>
-<p>주문자: <span id="username">-</span></p>
-<p>전화번호: <span id="phoneNumber">-</span></p>
+<div class="container">
+    <h2>임시 주문 내역</h2>
 
-<div id="orderContainer">
-    <!-- 상품 카드 렌더링 -->
+    <div class="list-group">
+        <div class="list-group-item">
+            <strong>주문자:</strong> <span id="username">-</span>
+        </div>
+        <div class="list-group-item">
+            <strong>전화번호:</strong> <span id="phoneNumber">-</span>
+        </div>
+    </div>
+
+    <div id="orderContainer">
+        <!-- 상품 카드 렌더링 -->
+    </div>
+
+    <button id="proceedToOrder">주문하기</button>
 </div>
 
 <script>
@@ -21,6 +32,7 @@
         const username = document.getElementById("username");
         const phone = document.getElementById("phoneNumber");
 
+        // sessionStorage에서 임시 주문 불러오기
         const tempOrderStr = sessionStorage.getItem("orderDto");
         if (!tempOrderStr) {
             alert("임시 주문 데이터가 없습니다. 장바구니로 이동합니다.");
@@ -30,9 +42,11 @@
 
         const tempOrder = JSON.parse(tempOrderStr);
 
+        // 주문자 정보 출력
         username.textContent = tempOrder.ordererName || "-";
         phone.textContent = tempOrder.phoneNumber || "-";
 
+        // 상품 정보
         const names = tempOrder.productNames || [];
         const sizes = tempOrder.productSizes || [];
         const images = tempOrder.productImages || [];
@@ -47,15 +61,23 @@
         let html = "";
         for (let i = 0; i < length; i++) {
             html += `
-            <div class="card">
+            <div class="order-card">
                 <img src="${images[i] || '/images/default-product.png'}" alt="${names[i] || '상품'}">
-                <p>상품명: ${names[i] || '-'}</p>
-                <p>사이즈: ${sizes[i] || '-'}</p>
-                <p>수량: ${quantities[i] || 0}</p>
+                <div class="card-body">
+                    <p class="product-name">${names[i] || '-'}</p>
+                    <p class="product-size">사이즈: ${sizes[i] || '-'}</p>
+                    <p class="product-quantity">수량: ${quantities[i] || 0}</p>
+                </div>
             </div>`;
         }
 
         container.innerHTML = html;
+
+        // 주문하기 버튼 클릭
+        document.getElementById("proceedToOrder").addEventListener("click", () => {
+            // 주문 페이지로 이동
+            window.location.href = "orders/order";
+        });
     });
 </script>
 

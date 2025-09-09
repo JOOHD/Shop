@@ -1,8 +1,8 @@
 package JOO.jooshop.cart.controller;
 
-import JOO.jooshop.cart.entity.Cart;
 import JOO.jooshop.cart.model.CartDto;
 import JOO.jooshop.cart.model.CartRequestDto;
+import JOO.jooshop.cart.model.CartResponse;
 import JOO.jooshop.cart.model.CartUpdateDto;
 import JOO.jooshop.cart.service.CartService;
 import JOO.jooshop.global.Exception.ResponseMessageConstants;
@@ -52,9 +52,11 @@ public class CartApiController {
 
     /** =================== 내 장바구니 전체 조회 =================== */
     @GetMapping("/my")
-    public List<CartDto> getMyCarts(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<CartResponse> getMyCarts(@AuthenticationPrincipal CustomUserDetails userDetails) {
         Long memberId = userDetails.getMemberId();
-        return cartService.allCarts(memberId); // 이미 서비스에서 DTO 변환 포함
+        List<CartDto> carts = cartService.allCarts(memberId);
+
+        return ResponseEntity.ok(new CartResponse(memberId, carts));
     }
 
     /** =================== 장바구니 수량 수정 =================== */
