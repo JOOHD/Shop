@@ -7,23 +7,29 @@
 </head>
 <body>
 
-<div class="container">
+<div class="temp-order-container">
     <h2>임시 주문 내역</h2>
 
-    <div class="list-group">
-        <div class="list-group-item">
-            <strong>주문자:</strong> <span id="username">-</span>
-        </div>
-        <div class="list-group-item">
-            <strong>전화번호:</strong> <span id="phoneNumber">-</span>
-        </div>
+    <!-- 주문자 정보 -->
+    <div class="orderer-info">
+        <div><strong>주문자:</strong> <span id="username">-</span></div>
+        <div><strong>전화번호:</strong> <span id="phoneNumber">-</span></div>
     </div>
 
+    <!-- 상품 리스트 -->
     <div id="orderContainer">
-        <!-- 상품 카드 렌더링 -->
+        <!-- JS로 상품 카드 렌더링 -->
     </div>
 
-    <button id="proceedToOrder">주문하기</button>
+    <!-- 결제 요약 -->
+    <div class="order-summary">
+        <p>상품 금액: <span id="totalPrice">0원</span></p>
+        <p>배송비: <span id="deliveryFee">0원</span></p>
+        <p>총 결제금액: <span id="totalPayment">0원</span></p>
+    </div>
+
+    <!-- 주문하기 버튼 -->
+    <button id="proceedToOrder" class="order-action-btn">주문하기</button>
 </div>
 
 <script>
@@ -31,52 +37,68 @@
         const container = document.getElementById("orderContainer");
         const username = document.getElementById("username");
         const phone = document.getElementById("phoneNumber");
+        const totalPriceEl = document.getElementById("totalPrice");
+        const deliveryFeeEl = document.getElementById("deliveryFee");
+        const totalPaymentEl = document.getElementById("totalPayment");
 
         // sessionStorage에서 임시 주문 불러오기
         const tempOrderStr = sessionStorage.getItem("orderDto");
         if (!tempOrderStr) {
             alert("임시 주문 데이터가 없습니다. 장바구니로 이동합니다.");
-            window.location.href = "/cart.html";
+            window.location.href = "/cart";
             return;
         }
 
         const tempOrder = JSON.parse(tempOrderStr);
 
-        // 주문자 정보 출력
+        // 주문자 정보
         username.textContent = tempOrder.ordererName || "-";
         phone.textContent = tempOrder.phoneNumber || "-";
 
-        // 상품 정보
-        const names = tempOrder.productNames || [];
-        const sizes = tempOrder.productSizes || [];
-        const images = tempOrder.productImages || [];
-        const quantities = tempOrder.productQuantities || [];
-        const length = Math.max(names.length, sizes.length, images.length, quantities.length, 0);
-
-        if (length === 0) {
+        const products = tempOrder.products || [];
+        if (!products.length) {
             container.innerHTML = "<p>선택된 상품이 없습니다.</p>";
             return;
         }
 
         let html = "";
-        for (let i = 0; i < length; i++) {
+        let totalPrice = 0;
+
+        products.forEach(p => {
+            totalPrice += p.price || 0;
             html += `
             <div class="order-card">
-                <img src="${images[i] || '/images/default-product.png'}" alt="${names[i] || '상품'}">
-                <div class="card-body">
-                    <p class="product-name">${names[i] || '-'}</p>
-                    <p class="product-size">사이즈: ${sizes[i] || '-'}</p>
-                    <p class="product-quantity">수량: ${quantities[i] || 0}</p>
+                <img src="${p.image || '/images/default-product.png'}" alt="${p.name || '상품'}" class="order-product-img">
+                <div class="order-card-body">
+                    <p class="product-name">${p.name || '-'}</p>
+                    <p class="product-size">사이즈: ${p.size || '-'}</p>
+                    <p class="product-quantity">수량: ${p.quantity || 0}</p>
+                    <p class="product-price">가격: ${p.price ? p.price.toLocaleString() + "원" : "-"}</p>
                 </div>
             </div>`;
-        }
+        });
 
         container.innerHTML = html;
 
-        // 주문하기 버튼 클릭
+        const deliveryFee = tempOrder.deliveryFee ?? (totalPrice >= 50000 ? 0 : 5000);
+        totalPriceEl.textContent = totalPrice.toLocaleString() + "원";
+        deliveryFeeEl.textContent = deliveryFee.toLocaleString() + "원";
+        totalPaymentEl.textContent = (totalPrice + deliveryFee).toLocaleString() + "원";
+
         document.getElementById("proceedToOrder").addEventListener("click", () => {
-            // 주문 페이지로 이동
-            window.location.href = "orders/order";
+            fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(tempOrder),
+                credentials: 'include'
+            })
+            .then(res => res.ok ? res.json() : Promise.reject('주문 실패'))
+            .then(data => {
+                alert("주문이 완료되었습니다!");
+                sessionStorage.removeItem("orderDto");
+                window.location.href = "/orders/confirmation";
+            })
+            .catch(err => alert(err));
         });
     });
 </script>

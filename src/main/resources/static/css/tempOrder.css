@@ -1,157 +1,85 @@
-/* ======================= 기본 바디 스타일 ======================= */
-body {
+/* ====== 전체 컨테이너 ====== */
+.temp-order-container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0 20px;
     font-family: 'Noto Sans KR', sans-serif;
-    background-color: #f8f9fa;
-    color: #212529;
-    margin: 0;
-    padding: 0;
-}
-
-/* ======================= 컨테이너 ======================= */
-.container {
-    max-width: 800px;
     background-color: #fff;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    margin: 50px auto 80px auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-/* ======================= 제목 ======================= */
-h2 {
-    color: #DA291C; /* 맨유 붉은색 */
-    font-weight: 700;
-    border-left: 6px solid #DA291C;
-    padding-left: 10px;
-    margin-bottom: 30px;
-    font-size: 1.8rem;
+/* ====== 주문자 정보 ====== */
+.orderer-info {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 20px;
 }
 
-/* ======================= 상품 카드 ======================= */
+.orderer-info div {
+    font-size: 16px;
+}
+
+/* ====== 주문 상품 카드 ====== */
 .order-card {
     display: flex;
     gap: 15px;
-    border: 1px solid #e9ecef;
-    border-radius: 10px;
-    overflow: hidden;
-    margin-bottom: 20px;
-    transition: transform 0.2s, box-shadow 0.2s;
-    background-color: #fff;
-}
-
-.order-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-}
-
-/* 상품 이미지 */
-.order-card img {
-    width: 120px;
-    height: 120px;
-    object-fit: cover;
-}
-
-/* 카드 내용 영역 */
-.order-card .card-body {
-    padding: 15px 20px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-
-/* 상품 이름 */
-.order-card .product-name {
-    font-weight: 600;
-    font-size: 1rem;
-    margin-bottom: 5px;
-}
-
-/* 가격 강조 */
-.order-card .product-price {
-    font-weight: 700;
-    color: #DA291C;
-    font-size: 1.1rem;
-}
-
-/* 수량 */
-.order-card .product-quantity {
-    color: #495057;
-    font-size: 0.9rem;
-}
-
-/* ======================= 주문자 정보 리스트 ======================= */
-.list-group {
-    margin-top: 30px;
-}
-
-.list-group-item {
-    display: flex;
-    justify-content: space-between;
+    padding: 12px;
+    border-bottom: 1px solid #eee;
     align-items: center;
-    padding: 15px 20px;
-    border: 1px solid #e9ecef;
-    margin-bottom: 10px;
-    border-radius: 6px;
-    transition: background 0.2s;
-    background-color: #fff;
 }
 
-.list-group-item:hover {
-    background-color: #fef2f2;
+.order-product-img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 4px;
 }
 
-.list-group-item strong {
-    color: #495057;
+.order-card-body {
+    flex: 1;
 }
 
-/* ======================= 결제 버튼 ======================= */
-#proceedToPayment {
-    width: 100%;
-    padding: 14px 0;
-    font-size: 16px;
-    font-weight: 600;
-    border-radius: 8px;
-    background-color: #DA291C;
-    border-color: #DA291C;
+.product-name {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.product-size,
+.product-quantity,
+.product-price {
+    font-size: 14px;
+    margin-bottom: 2px;
+}
+
+/* ====== 결제 요약 ====== */
+.order-summary {
+    margin-top: 20px;
+    padding-top: 10px;
+    border-top: 1px solid #ddd;
+}
+
+.order-summary p {
+    font-weight: bold;
+    margin: 4px 0;
+}
+
+.order-summary span {
+    color: #ff4d4f;
+}
+
+/* ====== 주문 버튼 ====== */
+.order-action-btn {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #1890ff;
     color: #fff;
-    transition: all 0.3s;
-    margin-top: 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
 }
 
-#proceedToPayment:hover {
-    background-color: #a71d16;
-    border-color: #a71d16;
-}
-
-/* ======================= 총 결제 금액 강조 ======================= */
-.total-price {
-    text-align: right;
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: #DA291C;
-    margin-top: 20px;
-}
-
-/* ======================= 반응형 ======================= */
-@media (max-width: 576px) {
-    .order-card {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-    }
-
-    .order-card img {
-        width: 100%;
-        height: auto;
-    }
-
-    .card-body {
-        padding: 10px 15px;
-    }
-
-    #proceedToPayment {
-        font-size: 15px;
-        padding: 12px 0;
-    }
+.order-action-btn:hover {
+    background-color: #40a9ff;
 }

@@ -8,123 +8,117 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 <body>
-
 <!-- 헤더 -->
 <div th:replace="~{fragments/header :: header}"></div>
 
-<!-- 상품 상세 컨테이너 -->
+<!-- productDetail.html -->
 <main class="product-detail-container">
-
-    <!-- 로그인 회원 ID hidden input (Spring 세션 기반) -->
-    <input type="hidden" id="memberId" th:value="${memberId}" />
-
-    <!-- 왼쪽: 대표 이미지 -->
+    <!-- 이미지 영역 -->
     <section class="image-section">
-        <img th:src="@{/{path}(path=${product.thumbnailUrl})}"
-             alt="대표 이미지"
-             class="main-image" />
+        <img th:src="@{/{path}(path=${product.thumbnailUrl})}" alt="대표 이미지" class="product-image" />
     </section>
 
-
-    <!-- 오른쪽: 상품 정보 -->
+    <!-- 상품 정보 영역 -->
     <section class="info-section">
-        <h1 class="product-name" th:text="${product.productName}">상품명</h1>
+        <h1 class="product-title" th:text="${product.productName}">상품명</h1>
 
         <div class="price-info">
-            <span class="original-price" th:if="${product.isDiscount}" th:text="'₩' + ${#numbers.formatInteger(product.price, 0, 'COMMA')}"></span>
-            <span class="discount-rate" th:if="${product.isDiscount}" th:text="${product.discountRate + '% 할인'}"></span>
-            <span class="discounted-price" th:text="'₩' + ${#numbers.formatInteger(product.isDiscount ? product.price * (1 - product.discountRate / 100.0) : product.price, 0, 'COMMA')}"></span>
+            <span class="product-original-price" th:if="${product.isDiscount}"
+                  th:text="'₩' + ${#numbers.formatInteger(product.price, 0, 'COMMA')}"></span>
+            <span class="product-discount" th:if="${product.isDiscount}"
+                  th:text="${product.discountRate + '% 할인'}"></span>
+            <span class="product-price"
+                  th:text="'₩' + ${#numbers.formatInteger(product.isDiscount ? product.price * (1 - product.discountRate / 100.0) : product.price, 0, 'COMMA')}"></span>
         </div>
 
-        <!-- 사이즈 선택 -->
-        <div class="size-selection">
+        <!-- 옵션 선택 -->
+        <div class="product-options">
             <label>사이즈</label>
             <div class="size-options">
-                <!-- product.productManagementList 반복 -->
-                <button type="button"
-                        th:each="dto : ${product.sizes}"
+                <button type="button" th:each="dto : ${product.sizes}"
                         th:text="${dto.size.description}"
                         th:attr="data-inventory-id=${dto.inventoryId}"
-                        class="size-btn">
-                </button>
+                        class="size-button"></button>
             </div>
         </div>
 
         <!-- 수량 선택 -->
         <div class="quantity-selection">
             <label for="quantity">수량</label>
-            <input type="number" id="quantity" name="quantity" value="1" min="1" />
+            <input type="number" id="quantity" name="quantity" value="1" min="1" class="quantity-input" />
         </div>
 
-        <!-- 장바구니 버튼 -->
+        <!-- 액션 버튼 -->
         <div class="action-buttons">
-            <button type="button" class="add-cart-btn">장바구니에 담기</button>
+            <button type="button" class="add-to-cart-btn">🛒 장바구니 담기</button>
+            <button type="button" class="buy-now-btn">⚡ 바로 주문하기</button>
         </div>
     </section>
-
 </main>
 
 <script>
-    // 선택된 상품 옵션(ProductManagement PK)
     let selectedInventoryId = null;
 
-    // 사이즈 버튼 클릭 이벤트
-    document.querySelectorAll(".size-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-            // 기존 선택 해제
-            document.querySelectorAll(".size-btn").forEach(b => b.classList.remove("selected"));
-            // 클릭한 버튼 선택
-            btn.classList.add("selected");
-            // ProductManagement PK 저장
-            selectedInventoryId = btn.getAttribute("data-inventory-id");
-        });
+    // 사이즈 선택
+    document.querySelector(".size-options").addEventListener("click", (e) => {
+        const btn = e.target.closest(".size-button");
+        if (!btn) return;
+
+        document.querySelectorAll(".size-button").forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        selectedInventoryId = btn.getAttribute("data-inventory-id");
     });
 
-    // 장바구니 담기 이벤트
-    document.querySelector(".add-cart-btn").addEventListener("click", () => {
-        const quantity = parseInt(document.getElementById("quantity").value);
-
-        if (!selectedInventoryId) {
-            alert("사이즈를 선택해주세요.");
-            return;
-        }
-
-        if (quantity < 1) {
-            alert("수량은 1개 이상이어야 합니다.");
-            return;
-        }
-
-        fetch(`/api/v1/cart/add/${selectedInventoryId}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            credentials: "include",
-            body: JSON.stringify({ quantity: quantity })
-        })
-        .then(res => {
-            if (!res.ok) throw new Error("서버 오류");
-            return res.text();
-        })
-        .then(msg => {
-            alert(msg);
-            window.location.href = "/cart";
-        })
-        .catch(err => alert("장바구니 추가 실패: " + err.message));
-    });
-
-    // JWT AccessToken을 쿠키에서 가져오는 함수
-    function getAccessTokenFromCookie() {
-        const name = "accessToken=";
-        const decodedCookie = decodeURIComponent(document.cookie);
-        const ca = decodedCookie.split(';');
-        for(let i = 0; i < ca.length; i++) {
-            let c = ca[i].trim();
-            if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
-        }
-        return "";
+    // 회원 정보 가져오기
+    async function fetchMemberInfo() {
+        const res = await fetch('/api/v1/member/me', { credentials: 'include' });
+        if (!res.ok) throw new Error("회원 정보 조회 실패");
+        return res.json();
     }
-</script>
 
-</body>
-</html>
+    // 장바구니 담기
+    document.querySelector(".add-cart-btn").addEventListener("click", async () => {
+        const quantity = parseInt(document.getElementById("quantity").value);
+        if (!selectedInventoryId) return alert("사이즈를 선택해주세요.");
+
+        try {
+            const res = await fetch(`/api/v1/cart/add/${selectedInventoryId}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({ quantity })
+            });
+            if (!res.ok) throw new Error("장바구니 추가 실패");
+            alert(await res.text());
+            location.href = "/cart";
+        } catch (err) { alert(err.message); }
+    });
+
+    // 바로 주문
+    document.querySelector(".order-now-btn").addEventListener("click", async () => {
+        if (!selectedInventoryId) return alert("사이즈를 선택해주세요.");
+        const quantity = parseInt(document.getElementById("quantity").value);
+        if (quantity < 1) return alert("수량은 1개 이상이어야 합니다.");
+
+        const memberInfo = await fetchMemberInfo();
+        const productName = document.querySelector(".product-name").innerText;
+        const size = document.querySelector(".size-btn.selected").innerText;
+        const image = document.querySelector(".main-image").getAttribute("src");
+        const priceText = document.querySelector(".discounted-price").innerText.replace(/[₩,]/g,'');
+        const price = parseInt(priceText, 10);
+
+        const orderDto = {
+            memberId: memberInfo.memberId,
+            totalPrice: price * quantity,
+            ordererName: memberInfo.username,
+            phoneNumber: memberInfo.phoneNumber,
+            productNames: [productName],
+            productSizes: [size],
+            productImages: [image],
+            productQuantities: [quantity]
+        };
+
+        sessionStorage.setItem("orderDto", JSON.stringify(orderDto));
+        location.href = "/tempOrder";
+    });
+</script>
