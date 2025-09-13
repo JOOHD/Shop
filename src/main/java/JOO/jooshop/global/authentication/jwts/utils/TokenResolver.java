@@ -2,9 +2,12 @@ package JOO.jooshop.global.authentication.jwts.utils;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.Cookie;
+import org.springframework.stereotype.Component;
+
 import java.util.Arrays;
 import java.util.Optional;
 
+@Component
 public class TokenResolver {
 
     public static Optional<String> resolveTokenFromHeader(HttpServletRequest request) {

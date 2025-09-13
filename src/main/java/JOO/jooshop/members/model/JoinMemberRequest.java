@@ -18,7 +18,7 @@ public class JoinMemberRequest {
     private String nickname;
 
     @NotBlank
-    private String phone;
+    private String phoneNumber;
 
     @NotBlank
     private String password1;

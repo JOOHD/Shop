@@ -17,7 +17,9 @@ public class CustomMemberDto {
     private Long memberId;
     private String email;
     private String username;
+    private String ordererName;         // 화면에 표시할 이름 필드
     private String password;
+    private String phoneNumber;
     private MemberRole memberRole;
 
     private boolean active;             // 계정 활성화 여부
@@ -34,8 +36,10 @@ public class CustomMemberDto {
         return CustomMemberDto.builder()
                 .memberId(member.getId())
                 .email(member.getEmail())
-                .username(member.getUsername())
+                .username(member.getUsername())         // 로그인용
+                .ordererName(member.getUsername())      // 화면용 표시 이름
                 .password(member.getPassword())
+                .phoneNumber(member.getPhoneNumber())   // 전화번호 추가
                 .memberRole(member.getMemberRole())
                 .active(member.isActive())
                 .banned(member.isBanned())
@@ -51,7 +55,7 @@ public class CustomMemberDto {
         return CustomMemberDto.builder()
                 .memberId(member.getId())
                 .email(member.getEmail())
-                .username(member.getUsername())
+                .ordererName(member.getUsername())
                 .password(member.getPassword())
                 .memberRole(member.getMemberRole())
                 .active(member.isActive())
@@ -68,7 +72,7 @@ public class CustomMemberDto {
         return CustomMemberDto.builder()
                 .memberId(member.getId())
                 .email(member.getEmail())
-                .username(member.getUsername())
+                .ordererName(member.getUsername())
                 .password(member.getPassword())
                 .memberRole(member.getMemberRole())
                 .active(false)
@@ -100,7 +104,7 @@ public class CustomMemberDto {
         return CustomMemberDto.builder()
                 .memberId(memberId)
                 .email(email)
-                .username(username)
+                .ordererName(username)
                 .password(password)
                 .memberRole(role)
                 .active(true)

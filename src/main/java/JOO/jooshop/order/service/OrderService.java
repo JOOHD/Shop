@@ -108,7 +108,7 @@ public class OrderService {
         return Orders.builder()
                 .member(member)
                 .ordererName(member.getUsername())
-                .phoneNumber(member.getPhone())
+                .phoneNumber(member.getPhoneNumber())
                 .productName(String.join(",", productNames))
                 .productManagements(orderProducts.stream().map(OrderProduct::getProductManagement).toList())
                 .totalPrice(totalPrice)

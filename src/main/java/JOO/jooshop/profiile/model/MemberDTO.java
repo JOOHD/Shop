@@ -14,7 +14,7 @@ public class MemberDTO {
     private String email;
     private String username;
     private String nickname;
-    private String phone;
+    private String phoneNumber;
     private MemberRole member_role;
     private SocialType social_type;
     private Boolean is_active;
@@ -27,7 +27,7 @@ public class MemberDTO {
              String email,
              String username,
              String nickname,
-             String phone,
+             String phoneNumber,
              MemberRole member_role,
              SocialType social_type,
              Boolean is_active,
@@ -39,7 +39,7 @@ public class MemberDTO {
         this.email = email;
         this.username = username;
         this.nickname = nickname;
-        this.phone = phone;
+        this.phoneNumber = phoneNumber;
         this.member_role = member_role;
         this.social_type = social_type;
         this.is_active = is_active;
@@ -48,12 +48,23 @@ public class MemberDTO {
         this.joined_at = joined_at;
     }
 
+    /* MemberController getCurrentMember method */
+    public MemberDTO
+            (Long id,
+            String username,
+            String phoneNumber)
+    {
+        this.id = id;
+        this.username = username;
+        this.phoneNumber = phoneNumber;
+    }
+
     public static MemberDTO createMemberDto(Member member) {
         return new MemberDTO(member.getId(),
                              member.getEmail(),
                              member.getUsername(),
                              member.getNickname(),
-                             member.getPhone(),
+                             member.getPhoneNumber(),
                              member.getMemberRole(),
                              member.getSocialType(),
                              member.isActive(),

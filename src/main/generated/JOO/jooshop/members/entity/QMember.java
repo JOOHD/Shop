@@ -48,7 +48,7 @@ public class QMember extends EntityPathBase<Member> {
 
     public final ListPath<JOO.jooshop.payment.entity.PaymentHistory, JOO.jooshop.payment.entity.QPaymentHistory> paymentHistories = this.<JOO.jooshop.payment.entity.PaymentHistory, JOO.jooshop.payment.entity.QPaymentHistory>createList("paymentHistories", JOO.jooshop.payment.entity.PaymentHistory.class, JOO.jooshop.payment.entity.QPaymentHistory.class, PathInits.DIRECT2);
 
-    public final StringPath phone = createString("phone");
+    public final StringPath phoneNumber = createString("phoneNumber");
 
     public final StringPath socialId = createString("socialId");
 

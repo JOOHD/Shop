@@ -50,8 +50,8 @@
 
         <!-- 액션 버튼 -->
         <div class="action-buttons">
-            <button type="button" class="add-to-cart-btn">🛒 장바구니 담기</button>
-            <button type="button" class="buy-now-btn">⚡ 바로 주문하기</button>
+            <button type="button" class="add-to-cart-btn">장바구니 담기</button>
+            <button type="button" class="buy-now-btn">바로 주문하기</button>
         </div>
     </section>
 </main>
@@ -77,7 +77,7 @@
     }
 
     // 장바구니 담기
-    document.querySelector(".add-cart-btn").addEventListener("click", async () => {
+    document.querySelector(".add-to-cart-btn").addEventListener("click", async () => {
         const quantity = parseInt(document.getElementById("quantity").value);
         if (!selectedInventoryId) return alert("사이즈를 선택해주세요.");
 
@@ -95,11 +95,12 @@
     });
 
     // 바로 주문
-    document.querySelector(".order-now-btn").addEventListener("click", async () => {
+    document.querySelector(".buy-now-btn").addEventListener("click", async () => {
         if (!selectedInventoryId) return alert("사이즈를 선택해주세요.");
         const quantity = parseInt(document.getElementById("quantity").value);
         if (quantity < 1) return alert("수량은 1개 이상이어야 합니다.");
 
+        // 회원 정보 API 호출
         const memberInfo = await fetchMemberInfo();
         const productName = document.querySelector(".product-name").innerText;
         const size = document.querySelector(".size-btn.selected").innerText;

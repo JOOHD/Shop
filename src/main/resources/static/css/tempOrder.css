@@ -47,9 +47,22 @@
 
 .product-size,
 .product-quantity,
-.product-price {
+.product-price,
+.product-original-price,
+.product-discount-rate {
     font-size: 14px;
     margin-bottom: 2px;
+}
+
+/* ====== 원가격 & 할인율 스타일 ====== */
+.product-original-price {
+    color: #888;
+    text-decoration: line-through;
+}
+
+.product-discount-rate {
+    color: #ff4d4f;
+    font-weight: bold;
 }
 
 /* ====== 결제 요약 ====== */

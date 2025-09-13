@@ -31,6 +31,9 @@
 </div>
 
 <script>
+    
+    // ✅ withAuth: JWT 쿠키 기반 인증 요청용 설정
+    // credentials: 'include' 로 쿠키 전송
     function withAuth(init={}) {
         return Object.assign({
             credentials: 'include',
@@ -39,15 +42,20 @@
         }, init);
     }
 
+    
+    // ✅ 장바구니 조회
     async function fetchCartItems() {
         const res = await fetch('/api/v1/cart/my', withAuth());
         if (!res.ok) throw new Error("장바구니 조회 실패");
-
         const data = await res.json();
-        renderCart(data.cartItems, data.memberId);
+        renderCart(data.cartItems);
     }
 
-    function renderCart(cartItems, memberId) {
+    
+    // ✅ 장바구니 렌더링
+    // 원가격/할인율/총금액 표시
+    // 수량 변경/삭제/전체 선택 기능 포함
+    function renderCart(cartItems) {
         const container = document.getElementById('cart-items');
         container.innerHTML = '';
 
@@ -66,9 +74,13 @@
                 <div class="product-info">
                     <strong>${item.productName}</strong><br/>
                     <small>사이즈: ${item.size}</small>
+                    <small>주문자: ${item.memberName}</small><br/>
+                    <small>전화번호: ${item.phoneNumber}</small>
                 </div>
                 <div class="price-info">
-                    <span class="final-price">${Number(item.finalPrice).toLocaleString()}원</span><br/>
+                    <span class="original-price">${Number(item.originalPrice).toLocaleString()}원</span>
+                    <span class="discount-rate">${item.discountRate}% 할인</span>
+                    <span class="final-price">${Number(item.finalPrice).toLocaleString()}원</span>
                     <input type="number" min="1" value="${item.quantity}" onchange="updateCount(${item.id}, this.value)" />
                     <button onclick="deleteCartItem(${item.id})">삭제</button><br/>
                     <span class="total-price">총액: ${Number(item.totalPrice).toLocaleString()}원</span>
@@ -77,59 +89,67 @@
             container.appendChild(div);
         });
 
-        document.getElementById('order-now').onclick = () => handleOrderNow(memberId);
+        
+        // ✅ 주문하기 클릭 시 tempOrder.html로 이동
+        // 선택 상품만 sessionStorage에 담음
+        document.getElementById('order-now').onclick = handleOrderNow;
         calculatePrice();
     }
 
+    
+    // ✅ 수량 변경
     function updateCount(cartId, newCount) {
-        if (newCount < 1) {
-            alert('수량은 1 이상이어야 합니다.');
-            fetchCartItems();
-            return;
-        }
-
-        fetch(`/api/v1/cart/${cartId}`, withAuth({
-            method: 'PUT',
-            body: JSON.stringify({ quantity: parseInt(newCount, 10) })
-        }))
-        .then(res => res.ok ? res.json() : Promise.reject('수량 변경 실패'))
-        .then(() => fetchCartItems())
-        .catch(err => { alert(err); fetchCartItems(); });
+        if (newCount < 1) { alert('수량은 1 이상이어야 합니다.'); fetchCartItems(); return; }
+        fetch(`/api/v1/cart/${cartId}`, withAuth({ method:'PUT', body:JSON.stringify({ quantity: parseInt(newCount, 10) }) }))
+            .then(res => res.ok ? fetchCartItems() : Promise.reject('수량 변경 실패'))
+            .catch(err => { alert(err); fetchCartItems(); });
     }
 
+    
+    // ✅ 개별 삭제
     function deleteCartItem(cartId) {
         if (!confirm('삭제하시겠습니까?')) return;
-
-        fetch(`/api/v1/cart/${cartId}`, withAuth({ method: 'DELETE' }))
+        fetch(`/api/v1/cart/${cartId}`, withAuth({ method:'DELETE' }))
             .then(res => res.ok ? fetchCartItems() : Promise.reject('삭제 실패'))
             .catch(err => alert(err));
     }
 
-    async function handleOrderNow(memberId) {
+    
+    // ✅ 주문하기 클릭 이벤트
+    // - JWT 쿠키로 로그인 사용자 정보 확인
+    // - 선택 상품만 sessionStorage에 저장
+    async function handleOrderNow() {
         const selectedItems = [...document.querySelectorAll('.item-select:checked')];
         if (!selectedItems.length) return alert('선택된 상품이 없습니다.');
 
-        const res = await fetch('/api/v1/member/me', withAuth());
-        const memberInfo = await res.json();
+        let memberInfo;
+        try {
+            const res = await fetch('/api/v1/members/me', withAuth());
+            if (!res.ok) throw new Error('회원 정보 불러오기 실패');
+            memberInfo = await res.json();
+        } catch(e) { alert(e); return; }
 
         const orderProducts = selectedItems.map(cb => {
             const itemDiv = cb.closest('.cart-item');
             return {
                 cartId: parseInt(cb.dataset.cartId),
                 name: itemDiv.querySelector('.product-info strong').textContent,
-                size: itemDiv.querySelector('.product-info small').textContent.replace('사이즈: ', ''),
+                size: itemDiv.querySelector('.product-info small').textContent.replace('사이즈: ',''),
                 image: itemDiv.querySelector('img').src,
-                quantity: parseInt(itemDiv.querySelector('input[type="number"]').value, 10),
-                price: parseInt(itemDiv.querySelector('.total-price').textContent.replace(/[^0-9]/g,''), 10)
+                quantity: parseInt(itemDiv.querySelector('input[type=number]').value, 10),
+                originalPrice: parseInt(itemDiv.querySelector('.original-price').textContent.replace(/[^0-9]/g,''),10),
+                discountRate: parseInt(itemDiv.querySelector('.discount-rate').textContent.replace(/[^0-9]/g,''),10),
+                finalPrice: parseInt(itemDiv.querySelector('.final-price').textContent.replace(/[^0-9]/g,''),10),
+                price: parseInt(itemDiv.querySelector('.total-price').textContent.replace(/[^0-9]/g,''),10)
             };
         });
 
-        const totalPrice = orderProducts.reduce((sum, p) => sum + p.price, 0);
+        const totalPrice = orderProducts.reduce((sum,p)=>sum+p.price,0);
         const deliveryFee = totalPrice >= 50000 ? 0 : 5000;
 
         const orderDto = {
-            memberId: memberInfo.memberId,
-            ordererName: memberInfo.username,
+            memberId: memberInfo.id,
+            ordererName: memberInfo.ordererName,
             phoneNumber: memberInfo.phoneNumber,
             totalPrice: totalPrice + deliveryFee,
             deliveryFee,
@@ -140,34 +160,38 @@
         window.location.href = '/tempOrder';
     }
 
+    
+    // ✅ 합계 계산 및 UI 반영
     function calculatePrice() {
-        let totalPrice = 0;
+        let total = 0;
         document.querySelectorAll('.cart-item').forEach(item => {
-            const totalText = item.querySelector('.total-price').textContent.replace(/[^0-9]/g, '');
-            totalPrice += parseInt(totalText, 10);
+            const totalText = item.querySelector('.total-price').textContent.replace(/[^0-9]/g,'');
+            total += parseInt(totalText,10);
         });
-        updatePriceSummary(totalPrice);
+        updatePriceSummary(total);
     }
 
     function updatePriceSummary(totalPrice) {
         const deliveryFee = totalPrice >= 50000 ? 0 : 5000;
-        document.getElementById('total-price').textContent = totalPrice.toLocaleString() + '원';
-        document.getElementById('delivery-fee').textContent = deliveryFee.toLocaleString() + '원';
-        document.getElementById('total-payment').textContent = (totalPrice + deliveryFee).toLocaleString() + '원';
+        document.getElementById('total-price').textContent = totalPrice.toLocaleString()+'원';
+        document.getElementById('delivery-fee').textContent = deliveryFee.toLocaleString()+'원';
+        document.getElementById('total-payment').textContent = (totalPrice+deliveryFee).toLocaleString()+'원';
     }
 
+    
+    // ✅ 선택 삭제 & 전체 선택 기능
     document.getElementById('delete-selected').addEventListener('click', () => {
         const selected = [...document.querySelectorAll('.item-select:checked')];
         if (!selected.length) return alert('선택된 상품이 없습니다.');
         if (!confirm(`${selected.length}건을 삭제하시겠습니까?`)) return;
 
-        Promise.all(selected.map(cb => fetch(`/api/v1/cart/${cb.dataset.cartId}`, withAuth({ method: 'DELETE' }))))
-            .then(() => fetchCartItems())
-            .catch(() => alert('삭제 실패'));
+        Promise.all(selected.map(cb=>fetch(`/api/v1/cart/${cb.dataset.cartId}`,withAuth({method:'DELETE'}))))
+            .then(()=>fetchCartItems())
+            .catch(()=>alert('삭제 실패'));
     });
 
-    document.getElementById('select-all').addEventListener('change', function () {
-        document.querySelectorAll('.item-select').forEach(cb => cb.checked = this.checked);
+    document.getElementById('select-all').addEventListener('change', function() {
+        document.querySelectorAll('.item-select').forEach(cb=>cb.checked=this.checked);
     });
 
     fetchCartItems();

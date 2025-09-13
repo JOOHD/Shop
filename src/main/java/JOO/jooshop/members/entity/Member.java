@@ -40,7 +40,8 @@ public class Member {
 
     private String nickname;
 
-    private String phone;
+    @Column(name = "phone")
+    private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "member_role")
@@ -134,7 +135,7 @@ public class Member {
                 .username(username)
                 .nickname(nickname)
                 .password(password)
-                .phone(phone)
+                .phoneNumber(phone)
                 .memberRole(MemberRole.USER)
                 .socialType(SocialType.GENERAL)
                 .socialId(socialId)
@@ -154,7 +155,7 @@ public class Member {
                 .username(username)
                 .nickname(nickname)
                 .password(password)
-                .phone(phone)
+                .phoneNumber(phone)
                 .memberRole(MemberRole.ADMIN)
                 .socialType(SocialType.GENERAL)
                 .socialId(socialId)

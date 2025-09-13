@@ -51,7 +51,7 @@ public class MemberService {
                 request.getUsername(),
                 request.getNickname(),
                 passwordEncoder.encode(request.getPassword1()),
-                request.getPhone(),
+                request.getPhoneNumber(),
                 socialId);
 
         member.setCertifiedByEmail(true);
@@ -84,7 +84,7 @@ public class MemberService {
                 request.getUsername(),
                 request.getNickname(),
                 passwordEncoder.encode(request.getPassword1()),
-                request.getPhone(),
+                request.getPhoneNumber(),
                 socialId);
 
         admin.activate();

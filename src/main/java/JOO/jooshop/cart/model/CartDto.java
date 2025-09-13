@@ -15,6 +15,8 @@ import java.math.BigDecimal;
 public class CartDto {
     private Long id;                     // 장바구니 ID
     private Long memberId;               // 로그인 사용자 ID
+    private String memberName;           // 주문자명   
+    private String phoneNumber;          // 전화번호
     private String productName;          // 상품명
     private String size;                 // 옵션/사이즈
     private double originalPrice;        // 원가 (단가)
@@ -55,12 +57,14 @@ public class CartDto {
                 .productName(cart.getProductManagement().getProduct().getProductName())
                 .size(cart.getProductManagement().getSize().toString())
                 .originalPrice(unitPrice.doubleValue())          // 원가
-                .discountRate(appliedRate)                      // 할인율
-                .finalPrice(finalPrice.doubleValue())         // 할인 적용된 단가
-                .quantity(quantity)                             // 수량
-                .totalPrice(totalPrice.doubleValue())         // 총액
+                .discountRate(appliedRate)                       // 할인율
+                .finalPrice(finalPrice.doubleValue())            // 할인 적용된 단가
+                .quantity(quantity)                              // 수량
+                .totalPrice(totalPrice.doubleValue())            // 총액
                 .productThumbnailUrl(thumbnailUrl)
                 .memberId(cart.getMember().getId())
+                .memberName(cart.getMember().getUsername())      // 주문자명
+                .phoneNumber(cart.getMember().getPhoneNumber())              // 전화번호
                 .build();
     }
 }
