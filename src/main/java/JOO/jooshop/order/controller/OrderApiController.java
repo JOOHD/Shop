@@ -20,24 +20,30 @@ import java.util.NoSuchElementException;
 @RequiredArgsConstructor
 public class OrderApiController {
 
+    // API : 보안 검증 용도 , View : HTML 렌더링 & JS 데이터 전달 용도
+
     private final OrderService orderService;
     private final RedisOrderRepository redisOrderRepository;
 
-    // @AuthenticationPrincipal : 현재 로그인한 사용자의 인증 정보를 가져오는
-    // API : 보안 검증 용도 , View : HTML 렌더링 & JS 데이터 전달 용도
+    /**
+     * 로그인한 사용자의 Redis 임시 주문 정보를 조회
+     */
     @GetMapping("/temp/{memberId}")
     public ResponseEntity<TemporaryOrderRedis> getTemporaryOrder(
             @PathVariable Long memberId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
+        // @AuthenticationPrincipal : 현재 로그인한 사용자의 인증 정보를 가져오는
         if (!userDetails.getMemberId().equals(memberId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
+        // Redis에서 "tempOrder:{memberId}" 키 조회
         String redisKey = "tempOrder:" + memberId;
         TemporaryOrderRedis tempOrder = redisOrderRepository.findById(redisKey)
                 .orElseThrow(() -> new NoSuchElementException("임시 주문 정보가 없습니다."));
 
+        // 데이터 반환: 주문자 정보 + 선택 상품 정보 + 총액 → 화면 렌더링용
         return ResponseEntity.ok(tempOrder);
     }
 

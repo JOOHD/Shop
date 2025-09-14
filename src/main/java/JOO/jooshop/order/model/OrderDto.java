@@ -34,6 +34,8 @@ public class OrderDto {
     private String detailAddress;
 
     @NotNull(message = "이름은 필수입니다.")
+    private String username;
+
     private String ordererName;
 
     private String phoneNumber;

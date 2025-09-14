@@ -24,66 +24,95 @@
     <p>총 결제금액: <span id="totalPayment">0원</span></p>
 </div>
 
-<button id="proceedToOrder">주문 완료</button>
+<button id="proceedToOrder">결제하기</button>
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        
-        // ✅ sessionStorage에서 임시 주문 DTO 가져오기
-        // null 체크로 오류 방지
-        const tempOrder = JSON.parse(sessionStorage.getItem('orderDto') || '{}');
-        if (!tempOrder || !tempOrder.products) {
-            alert("주문 데이터가 없습니다.");
-            return;
-        }
+    <script>
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        // 1️⃣ 로그인한 사용자 정보 가져오기 (JWT 기반)
+        const memberRes = await fetch("/api/v1/members/me", {
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        if (!memberRes.ok) throw new Error("회원 정보 불러오기 실패");
+        const memberInfo = await memberRes.json();
+        const memberId = memberInfo.id;
 
-        
-        // ✅ 주문자 + 전화번호 표시
+        // 2️⃣ Redis에서 임시 주문 정보 조회
+        const tempRes = await fetch(`/api/v1/order/temp/${memberId}`, {
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        if (!tempRes.ok) throw new Error("임시 주문 정보 불러오기 실패");
+        const tempOrder = await tempRes.json();
+
+        // 3️⃣ 주문자 + 전화번호 표시
         document.getElementById("ordererName").textContent = tempOrder.ordererName || "-";
         document.getElementById("phoneNumber").textContent = tempOrder.phoneNumber || "-";
 
-        
-        // ✅ 상품별 원가격/할인율/할인금액/최종금액 표시
+        // 4️⃣ 상품별 렌더링
         const container = document.getElementById("order-items");
         let html = "";
-        tempOrder.products.forEach(p => {
+        tempOrder.productNames.forEach((name, idx) => {
+            const size = tempOrder.productSizes[idx];
+            const img = tempOrder.productImages[idx];
+            const quantity = tempOrder.productQuantities[idx];
             html += `
             <div class="order-card">
-                <img src="${p.image}" alt="${p.name}" class="order-product-img">
+                <img src="${img}" alt="${name}" class="order-product-img">
                 <div class="order-card-body">
-                    <p class="product-name">${p.name}</p>
-                    <p class="product-size">사이즈: ${p.size}</p>
-                    <p class="product-quantity">수량: ${p.quantity}</p>
-                    <p class="product-price">원가격: ${p.originalPrice.toLocaleString()}원</p>
-                    <p class="product-price">할인율: ${p.discountRate}%</p>
-                    <p class="product-price">할인금액: ${(p.originalPrice-p.finalPrice).toLocaleString()}원</p>
-                    <p class="product-price">최종금액: ${p.finalPrice.toLocaleString()}원</p>
+                    <p class="product-name">${name}</p>
+                    <p class="product-size">사이즈: ${size}</p>
+                    <p class="product-quantity">수량: ${quantity}</p>
                 </div>
             </div>`;
         });
         container.innerHTML = html;
 
+        // 5️⃣ 총 결제금액 표시
+        const deliveryFee = tempOrder.totalPrice >= 50000 ? 0 : 5000; // 예: 5만원 이상 무료배송
         document.getElementById("totalPrice").textContent = tempOrder.totalPrice.toLocaleString() + "원";
-        document.getElementById("deliveryFee").textContent = tempOrder.deliveryFee.toLocaleString() + "원";
-        document.getElementById("totalPayment").textContent = tempOrder.totalPrice.toLocaleString() + "원";
+        document.getElementById("deliveryFee").textContent = deliveryFee.toLocaleString() + "원";
+        document.getElementById("totalPayment").textContent = (tempOrder.totalPrice + deliveryFee).toLocaleString() + "원";
 
-        
-        // ✅ 주문 버튼 클릭 시 서버 POST + sessionStorage 제거
+        // 6️⃣ 결제 버튼 클릭 이벤트
         document.getElementById("proceedToOrder").addEventListener("click", async () => {
             try {
-                const res = await fetch("/api/orders", {
+                // 서버로 보낼 OrderDto 생성
+                const orderDto = {
+                    memberId: tempOrder.memberId,
+                    ordererName: tempOrder.ordererName,
+                    phoneNumber: tempOrder.phoneNumber,
+                    cartIds: tempOrder.cartIds,
+                    postCode: "",      // 필요시 프론트에서 입력
+                    address: "",
+                    detailAddress: "",
+                    payMethod: "CARD"   // 예시
+                };
+
+                // 7️⃣ 주문 확정 API 호출
+                const res = await fetch("/api/v1/order/confirm", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(tempOrder),
+                    body: JSON.stringify(orderDto),
                     credentials: 'include'
                 });
-                if (!res.ok) throw new Error("주문 실패");
+                if (!res.ok) throw new Error("주문 확정 실패");
+
                 alert("주문이 완료되었습니다!");
-                sessionStorage.removeItem("orderDto");
-                window.location.href="/orders/confirmation";
-            } catch(e) { alert(e); }
+                window.location.href = "/orders/confirmation";
+            } catch(e) {
+                alert(e);
+            }
         });
-    });
+
+    } catch (e) {
+        alert(e);
+    }
+});
+</script>
+
 </script>
 
 </body>

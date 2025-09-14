@@ -46,9 +46,9 @@ public class OrderService {
     private final MemberRepositoryV1 memberRepository;
 
     /**
-     * ==========================================
+     
      * createOrder
-     * ==========================================
+     
      * 역할: 장바구니를 기반으로 임시 주문을 생성하고 Redis에 저장
      *
      * 흐름:
@@ -121,9 +121,9 @@ public class OrderService {
     }
 
     /**
-     * ==========================================
+     
      * saveTemporaryOrder
-     * ==========================================
+     
      * 역할: OrderDto + Cart 데이터를 Redis에 임시 저장
      *
      * 흐름:
@@ -178,7 +178,8 @@ public class OrderService {
         TemporaryOrderRedis tempOrder = TemporaryOrderRedis.builder()
                 .id("tempOrder:" + orderDto.getMemberId())
                 .memberId(orderDto.getMemberId())
-                .username(orderDto.getOrdererName())
+                .username(orderDto.getUsername())
+                .ordererName(orderDto.getOrdererName())
                 .phoneNumber(orderDto.getPhoneNumber())
                 .cartIds(cartIds)
                 .productNames(productNames)
@@ -194,9 +195,9 @@ public class OrderService {
     }
 
     /**
-     * ==========================================
+     
      * confirmOrder
-     * ==========================================
+     
      * 역할: 결제 완료 후 Redis 임시 주문 정보를 기반으로
      * Orders와 OrderProduct를 최종 생성하고 DB에 저장
      *
