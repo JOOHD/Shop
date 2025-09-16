@@ -3,6 +3,7 @@ package JOO.jooshop.order.controller;
 import JOO.jooshop.global.authentication.jwts.entity.CustomUserDetails;
 import JOO.jooshop.order.entity.TemporaryOrderRedis;
 import JOO.jooshop.order.model.OrderDto;
+import JOO.jooshop.order.model.TempOrderResponse;
 import JOO.jooshop.order.repository.RedisOrderRepository;
 import JOO.jooshop.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +43,9 @@ public class OrderApiController {
         String redisKey = "tempOrder:" + memberId;
         TemporaryOrderRedis tempOrder = redisOrderRepository.findById(redisKey)
                 .orElseThrow(() -> new NoSuchElementException("임시 주문 정보가 없습니다."));
+
+        // Entity -> DTO 변환 후 반환
+        TempOrderResponse response = new TempOrderResponse(tempOrder);
 
         // 데이터 반환: 주문자 정보 + 선택 상품 정보 + 총액 → 화면 렌더링용
         return ResponseEntity.ok(tempOrder);

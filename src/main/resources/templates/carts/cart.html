@@ -124,7 +124,7 @@
 
         let memberInfo;
         try {
-            const res = await fetch('/api/v1/members/me', withAuth());
+            const res = await fetch('/api/v1/members/member-info', withAuth());
             if (!res.ok) throw new Error('회원 정보 불러오기 실패');
             memberInfo = await res.json();
         } catch(e) { alert(e); return; }
@@ -149,8 +149,8 @@
 
         const orderDto = {
             memberId: memberInfo.id,
-            ordererName: memberInfo.ordererName,
-            phoneNumber: memberInfo.phoneNumber,
+            ordererName: memberInfo.ordererName || memberInfo.username || "-",
+            phoneNumber: orderProducts[0]?.phoneNumber || memberInfo.phoneNumber || "-",
             totalPrice: totalPrice + deliveryFee,
             deliveryFee,
             products: orderProducts

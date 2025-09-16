@@ -3,10 +3,10 @@ package JOO.jooshop.members.controller;
 
 import JOO.jooshop.global.authentication.jwts.entity.CustomUserDetails;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
-import JOO.jooshop.global.authentication.jwts.utils.TokenResolver;
 import JOO.jooshop.global.authorization.MemberAuthorizationUtil;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.entity.enums.MemberRole;
+import JOO.jooshop.members.model.MemberResponse;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
 import JOO.jooshop.members.service.MemberStatusService;
 import JOO.jooshop.profiile.model.MemberDTO;
@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,19 +34,13 @@ public class MemberController {
     private final JWTUtil jwtUtil;
 
     /* JWT 쿠키에서 로그인 사용자 정보 조회 */
-    @GetMapping("/me")
-    public ResponseEntity<?> getCurrentMember(HttpServletRequest request, Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("토큰 없음");
-        }
+    @GetMapping("/member-info")
+    public ResponseEntity<?> getCurrentMember(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long memberId = userDetails.getMemberId();
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("회원 없음"));
 
-        CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
-
-        return ResponseEntity.ok(new MemberDTO(
-           user.getMemberId(),
-           user.getOrdererName(),
-           user.getPhoneNumber()
-        ));
+        return ResponseEntity.ok(MemberResponse.fromMember(member));
     }
 
     /* 회원 리스트 */
