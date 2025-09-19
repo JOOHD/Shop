@@ -72,7 +72,8 @@ public class SecurityConfig {
     private static final String[] ROLE_USER_OR_SELLER = {
             "/api/v1/profile/**",
             "/api/v1/cart/**",
-            "/api/v1/order/**"
+            "/api/v1/order/**",
+            "/api/v1/payment/**"
     };
 
     private static final String[] ROLE_ADMIN = {

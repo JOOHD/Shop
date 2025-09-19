@@ -103,6 +103,10 @@ public class PaymentService {
 
         // 결제 내역 생성 및 저장 (상품별)
         createPaymentHistories(response, orderProducts, order, member);
+
+        // Redis 데이터 삭제
+        redisTemplate.delete("cartIds:" + member.getId());
+        redisTemplate.delete("tempOrder:" + member.getId());
     }
 
     /**

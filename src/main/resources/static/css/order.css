@@ -1,7 +1,7 @@
 /* ======================= 기본 바디 스타일 ======================= */
 body {
     font-family: 'Noto Sans KR', sans-serif;
-    background-color: #f8f9fa;
+    background-color: #f4f4f4;
     color: #212529;
     margin: 0;
     padding: 0;
@@ -10,25 +10,25 @@ body {
 /* ======================= 주문서 컨테이너 ======================= */
 form#orderForm {
     max-width: 800px;
-    margin: 30px auto 80px auto;
+    margin: 40px auto 80px auto;
     background-color: #fff;
     padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 25px;
 }
 
 /* ======================= 입력 카드 ======================= */
 .input-card {
-    background-color: #fef2f2;
-    padding: 15px 20px;
-    border-radius: 8px;
-    border: 1px solid #f5c2c2;
+    background-color: #fff0f0; /* 연한 레드 계열 */
+    padding: 18px 22px;
+    border-radius: 10px;
+    border: 1px solid #f2c2c2;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
 }
 
 .input-card label {
@@ -36,11 +36,12 @@ form#orderForm {
     color: #495057;
 }
 
+/* 공통 input / select 스타일 */
 form#orderForm input,
 form#orderForm select {
-    padding: 12px 15px;
+    padding: 14px 16px;
     border: 1px solid #ced4da;
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 14px;
     transition: border-color 0.3s, box-shadow 0.3s;
 }
@@ -48,8 +49,8 @@ form#orderForm select {
 form#orderForm input:focus,
 form#orderForm select:focus {
     outline: none;
-    border-color: #DA291C;
-    box-shadow: 0 0 0 0.2rem rgba(218,41,28,0.25);
+    border-color: #8b1c1c; /* 와인 레드 포인트 */
+    box-shadow: 0 0 0 0.2rem rgba(139,28,28,0.2);
 }
 
 input[readonly] {
@@ -59,68 +60,77 @@ input[readonly] {
 }
 
 /* ======================= 결제 버튼 ======================= */
-form#orderForm button[type="submit"] {
+form#orderForm button[type="button"] {
     width: 100%;
-    padding: 14px 0;
+    padding: 16px 0;
     font-size: 16px;
     font-weight: 600;
-    border-radius: 8px;
-    background-color: #DA291C;
-    border-color: #DA291C;
+    border-radius: 10px;
+    background-color: #8b1c1c; /* 와인 레드 */
+    border: none;
     color: #fff;
     transition: all 0.3s;
 }
 
-form#orderForm button[type="submit"]:hover {
-    background-color: #a71d16;
-    border-color: #a71d16;
+form#orderForm button[type="button"]:hover {
+    background-color: #5e1212;
 }
 
-/* ======================= 상품 요약 카드 ======================= */
-.order-summary-card {
+/* ======================= 주문 요약 카드 ======================= */
+#orderSummary {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.order-card {
     display: flex;
     gap: 15px;
     border: 1px solid #e9ecef;
-    border-radius: 10px;
+    border-radius: 12px;
     overflow: hidden;
     margin-bottom: 20px;
+    background-color: #fff;
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.order-summary-card:hover {
+.order-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
 }
 
-.order-summary-card img {
+.order-card img {
     width: 120px;
     height: 120px;
     object-fit: cover;
+    border-right: 1px solid #e9ecef;
 }
 
-.order-summary-card .card-body {
+.order-card div {
     padding: 15px 20px;
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: center;
 }
 
-.order-summary-card .product-name {
+.order-card .product-name {
     font-weight: 600;
     font-size: 1rem;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
 }
 
-.order-summary-card .product-price {
-    font-weight: 700;
-    color: #DA291C;
-    font-size: 1.1rem;
-}
-
-.order-summary-card .product-quantity {
-    font-size: 0.9rem;
+.order-card .product-size,
+.order-card .product-quantity {
+    font-size: 0.95rem;
     color: #495057;
+    margin-bottom: 3px;
+}
+
+.order-card .product-price {
+    font-weight: 700;
+    color: #8b1c1c;
+    font-size: 1.1rem;
 }
 
 /* ======================= 총 결제 금액 강조 ======================= */
@@ -128,7 +138,7 @@ form#orderForm button[type="submit"]:hover {
     text-align: right;
     font-size: 1.3rem;
     font-weight: 700;
-    color: #DA291C;
+    color: #8b1c1c;
     margin-top: 10px;
 }
 
@@ -136,23 +146,25 @@ form#orderForm button[type="submit"]:hover {
 @media (max-width: 576px) {
     form#orderForm {
         padding: 20px;
-        gap: 15px;
+        gap: 18px;
     }
 
-    .order-summary-card {
+    .order-card {
         flex-direction: column;
         align-items: center;
         text-align: center;
     }
 
-    .order-summary-card img {
+    .order-card img {
         width: 100%;
         height: auto;
+        border-right: none;
+        border-bottom: 1px solid #e9ecef;
     }
 
     form#orderForm input,
     form#orderForm select,
-    form#orderForm button[type="submit"] {
+    form#orderForm button[type="button"] {
         font-size: 14px;
         padding: 12px 0;
     }
