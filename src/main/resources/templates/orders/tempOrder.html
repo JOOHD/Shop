@@ -27,80 +27,66 @@
 <button id="proceedToOrder">주문하기</button>
 
 <script>
-    document.addEventListener("DOMContentLoaded", async () => { // ✅ async로 변경
+document.addEventListener("DOMContentLoaded", async () => { // ✅ async로 변경
+    try {
+        // 1️⃣ sessionStorage에서 orderDto 가져오기
+        const orderDto = JSON.parse(sessionStorage.getItem('orderDto'));
+        if (!orderDto) throw new Error("주문 정보가 없습니다.");
+
+        // 2️⃣ DB에서 회원 정보 가져오기 (/member-info 호출)
+        let memberInfo = {};
         try {
-            // 1️⃣ sessionStorage에서 orderDto 가져오기
-            const orderDto = JSON.parse(sessionStorage.getItem('orderDto'));
-            if (!orderDto) throw new Error("주문 정보가 없습니다.");
-
-            // 2️⃣ DB에서 회원 정보 가져오기 (/member-info 호출)
-            let memberInfo = {};
-            try {
-                const res = await fetch('/api/v1/members/member-info', { credentials: 'include' });
-                if (!res.ok) throw new Error('회원 정보 조회 실패');
-                memberInfo = await res.json();
-            } catch(e) {
-                console.warn("DB에서 회원 정보 불러오기 실패, sessionStorage 값 사용", e);
-                memberInfo = {
-                    ordererName: orderDto.ordererName || "-",
-                    phoneNumber: orderDto.phoneNumber || "-"
-                };
-            }
-
-            // 3️⃣ 주문자 정보 표시
-            document.getElementById("ordererName").textContent = memberInfo.ordererName;
-            document.getElementById("phoneNumber").textContent = memberInfo.phoneNumber;
-
-            // 4️⃣ 상품별 렌더링
-            const container = document.getElementById("order-items");
-            let html = "";
-            if (orderDto.products && orderDto.products.length > 0) {
-                orderDto.products.forEach(p => {
-                    html += `
-                    <div class="order-card">
-                        <img src="${p.image || '/img/no-image.png'}" alt="${p.name}" class="order-product-img">
-                        <div class="order-card-body">
-                            <p class="product-name">${p.name}</p>
-                            <p class="product-size">사이즈: ${p.size}</p>
-                            <p class="product-quantity">수량: ${p.quantity}</p>
-                            <p class="product-price">총액: ${p.price.toLocaleString()}원</p>
-                        </div>
-                    </div>`;
-                });
-            } else {
-                html = "<p>주문한 상품이 없습니다.</p>";
-            }
-            container.innerHTML = html;
-
-            // 5️⃣ 총 결제금액 표시
-            const deliveryFee = orderDto.totalPrice >= 50000 ? 0 : 5000;
-            document.getElementById("totalPrice").textContent = orderDto.totalPrice.toLocaleString() + "원";
-            document.getElementById("deliveryFee").textContent = deliveryFee.toLocaleString() + "원";
-            document.getElementById("totalPayment").textContent = (orderDto.totalPrice + deliveryFee).toLocaleString() + "원";
-
-            // 6️⃣ 결제 버튼 클릭 이벤트
-            document.getElementById("proceedToOrder").addEventListener("click", async () => {
-                try {
-                    const res = await fetch("/api/v1/order/confirm", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(orderDto),
-                        credentials: 'include'
-                    });
-                    if (!res.ok) throw new Error("주문 확정 실패");
-
-                    alert("주문이 완료되었습니다!");
-                    sessionStorage.removeItem('orderDto');
-                    window.location.href = "/orders/confirmation";
-                } catch(e) {
-                    alert(e);
-                }
-            });
-
-        } catch (e) {
-            alert(e);
+            const res = await fetch('/api/v1/members/member-info', { credentials: 'include' });
+            if (!res.ok) throw new Error('회원 정보 조회 실패');
+            memberInfo = await res.json();
+        } catch(e) {
+            console.warn("DB에서 회원 정보 불러오기 실패, sessionStorage 값 사용", e);
+            memberInfo = {
+                ordererName: orderDto.ordererName || "-",
+                phoneNumber: orderDto.phoneNumber || "-"
+            };
         }
-    });
+
+        // 3️⃣ 주문자 정보 표시
+        document.getElementById("ordererName").textContent = memberInfo.ordererName;
+        document.getElementById("phoneNumber").textContent = memberInfo.phoneNumber;
+
+        // 4️⃣ 상품별 렌더링
+        const container = document.getElementById("order-items");
+        let html = "";
+        if (orderDto.products && orderDto.products.length > 0) {
+            orderDto.products.forEach(p => {
+                html += `
+                <div class="order-card">
+                    <img src="${p.image || '/img/no-image.png'}" alt="${p.name}" class="order-product-img">
+                    <div class="order-card-body">
+                        <p class="product-name">${p.name}</p>
+                        <p class="product-size">사이즈: ${p.size}</p>
+                        <p class="product-quantity">수량: ${p.quantity}</p>
+                        <p class="product-price">총액: ${p.price.toLocaleString()}원</p>
+                    </div>
+                </div>`;
+            });
+        } else {
+            html = "<p>주문한 상품이 없습니다.</p>";
+        }
+        container.innerHTML = html;
+
+        // 5️⃣ 총 결제금액 표시
+        const deliveryFee = orderDto.totalPrice >= 50000 ? 0 : 5000;
+        document.getElementById("totalPrice").textContent = orderDto.totalPrice.toLocaleString() + "원";
+        document.getElementById("deliveryFee").textContent = deliveryFee.toLocaleString() + "원";
+        document.getElementById("totalPayment").textContent = (orderDto.totalPrice + deliveryFee).toLocaleString() + "원";
+
+        // 6️⃣ 주문 페이지로 이동
+        document.getElementById("proceedToOrder").addEventListener("click", () => {
+            window.location.href = "/order"; // order.html 페이지
+        });
+
+    } catch (e) {
+        alert(e);
+    }
+});
 </script>
 
 </body>

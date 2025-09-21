@@ -6,6 +6,7 @@ import JOO.jooshop.order.model.OrderDto;
 import JOO.jooshop.order.model.TempOrderResponse;
 import JOO.jooshop.order.repository.RedisOrderRepository;
 import JOO.jooshop.order.service.OrderService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -55,7 +56,7 @@ public class OrderApiController {
      * 장바구니 선택 후 주문 생성 -> Redis에 임시 주문 저장
      */
     @PostMapping("/create")
-    public ResponseEntity<String> createOrder(@RequestBody OrderDto orderDto,
+    public ResponseEntity<String> createOrder(@Valid @RequestBody OrderDto orderDto,
                                               @AuthenticationPrincipal CustomUserDetails userDetails) {
         orderService.createOrder(orderDto.getCartIds(), orderDto);
         return ResponseEntity.ok("임시 주문이 Redis에 저장되었습니다.");

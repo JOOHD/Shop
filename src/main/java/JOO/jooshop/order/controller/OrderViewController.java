@@ -15,5 +15,14 @@ public class OrderViewController {
         model.addAttribute("memberId", userDetails.getMemberId());
         return "orders/tempOrder";
     }
+
+    @GetMapping("/order")
+    public String orderPage(Model model, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        // 로그인된 사용자 정보 세팅
+        model.addAttribute("username", userDetails.getUsername());
+        model.addAttribute("phoneNumber", userDetails.getPhoneNumber());
+
+        return "orders/order";
+    }
 }
 

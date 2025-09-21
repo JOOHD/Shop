@@ -90,29 +90,32 @@
 
         // 3️⃣ 상품 카드 생성
         let cardsHtml = '';
-        if(orderDto.productNames && orderDto.productNames.length > 0){
-            for(let i=0; i<orderDto.productNames.length; i++){
-                const name = orderDto.productNames[i];
-                const size = orderDto.productSizes[i] || "-";
-                const img = orderDto.productImages[i]
-                            ? `<img src="${orderDto.productImages[i]}" alt="${name}" class="img-thumbnail me-2" style="width:50px;">`
-                            : '';
-                const quantity = orderDto.cartIds && orderDto.cartIds[i] ? 1 : 1;
+        if(orderDto.products && orderDto.products.length > 0){
+                const imgTag = p.image ? `<img src="${p.image}" alt="${p.name}" class="img-thumbnail me-2" style="width:50px;">`
+                                : `<img src="/img/no-image.png" alt="no image" class="img-thumbnail me-2" style="width:50px;">`;
+                const size = p.size || "-";
+                const quantity = p.quantity || 1;
+                const price = p.price || 0;
+
                 cardsHtml += `
-                    <div class="order-card mb-3 p-3 border rounded d-flex align-items-center">
-                        ${img}
-                        <div>
-                            <div><strong>상품명:</strong> ${name}</div>
-                            <div><strong>사이즈:</strong> ${size}</div>
-                            <div><strong>수량:</strong> ${quantity}</div>
-                        </div>
+                <div class="order-card mb-3 p-3 border rounded d-flex align-items-center">
+                    ${imgTag}
+                    <div>
+                        <div><strong>상품명:</strong> ${p.name}</div>
+                        <div><strong>사이즈:</strong> ${size}</div>
+                        <div><strong>수량:</strong> ${quantity}</div>
+                        <div><strong>총액:</strong> ${price.toLocaleString()}원</div>
                     </div>
-                `;
-            }
-        }
+                </div>
+            `;
+        });
+    } else {
+        cardsHtml = "<p>주문한 상품이 없습니다.</p>";
+    }
+    summaryDiv.innerHTML = cardsHtml;
 
         // 4️⃣ 구매자 정보 세팅
-        document.getElementById("ordererName").value = orderDto.username || "";
+        document.getElementById("ordererName").value = orderDto.ordererName || orderDto.username || "";
         document.getElementById("phoneNumber").value = orderDto.phoneNumber || "";
         document.getElementById("postCode").value = orderDto.postCode || "";
         document.getElementById("address").value = orderDto.address || "";
@@ -134,7 +137,7 @@
 
             // 아임포트 결제 요청
             const IMP = window.IMP;
-            IMP.init("imp00000000"); // TODO: 아임포트 가맹점 코드
+            IMP.init("imp05078720"); // TODO: 아임포트 가맹점 코드
             IMP.request_pay({
                 pg: "html5_inicis",
                 pay_method: orderDto.payMethod,
