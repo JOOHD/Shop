@@ -41,7 +41,21 @@ spring:
 
   web:
     resources:
+      cache:
+        period: 0
+      chain:
+        strategy:
+          content:
+            enabled: false
+          fixed:
+            enabled: false
       static-locations: classpath:/static/, file:/static/
+
+      #| YAML 키                                              | 의미            |
+      #| spring.web.resources.cache.period                   | 브라우저 캐시 시간(초) |
+      #| spring.web.resources.chain.strategy.content.enabled | 해시 기반 캐싱 끄기   |
+      #| spring.web.resources.chain.strategy.fixed.enabled   | 파일명 기반 캐싱 끄기  |
+      #| spring.web.resources.static-locations               | 정적 리소스 경로     |
 
   mail:
     host: smtp.naver.com

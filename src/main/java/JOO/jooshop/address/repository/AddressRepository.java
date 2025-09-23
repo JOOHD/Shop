@@ -2,6 +2,7 @@ package JOO.jooshop.address.repository;
 
 import JOO.jooshop.address.entity.Addresses;
 import JOO.jooshop.members.entity.Member;
+import okhttp3.Address;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -19,7 +20,9 @@ public interface AddressRepository extends JpaRepository<Addresses, Long> {
 
     Optional<Addresses> findByAddressId(Long addressId);
 
-    List<Addresses> findAllByMemberId(Long memberId);
+    // DB에 저장된 주소가 있어야 defaultAddress = true 반환
+    // @Query("SELECT a FROM Addresses a WHERE a.member.id = :memberId AND a.defaultAddress = true")
+    Optional<Addresses> findByMemberIdAndIsDefaultAddressIsTrue(Long memberId);
 
     @Transactional
     @Modifying

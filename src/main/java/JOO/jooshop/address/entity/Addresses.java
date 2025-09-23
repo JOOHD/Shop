@@ -4,12 +4,15 @@ package JOO.jooshop.address.entity;
 import JOO.jooshop.address.model.AddressesReqeustDto;
 import JOO.jooshop.members.entity.Member;
 import jakarta.persistence.*;
-import lombok.Getter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@Setter
+@Builder
+@AllArgsConstructor
 @Table(name = "addresses")
 public class Addresses {
 
@@ -47,9 +50,6 @@ public class Addresses {
 
     private LocalDateTime updatedAt;
 
-    public Addresses() {
-    }
-
     public Addresses(String addressName, String recipient, String postCode, String address, String detailAddress, boolean isDefaultAddress, String recipientPhone, Member member, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.addressName = addressName;
         this.recipient = recipient;
@@ -63,32 +63,8 @@ public class Addresses {
         this.updatedAt = updatedAt;
     }
 
-    public void editupdatedAt() {
-        this.updatedAt = LocalDateTime.now();
-    }
-
     // Social Member 생성
     public static Addresses createAddress(AddressesReqeustDto addressesRequstDto, Member member) {
         return new Addresses(addressesRequstDto.getAddressName(), addressesRequstDto.getRecipient(), addressesRequstDto.getPostCode(), addressesRequstDto.getAddress(), addressesRequstDto.getDetailAddress(), addressesRequstDto.isDefaultAddress(), addressesRequstDto.getRecipientPhone(), member, LocalDateTime.now(), LocalDateTime.now());
-    }
-
-    public Addresses updateAddress(AddressesReqeustDto addressDto) {
-        updateFieldsFromDto(addressDto);
-        editupdatedAt();
-        return this;
-    }
-
-    private void updateFieldsFromDto(AddressesReqeustDto addressDto) {
-        this.addressName = addressDto.getAddressName();
-        this.recipient = addressDto.getRecipient();
-        this.postCode = addressDto.getPostCode();
-        this.address = addressDto.getAddress();
-        this.detailAddress = addressDto.getDetailAddress();
-        this.isDefaultAddress = addressDto.isDefaultAddress();
-        this.recipientPhone = addressDto.getRecipientPhone();
-    }
-
-    public void setDefaultAddress(boolean isDefaultAddress) {
-        this.isDefaultAddress = isDefaultAddress;
     }
 }

@@ -19,93 +19,37 @@ public class AddressController {
 
     private final AddressService addressService;
 
-    /**
-     * 특정 회원의 주소 목록을 조회합니다.
-     *
-     * @param memberId 회원 식별자
-     * @return 회원이 등록한 주소 리스트 반환
-     */
+    /* 회원 주소 목록 조회 */
     @GetMapping("/address/{memberId}")
-    public ResponseEntity<List<Addresses>> fetchAddressList(@PathVariable("memberId") Long memberId) {
-        // 회원 본인 여부 검증 (인증/인가)
+    public ResponseEntity<List<Addresses>> fetchAddressList(@PathVariable Long memberId) {
         MemberAuthorizationUtil.verifyUserIdMatch(memberId);
-
         return addressService.fetchAddressList(memberId);
     }
 
-    /**
-     * 특정 회원의 주소를 새로 추가합니다.
-     *
-     * @param memberId  회원 식별자
-     * @param addressDto 등록할 주소 정보
-     * @return 생성된 주소 정보 반환
+    /*
+     * daum 주소 조회 (직접 입력)
+     * 프론트에서 Daum 주소를 가져오든, 수기로 입력하든 상관없이
+     * 서버는 “저장 + 기본 주소 처리 + 검증” 역할이 필요
      */
     @PostMapping("/address/{memberId}")
-    public ResponseEntity<Addresses> createAddress(@PathVariable("memberId") Long memberId, @RequestBody AddressesReqeustDto addressDto) {
-        // 회원 본인 여부 검증
+    public ResponseEntity<Addresses> createAddress(@PathVariable Long memberId,
+                                                   @RequestBody AddressesReqeustDto addressDto) {
         MemberAuthorizationUtil.verifyUserIdMatch(memberId);
-
         return addressService.createAddress(memberId, addressDto);
     }
 
-    /**
-     * 특정 회원의 상세 주소 정보를 조회합니다.
-     *
-     * @param memberId  회원 식별자
-     * @param addressId 주소 식별자
-     * @return 주소 상세 정보 반환
-     */
-    @GetMapping("/address/{memberId}/{addressId}")
-    public ResponseEntity<?> fetchDetailAddress(@PathVariable("memberId") Long memberId, @PathVariable Long addressId) {
-        // 회원 본인 여부 검증
+    /* 기본 주소 조회 */
+    @GetMapping("/address/default/{memberId}")
+    public ResponseEntity<?> fetchDefaultAddress(@PathVariable Long memberId) {
         MemberAuthorizationUtil.verifyUserIdMatch(memberId);
-
-        return addressService.fetchDetailAddress(memberId, addressId);
+        return addressService.fetchDefaultAddress(memberId);
     }
 
-    /**
-     * 특정 회원의 주소 정보를 수정합니다.
-     *
-     * @param memberId   회원 식별자
-     * @param addressId  수정할 주소 식별자
-     * @param addressDto 수정할 주소 정보
-     * @return 수정 결과 반환
-     */
-    @PutMapping("/address/{memberId}/{addressId}")
-    public ResponseEntity<?> updateDetailAddress(@PathVariable("memberId") Long memberId, @PathVariable Long addressId, @RequestBody AddressesReqeustDto addressDto) {
-        // 회원 본인 여부 검증
-        MemberAuthorizationUtil.verifyUserIdMatch(memberId);
-
-        return addressService.updateDetailAddress(memberId, addressId, addressDto);
-    }
-
-    /**
-     * 특정 회원의 주소 정보를 삭제합니다.
-     *
-     * @param memberId  회원 식별자
-     * @param addressId 삭제할 주소 식별자
-     * @return 삭제 결과 반환
-     */
-    @DeleteMapping("/address/{memberId}/{addressId}")
-    public ResponseEntity<?> deleteDetailAddress(@PathVariable("memberId") Long memberId, @PathVariable Long addressId) {
-        // 회원 본인 여부 검증
-        MemberAuthorizationUtil.verifyUserIdMatch(memberId);
-
-        return addressService.deleteDetailAddress(memberId, addressId);
-    }
-
-    /**
-     * 특정 회원의 기본 주소를 설정합니다.
-     *
-     * @param memberId  회원 식별자
-     * @param addressId 기본 주소로 설정할 주소 식별자
-     * @return 기본 주소 설정 결과 반환
-     */
+    /* 기본 주소 설정 */
     @PutMapping("/address/default/{memberId}/{addressId}")
-    public ResponseEntity<?> updateIsDefaultAddress(@PathVariable("memberId") Long memberId, @PathVariable Long addressId) {
-        // 회원 본인 여부 검증
+    public ResponseEntity<?> updateIsDefaultAddress(@PathVariable Long memberId,
+                                                    @PathVariable Long addressId) {
         MemberAuthorizationUtil.verifyUserIdMatch(memberId);
-
         return addressService.setDefaultAddress(memberId, addressId);
     }
 }
