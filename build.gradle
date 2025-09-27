@@ -81,6 +81,8 @@ dependencies {
     annotationProcessor "jakarta.annotation:jakarta.annotation-api"
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
+    // 서버 재시작 없이 반영
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
 }
 
 test{

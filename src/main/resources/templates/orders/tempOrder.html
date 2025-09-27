@@ -1,11 +1,15 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head>
     <meta charset="UTF-8" />
     <title>임시 주문 내역 확인</title>
     <link rel="stylesheet" href="/css/tempOrder.css" />
+    <link rel="stylesheet" href="/css/fragments/header.css" />
 </head>
 <body>
+
+<!-- 헤더 -->
+<div th:replace="~{fragments/header :: header}"></div>
 
 <h2>📝 주문 내역 확인</h2>
 

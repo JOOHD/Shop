@@ -1,11 +1,15 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head>
     <meta charset="UTF-8" />
     <title>장바구니</title>
+    <link rel="stylesheet" href="/css/fragments/header.css" />
     <link rel="stylesheet" href="/css/cart.css" />
 </head>
 <body>
+
+<!-- 헤더 -->
+<div th:replace="~{fragments/header :: header}"></div>
 
 <div class="cart-container">
     <h2>🛒 장바구니</h2>

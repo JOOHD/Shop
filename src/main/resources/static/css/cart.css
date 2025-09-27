@@ -1,4 +1,65 @@
-/* ====== 전체 컨테이너 ====== */
+/* ======================= cart header ======================= */
+.cart-header-bar {
+    height: 70px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    background-color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.cart-header-bar .left-icons,
+.cart-header-bar .right-icons {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.cart-header-bar .left-icons i,
+.cart-header-bar .right-icons i {
+    font-size: 20px;
+    cursor: pointer;
+    color: #111;
+    transition: color 0.2s ease-in-out;
+}
+
+.cart-header-bar .left-icons i:hover,
+.cart-header-bar .right-icons i:hover {
+    color: #DA291C;
+}
+
+.cart-header-bar .header-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.cart-header-bar .logo {
+    height: 40px;
+}
+
+.cart-header-bar .user-icons {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.cart-header-bar .user-icons a {
+    color: #111;
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+}
+
+.cart-header-bar .user-icons a:hover {
+    color: #DA291C;
+}
+
+/* ======================= cart container ======================= */
 .cart-container {
     max-width: 1000px;
     margin: 40px auto;
@@ -9,7 +70,7 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-/* ====== 헤더 ====== */
+/* ======================= cart header(내부) ======================= */
 .cart-header {
     display: flex;
     justify-content: space-between;
@@ -34,7 +95,7 @@
     background-color: #ff7875;
 }
 
-/* ====== 장바구니 아이템 ====== */
+/* ======================= cart item ======================= */
 .cart-item {
     display: flex;
     align-items: center;
@@ -66,7 +127,7 @@
     margin-top: 2px;
 }
 
-/* ====== 가격 정보 ====== */
+/* ======================= price info ======================= */
 .price-info {
     flex: 1;
     text-align: right;
@@ -92,7 +153,6 @@
     background-color: #ff7875;
 }
 
-/* ====== 할인/가격 강조 ====== */
 .price-info .original-price {
     text-decoration: line-through;
     color: #999;
@@ -111,7 +171,7 @@
     font-size: 1.1rem;
 }
 
-/* ====== 장바구니 푸터 ====== */
+/* ======================= cart footer ======================= */
 .cart-footer {
     display: flex;
     justify-content: space-between;
