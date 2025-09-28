@@ -22,7 +22,7 @@ public class OrderDto {
      * 임시 주문/최종 주문 생성 시 서버에서 Redis 또는 DB에서 조회해서 채움
      */
 
-    private Long memberId; // 추가 25.04.22
+    private Long memberId;      // 추가 25.04.22
     private List<Long> cartIds; // 추가 25.04.22 -> 수정 25.09.05 hidden
 
     @NotNull(message = "우편번호는 필수입니다.")

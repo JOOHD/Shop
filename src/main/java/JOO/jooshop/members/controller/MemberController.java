@@ -1,6 +1,5 @@
 package JOO.jooshop.members.controller;
 
-
 import JOO.jooshop.global.authentication.jwts.entity.CustomUserDetails;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.authorization.MemberAuthorizationUtil;
@@ -9,14 +8,12 @@ import JOO.jooshop.members.entity.enums.MemberRole;
 import JOO.jooshop.members.model.MemberResponse;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
 import JOO.jooshop.members.service.MemberStatusService;
-import JOO.jooshop.profiile.model.MemberDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
