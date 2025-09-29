@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 @ValidDiscountRate // 커스텀 유효성 검사 애노테이션 적용
-public class ProductCreateDto {
+public class ProductRequestDto {
     @NotBlank(message = "상품 이름은 필수입니다.")
     private String productName;
     private ProductType productType;
@@ -36,7 +36,7 @@ public class ProductCreateDto {
         Q.Response 가 아닌, Request 클래스에서 왜? 변환 메서드가 필요하지?
 
         1. 클라이언트가 상품 등록 요청을 보냄
-            → ProductCreateDto에 상품 데이터가 담김
+            → ProductRequestDto에 상품 데이터가 담김
 
         2. 서버에서 유효성 검사를 진행
             - 만약 실패하면 → 에러 메시지와 함께 입력했던 데이터가 그대로 다시 클라이언트에 반환되어야 합니다.
@@ -48,7 +48,7 @@ public class ProductCreateDto {
 	    Q.그럼 생성자를 쓰면 값 변경이 아예 안 되잖아?"
             - 그렇기 때문에 변경이 필요한 경우에는 새로운 객체를 만들어 반환하는 방식으로 처리
      */
-    public ProductCreateDto(Product product) {
+    public ProductRequestDto(Product product) {
         this(
                 product.getProductName(),
                 product.getProductType(),

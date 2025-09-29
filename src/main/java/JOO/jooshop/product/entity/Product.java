@@ -3,7 +3,7 @@ package JOO.jooshop.product.entity;
 import JOO.jooshop.contentImgs.entity.ContentImages;
 import JOO.jooshop.payment.entity.PaymentHistory;
 import JOO.jooshop.product.entity.enums.ProductType;
-import JOO.jooshop.product.model.ProductCreateDto;
+import JOO.jooshop.product.model.ProductRequestDto;
 import JOO.jooshop.productManagement.entity.ProductManagement;
 import JOO.jooshop.productThumbnail.entity.ProductThumbnail;
 import JOO.jooshop.wishList.entity.WishList;
@@ -146,28 +146,28 @@ public class Product {
     }
 
     // 상품 생성 메서드에서 사용하는 생성자
-    public Product(ProductCreateDto productCreateDto) {
-        this.productName = productCreateDto.getProductName();
-        this.productType = productCreateDto.getProductType();
-        this.price = productCreateDto.getPrice();
-        this.productInfo = productCreateDto.getProductInfo();
-        this.manufacturer = productCreateDto.getManufacturer();
-        this.isDiscount = productCreateDto.getIsDiscount();
-        this.discountRate = Boolean.TRUE.equals(productCreateDto.getIsDiscount()) ? productCreateDto.getDiscountRate() : null;
-        this.isRecommend = productCreateDto.getIsRecommend();
+    public Product(ProductRequestDto productRequestDto) {
+        this.productName = productRequestDto.getProductName();
+        this.productType = productRequestDto.getProductType();
+        this.price = productRequestDto.getPrice();
+        this.productInfo = productRequestDto.getProductInfo();
+        this.manufacturer = productRequestDto.getManufacturer();
+        this.isDiscount = productRequestDto.getIsDiscount();
+        this.discountRate = Boolean.TRUE.equals(productRequestDto.getIsDiscount()) ? productRequestDto.getDiscountRate() : null;
+        this.isRecommend = productRequestDto.getIsRecommend();
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void updateProduct(ProductCreateDto productCreateDto) {
-        this.productName = productCreateDto.getProductName();
-        this.productType = productCreateDto.getProductType();
-        this.price = productCreateDto.getPrice();
-        this.productInfo = productCreateDto.getProductInfo();
-        this.manufacturer = productCreateDto.getManufacturer();
-        this.isDiscount = productCreateDto.getIsDiscount();
-        this.discountRate = Boolean.TRUE.equals(productCreateDto.getIsDiscount()) ? productCreateDto.getDiscountRate() : null;
-        this.isRecommend = productCreateDto.getIsRecommend();
+    public void updateProduct(ProductRequestDto productRequestDto) {
+        this.productName = productRequestDto.getProductName();
+        this.productType = productRequestDto.getProductType();
+        this.price = productRequestDto.getPrice();
+        this.productInfo = productRequestDto.getProductInfo();
+        this.manufacturer = productRequestDto.getManufacturer();
+        this.isDiscount = productRequestDto.getIsDiscount();
+        this.discountRate = Boolean.TRUE.equals(productRequestDto.getIsDiscount()) ? productRequestDto.getDiscountRate() : null;
+        this.isRecommend = productRequestDto.getIsRecommend();
         this.updatedAt = LocalDateTime.now();
     }
 

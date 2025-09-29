@@ -1,12 +1,12 @@
 package JOO.jooshop.global.validation;
 
-import JOO.jooshop.product.model.ProductCreateDto;
+import JOO.jooshop.product.model.ProductRequestDto ;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-public class DiscountRateValidator implements ConstraintValidator<ValidDiscountRate, ProductCreateDto> {
+public class DiscountRateValidator implements ConstraintValidator<ValidDiscountRate, ProductRequestDto> {
     @Override // 25.04.13 에러 메시지 추가
-    public boolean isValid(ProductCreateDto dto, ConstraintValidatorContext context) {
+    public boolean isValid(ProductRequestDto dto, ConstraintValidatorContext context) {
        Boolean isDiscount = dto.getIsDiscount();
        Integer discountRate = dto.getDiscountRate();
 

@@ -53,19 +53,45 @@
     height: 40px;
 }
 
-/* 로그인 시 유저 아이콘 나열 */
-.user-icons {
+/* USER / ADMIN 공통 아이콘 영역 */
+.user-icons,
+.admin-icons {
     display: flex;
     align-items: center;
     gap: 18px;
 }
 
-.user-icons a {
+/* 각 아이콘 + 텍스트 */
+.user-icons a,
+.admin-icons a {
+    display: flex;
+    flex-direction: column; /* 아이콘 위, 텍스트 아래 */
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
     color: #111;
     text-decoration: none;
     transition: color 0.2s ease-in-out;
 }
 
-.user-icons a:hover {
+/* 아이콘 크기 */
+.user-icons a i,
+.admin-icons a i {
+    font-size: 20px;
+    margin-bottom: 5px;
+}
+
+/* hover 시 강조 */
+.user-icons a:hover,
+.admin-icons a:hover {
     color: #DA291C;
 }
+
+/* 반응형 (작은 화면에서는 텍스트 숨김) */
+@media (max-width: 768px) {
+    .user-icons a span,
+    .admin-icons a span {
+        display: none;
+    }
+}
+

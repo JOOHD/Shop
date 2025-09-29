@@ -6,9 +6,9 @@ import JOO.jooshop.members.entity.enums.MemberRole;
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.entity.ProductColor;
 import JOO.jooshop.product.model.ProductColorDto;
-import JOO.jooshop.product.model.ProductCreateDto;
+import JOO.jooshop.product.model.ProductRequestDto;
 import JOO.jooshop.product.model.ProductDetailDto;
-import JOO.jooshop.product.model.ProductDto;
+import JOO.jooshop.product.model.ProductApiDto;
 import JOO.jooshop.product.repository.ProductColorRepositoryV1;
 import JOO.jooshop.product.repository.ProductRepositoryV1;
 import JOO.jooshop.productManagement.entity.ProductManagement;
@@ -47,7 +47,7 @@ public class ProductServiceV1 {
      * @return productId
      */
     @RequiresRole({MemberRole.ADMIN, MemberRole.SELLER})
-    public Long createProduct(ProductCreateDto requestDto, @Nullable List<MultipartFile> thumbnailImgs, @Nullable List<MultipartFile> contentImgs) {
+    public Long createProduct(ProductRequestDto requestDto, @Nullable List<MultipartFile> thumbnailImgs, @Nullable List<MultipartFile> contentImgs) {
 
         // requestDto.getPrice()가 null이면 null < 0 → NullPointerException 발생함.
         if (requestDto.getPrice() == null) {
@@ -76,10 +76,10 @@ public class ProductServiceV1 {
      * @return
      */
     @Transactional
-    public List<ProductDto> getAllProducts() {
+    public List<ProductApiDto> getAllProducts() {
         List<Product> products = productRepository.findAll();
         return products.stream()
-                .map(ProductDto::new) // new ProductDto(product) 호출됨
+                .map(ProductApiDto::new) // new ProductApiDto(product) 호출됨
                 .collect(Collectors.toList());
     }
 
@@ -128,7 +128,7 @@ public class ProductServiceV1 {
      * @return
      */
     @RequiresRole({MemberRole.ADMIN, MemberRole.SELLER})
-    public Product updateProduct(Long productId, ProductCreateDto updatedDto) {
+    public Product updateProduct(Long productId, ProductRequestDto updatedDto) {
         Product existingProduct = productRepository.findById(productId)
                 .orElseThrow(() -> new NoSuchElementException(PRODUCT_NOT_FOUND));
         existingProduct.updateProduct(updatedDto);

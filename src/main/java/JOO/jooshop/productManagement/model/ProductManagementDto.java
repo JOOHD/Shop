@@ -36,10 +36,8 @@ public class ProductManagementDto {
     private boolean isSoldOut;
     private boolean isRestockAvailable;
     private boolean isRestocked;
-
-
-
-
+    
+    /* 일반 생성자 */
     public ProductManagementDto(ProductManagement productManagement) {
         this(
                 productManagement.getProduct().getProductType(),

@@ -16,7 +16,13 @@ import java.util.stream.Collectors;
 @Data
 @EqualsAndHashCode(of = "productId")
 @AllArgsConstructor
-public class ProductDto {
+public class ProductApiDto {
+
+    /**
+     * API용 단일 상품 조회 DTO
+     * - 내부 API, 관리자 상세 페이지용
+     * - 찜 목록 포함
+     */
 
     private Long productId;                 // 상품 PK
     ProductType productType;                // 성별
@@ -35,7 +41,7 @@ public class ProductDto {
     private Long wishListCount;             // 찜한 수
 
 
-    public ProductDto(Product product) {
+    public ProductApiDto(Product product) {
         this(
                 product.getProductId(),
                 product.getProductType(),
@@ -48,7 +54,9 @@ public class ProductDto {
                 product.getIsDiscount(),
                 product.getDiscountRate(),
                 product.getIsRecommend(),
-                product.getWishLists() != null ? product.getWishLists().stream().map(WishListDto::new).collect(Collectors.toList()) : Collections.emptyList(),
+                product.getWishLists() != null
+                        ? product.getWishLists().stream().map(WishListDto::new).collect(Collectors.toList())
+                        : Collections.emptyList(),
                 product.getWishListCount()
         );
     }

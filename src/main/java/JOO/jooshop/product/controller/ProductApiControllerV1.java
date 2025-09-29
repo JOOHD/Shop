@@ -40,8 +40,8 @@ public class ProductApiControllerV1 {
      * 상품 목록 (전체)
      */
     @GetMapping("/products/all")
-    public ResponseEntity<List<ProductDto>> getAllProducts() {
-        List<ProductDto> allProducts = productService.getAllProducts();
+    public ResponseEntity<List<ProductApiDto>> getAllProducts() {
+        List<ProductApiDto> allProducts = productService.getAllProducts();
         return ResponseEntity.ok(allProducts);
     }
 
@@ -81,7 +81,7 @@ public class ProductApiControllerV1 {
             @RequestPart(value = "thumbnailImgs", required = false) List<MultipartFile> thumbnailImgs,
             @RequestPart(value = "contentImgs", required = false) List<MultipartFile> contentImgs)throws JsonProcessingException {
 
-        ProductCreateDto requestDto = objectMapper.readValue(requestDtoStr, ProductCreateDto.class);
+        ProductRequestDto requestDto = objectMapper.readValue(requestDtoStr, ProductRequestDto.class);
         Long productId = productService.createProduct(requestDto, thumbnailImgs, contentImgs); // 저장한 상품의 pk
 
         return ResponseEntity.status(HttpStatus.CREATED).body("상품 등록 완료. Id : " + productId);
@@ -117,7 +117,7 @@ public class ProductApiControllerV1 {
     @PutMapping("/products/{productId}")
     public ResponseEntity<ProductResponseDto> updateProduct(
                 @PathVariable("productId") Long productId,
-                @Valid @RequestBody ProductCreateDto request) {
+                @Valid @RequestBody ProductRequestDto request) {
         // 상품 정보 업데이트
         Product updated = productService.updateProduct(productId, request);
 

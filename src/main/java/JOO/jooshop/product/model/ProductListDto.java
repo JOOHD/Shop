@@ -10,11 +10,20 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
+
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProductListDto {
+
+    /**
+     * 상품 목록 조회용 DTO
+     * - 상품 리스트 화면에서 필요한 최소 정보만 제공
+     * - 대표 썸네일 포함
+     */
+
     private Long productId;
     private ProductType productType;
     private String productName;
@@ -37,7 +46,9 @@ public class ProductListDto {
                 product.getIsDiscount(),
                 product.getDiscountRate(),
                 product.getIsRecommend(),
-                product.getProductThumbnails().stream().map(ProductThumbnail::getImagePath).toList()// 경로만 가져오기
+                product.getProductThumbnails().stream()
+                        .map(ProductThumbnail::getImagePath)
+                        .collect(Collectors.toList())// 경로만 가져오기
 
         );
     }
