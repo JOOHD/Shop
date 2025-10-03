@@ -5,9 +5,7 @@ import JOO.jooshop.global.authorization.RequiresRole;
 import JOO.jooshop.members.entity.enums.MemberRole;
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.entity.ProductColor;
-import JOO.jooshop.product.model.ProductColorDto;
-import JOO.jooshop.product.model.ProductRequestDto;
-import JOO.jooshop.product.model.ProductDetailDto;
+import JOO.jooshop.product.model.*;
 import JOO.jooshop.product.model.ProductApiDto;
 import JOO.jooshop.product.repository.ProductColorRepositoryV1;
 import JOO.jooshop.product.repository.ProductRepositoryV1;
@@ -34,6 +32,13 @@ import static JOO.jooshop.global.Exception.ResponseMessageConstants.PRODUCT_NOT_
 @RequiredArgsConstructor
 @Slf4j
 public class ProductServiceV1 {
+
+    /**
+     * ProductRequestDto → 클라이언트가 보내는 요청용 DTO
+     * ProductApiDto → API 응답용 DTO (상품 상세, 옵션, 썸네일 포함)
+     * ProductListDto → 상품 목록 조회용 DTO (대표 썸네일 + 최소 정보)
+     */
+
     public final ProductRepositoryV1 productRepository;
     public final ProductColorRepositoryV1 productColorRepository;
     public final ModelMapper modelMapper;
@@ -43,28 +48,27 @@ public class ProductServiceV1 {
 
     /**
      * 상품 등록
-     * @param requestDto
-     * @return productId
      */
     @RequiresRole({MemberRole.ADMIN, MemberRole.SELLER})
-    public Long createProduct(ProductRequestDto requestDto, @Nullable List<MultipartFile> thumbnailImgs, @Nullable List<MultipartFile> contentImgs) {
+    public Long createProduct(ProductRequestDto requestDto,
+                              @Nullable List<MultipartFile> thumbnailImgs,
+                              @Nullable List<MultipartFile> contentImgs) {
 
-        // requestDto.getPrice()가 null이면 null < 0 → NullPointerException 발생함.
-        if (requestDto.getPrice() == null) {
-            throw new IllegalArgumentException("가격은 필수 항목입니다.");
-        }
-
-        if (requestDto.getPrice().compareTo(BigDecimal.ZERO) < 0) {
+        if (requestDto.getPrice() == null || requestDto.getPrice().compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("가격은 0 이상이어야 합니다.");
         }
+
         Product product = new Product(requestDto);
         productRepository.save(product);
+
         // 추가 - 썸네일 저장 메서드 실행
-        if (thumbnailImgs != null && !Objects.equals(thumbnailImgs.get(0).getOriginalFilename(), "")) {
+        if (thumbnailImgs != null && !thumbnailImgs.isEmpty() &&
+            !Objects.equals(thumbnailImgs.get(0).getOriginalFilename(), "")) {
             productThumbnailService.uploadThumbnail(product, thumbnailImgs);
         }
 
-        if (contentImgs != null && !Objects.equals(contentImgs.get(0).getOriginalFilename(), "")) {
+        if (contentImgs != null && !contentImgs.isEmpty() &&
+            !Objects.equals(contentImgs.get(0).getOriginalFilename(), "")) {
             contentImgService.uploadContentImage(product, contentImgs);
         }
 
@@ -72,24 +76,20 @@ public class ProductServiceV1 {
     }
 
     /**
-     * 상품 목록 (전체)
-     * @return
+     * 상품 목록 조회(전체)
      */
-    @Transactional
-    public List<ProductApiDto> getAllProducts() {
-        List<Product> products = productRepository.findAll();
-        return products.stream()
-                .map(ProductApiDto::new) // new ProductApiDto(product) 호출됨
+    @Transactional(readOnly = true)
+    public List<ProductListDto> getAllProducts() {
+        return productRepository.findAll().stream()
+                .map(ProductListDto::new) // new ProductApiDto(product) 호출됨
                 .collect(Collectors.toList());
     }
 
     /**
-     *  상품 상세정보 - 상품 하나 찾기
-     *
-     * @param productId
-     * @return
+     *  상품 상세 조회
      */
-    public ProductDetailDto productDetail(Long productId) {
+    @Transactional(readOnly = true)
+    public ProductApiDto productDetail(Long productId) {
         // 상품 조회
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NoSuchElementException(PRODUCT_NOT_FOUND));
@@ -111,7 +111,7 @@ public class ProductServiceV1 {
                 .orElse("");
 
         // DTO 생성
-        ProductDetailDto dto = new ProductDetailDto(product, productMgtList, thumbnailUrl);
+        ProductApiDto dto = new ProductApiDto(product, productMgtList, thumbnailUrl);
 
         // 첫 번째 옵션의 inventoryId 세팅
         dto.withInventoryId(productMgtList.get(0).getInventoryId());
@@ -121,26 +121,23 @@ public class ProductServiceV1 {
 
 
     /**
-     * 상품 정보 수정
-     *
-     * @param productId
-     * @param updatedDto
-     * @return
+     * 상품 수정
      */
     @RequiresRole({MemberRole.ADMIN, MemberRole.SELLER})
-    public Product updateProduct(Long productId, ProductRequestDto updatedDto) {
+    public ProductApiDto updateProduct(Long productId, ProductRequestDto updatedDto) {
         Product existingProduct = productRepository.findById(productId)
                 .orElseThrow(() -> new NoSuchElementException(PRODUCT_NOT_FOUND));
-        existingProduct.updateProduct(updatedDto);
 
-        // 수정된 상품 정보 저장 후, return
-        return productRepository.save(existingProduct);
+        // RequestDto -> ProductDto 변환
+        ProductDto dto = new ProductDto(updatedDto)
+        existingProduct.updateFromDto(updatedDto);
+        productRepository.save(existingProduct);
+
+        return new ProductApiDto(existingProduct);
     }
 
     /**
      * 상품 삭제
-     *
-     * @param productId
      */
     @RequiresRole({MemberRole.ADMIN, MemberRole.SELLER})
     public void deleteProduct(Long productId) {
@@ -152,8 +149,6 @@ public class ProductServiceV1 {
 
     /**
      * 색상 등록
-     * @param request
-     * @return
      */
     @RequiresRole({MemberRole.ADMIN, MemberRole.SELLER})
     public Long createColor(ProductColorDto request) {
@@ -164,7 +159,6 @@ public class ProductServiceV1 {
 
     /**
      * 색상 삭제
-     * @param colorId
      */
     @RequiresRole({MemberRole.ADMIN, MemberRole.SELLER})
     public void deleteColor(Long colorId) {

@@ -1,11 +1,13 @@
-package JOO.jooshop.product.model;
+package JOO.jooshop.product.dto;
 
 import JOO.jooshop.product.entity.Product;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import JOO.jooshop.product.entity.enums.ProductType;
+import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
@@ -13,13 +15,32 @@ import java.math.BigDecimal;
 public class ProductResponseDto {
     private Long productId;
     private String productName;
+    private ProductType productType;
     private BigDecimal price;
+    private String productInfo;
+    private String manufacturer;
+    private Boolean isDiscount;
+    private Integer discountRate;
+    private Boolean isRecommend;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private List<String> thumbnails;
 
     public ProductResponseDto(Product product) {
-        this(
-                product.getProductId(),
-                product.getProductName(),
-                product.getPrice()
-        );
+        this.productId = product.getProductId();
+        this.productName = product.getProductName();
+        this.productType = product.getProductType();
+        this.price = product.getPrice();
+        this.productInfo = product.getProductInfo();
+        this.manufacturer = product.getManufacturer();
+        this.isDiscount = product.getIsDiscount();
+        this.discountRate = product.getDiscountRate();
+        this.isRecommend = product.getIsRecommend();
+        this.createdAt = product.getCreatedAt();
+        this.updatedAt = product.getUpdatedAt();
+        this.thumbnails = product.getProductThumbnails()
+                .stream()
+                .map(t -> t.getImagePath())
+                .collect(Collectors.toList());
     }
 }
