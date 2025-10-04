@@ -1,9 +1,7 @@
 package JOO.jooshop.product.entity;
 
-import JOO.jooshop.admin.products.dto.ProductCreateDto;
-import JOO.jooshop.admin.products.dto.ProductDto;
+import JOO.jooshop.admin.products.model.AdminProductEntityMapperDto;
 import JOO.jooshop.contentImgs.entity.ContentImages;
-import JOO.jooshop.payment.entity.PaymentHistory;
 import JOO.jooshop.product.entity.enums.ProductType;
 import JOO.jooshop.product.model.ProductRequestDto;
 import JOO.jooshop.productManagement.entity.ProductManagement;
@@ -70,13 +68,22 @@ public class Product {
 
     public Product() {}
 
-    public Product(ProductRequestDto dto) {
-        updateFromRequestDto(dto);
+    /** AdminProductRequestDto 기반 생성자 */
+    public Product(JOO.jooshop.admin.products.model.AdminProductRequestDto dto) {
+        this.productName = dto.getProductName();
+        this.productType = dto.getProductType();
+        this.price = dto.getPrice();
+        this.productInfo = dto.getProductInfo();
+        this.manufacturer = dto.getManufacturer();
+        this.isDiscount = dto.getIsDiscount();
+        this.discountRate = Boolean.TRUE.equals(dto.getIsDiscount()) ? dto.getDiscountRate() : null;
+        this.isRecommend = dto.getIsRecommend();
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     /** Admin용 DTO 업데이트 (기존 유지) */
-    public void updateFromDto(ProductDto dto) {
+    public void updateFromDto(AdminProductEntityMapperDto dto) {
         this.productName = dto.getProductName();
         this.productType = dto.getProductType();
         this.price = dto.getPrice();
@@ -86,6 +93,12 @@ public class Product {
         this.discountRate = Boolean.TRUE.equals(dto.getIsDiscount()) ? dto.getDiscountRate() : null;
         this.isRecommend = dto.getIsRecommend();
         this.updatedAt = LocalDateTime.now();
+    }
+
+    /** 기존 ProductRequestDto 기반 생성자 */
+    public Product(ProductRequestDto dto) {
+        updateFromRequestDto(dto);
+        this.createdAt = LocalDateTime.now();
     }
 
     /** 일반 API용 DTO 업데이트 */
@@ -101,9 +114,6 @@ public class Product {
         this.updatedAt = LocalDateTime.now();
     }
 
-    @PreUpdate
-    public void setLastUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
+
 }
 

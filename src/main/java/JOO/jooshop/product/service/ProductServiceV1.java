@@ -6,7 +6,7 @@ import JOO.jooshop.members.entity.enums.MemberRole;
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.entity.ProductColor;
 import JOO.jooshop.product.model.*;
-import JOO.jooshop.product.model.ProductApiDto;
+import JOO.jooshop.product.model.ProductDetailResponseDto;
 import JOO.jooshop.product.repository.ProductColorRepositoryV1;
 import JOO.jooshop.product.repository.ProductRepositoryV1;
 import JOO.jooshop.productManagement.entity.ProductManagement;
@@ -35,7 +35,7 @@ public class ProductServiceV1 {
 
     /**
      * ProductRequestDto → 클라이언트가 보내는 요청용 DTO
-     * ProductApiDto → API 응답용 DTO (상품 상세, 옵션, 썸네일 포함)
+     * ProductDetailResponseDto → API 응답용 DTO (상품 상세, 옵션, 썸네일 포함)
      * ProductListDto → 상품 목록 조회용 DTO (대표 썸네일 + 최소 정보)
      */
 
@@ -80,8 +80,9 @@ public class ProductServiceV1 {
      */
     @Transactional(readOnly = true)
     public List<ProductListDto> getAllProducts() {
-        return productRepository.findAll().stream()
-                .map(ProductListDto::new) // new ProductApiDto(product) 호출됨
+        return productRepository.findAll()
+                .stream()
+                .map(ProductListDto::new) // new ProductDetailResponseDto(product) 호출됨
                 .collect(Collectors.toList());
     }
 
@@ -89,33 +90,22 @@ public class ProductServiceV1 {
      *  상품 상세 조회
      */
     @Transactional(readOnly = true)
-    public ProductApiDto productDetail(Long productId) {
+    public ProductDetailResponseDto productDetail(Long productId) {
         // 상품 조회
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NoSuchElementException(PRODUCT_NOT_FOUND));
 
         // 상품 조회 시 조회수 증가
-        log.info("View Increment");
         productRankingService.increaseProductViews(productId);
 
         // ProductManagement 옵션 전체 가져오기
-        List<ProductManagement> productMgtList = product.getProductManagements();
-        if (productMgtList.isEmpty()) {
+        List<ProductManagement> options = product.getProductManagements();
+        if (options.isEmpty()) {
             throw new NoSuchElementException("상품 옵션을 찾을 수 없습니다.");
         }
 
-        // 대표 이미지 (없으면 빈 문자열)
-        String thumbnailUrl = product.getProductThumbnails().stream()
-                .findFirst()
-                .map(t -> t.getImagePath().startsWith("/") ? t.getImagePath().substring(1) : t.getImagePath())
-                .orElse("");
-
-        // DTO 생성
-        ProductApiDto dto = new ProductApiDto(product, productMgtList, thumbnailUrl);
-
-        // 첫 번째 옵션의 inventoryId 세팅
-        dto.withInventoryId(productMgtList.get(0).getInventoryId());
-
+        ProductDetailResponseDto dto = new ProductDetailResponseDto(product);
+        dto.withInventoryId(options.get(0).getInventoryId());
         return dto;
     }
 
@@ -124,16 +114,14 @@ public class ProductServiceV1 {
      * 상품 수정
      */
     @RequiresRole({MemberRole.ADMIN, MemberRole.SELLER})
-    public ProductApiDto updateProduct(Long productId, ProductRequestDto updatedDto) {
+    public ProductDetailResponseDto updateProduct(Long productId, ProductRequestDto updatedDto) {
         Product existingProduct = productRepository.findById(productId)
                 .orElseThrow(() -> new NoSuchElementException(PRODUCT_NOT_FOUND));
 
-        // RequestDto -> ProductDto 변환
-        ProductDto dto = new ProductDto(updatedDto)
-        existingProduct.updateFromDto(updatedDto);
+        existingProduct.updateFromRequestDto(updatedDto);
         productRepository.save(existingProduct);
 
-        return new ProductApiDto(existingProduct);
+        return new ProductDetailResponseDto(existingProduct);
     }
 
     /**

@@ -1,4 +1,4 @@
-package JOO.jooshop.product.dto;
+package JOO.jooshop.product.model;
 
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.entity.enums.ProductType;
@@ -13,6 +13,13 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProductResponseDto {
+
+    /**
+     * 목적: 회원용 API에서 상품 등록/수정 후 반환 혹은 간단 상품 조회용 DTO
+     *
+     * - 상세 옵션/찜 정보 제외
+     * - Admin용 DTO와 혼동되지 않도록 최소 필드만 포함
+     */
     private Long productId;
     private String productName;
     private ProductType productType;
@@ -26,6 +33,7 @@ public class ProductResponseDto {
     private LocalDateTime updatedAt;
     private List<String> thumbnails;
 
+    // Product 엔티티를 받아 필요한 필드만 변환
     public ProductResponseDto(Product product) {
         this.productId = product.getProductId();
         this.productName = product.getProductName();

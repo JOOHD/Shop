@@ -1,6 +1,8 @@
 package JOO.jooshop.admin.products.service;
 
-import JOO.jooshop.admin.products.dto.ProductDto;
+import JOO.jooshop.admin.products.model.AdminProductEntityMapperDto;
+import JOO.jooshop.admin.products.model.AdminProductRequestDto;
+import JOO.jooshop.admin.products.model.AdminProductResponseDto;
 import JOO.jooshop.admin.products.repository.AdminProductRepository;
 import JOO.jooshop.product.entity.Product;
 import lombok.RequiredArgsConstructor;
@@ -12,49 +14,59 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class AdminProductService {
 
     private final AdminProductRepository productRepository;
 
     /**
+     * 전체 상품 조회
+     */
+    public List<AdminProductResponseDto> findAllProduct() {
+        return productRepository.findAll()
+                .stream()
+                .map(this::toResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * 상품 등록
      */
-    @Transactional
-    public ProductDto createProduct(ProductDto dto) {
-        Product product = dto.toEntity();
-        productRepository.save(product);
-        return ProductDto.fromEntity(product);
+    public AdminProductResponseDto createProduct(AdminProductRequestDto dto) {
+        Product product = new Product(dto);
+        Product saved = productRepository.save(product);
+        return toResponseDto(saved);
     }
 
     /**
      * 상품 수정
      */
-    @Transactional
-    public ProductDto updateProduct(Long id, ProductDto dto) {
+    public AdminProductResponseDto updateProduct(Long id, AdminProductEntityMapperDto dto) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("상품이 존재하지 않습니다. ID: " + id));
-        product.updateFromDto(dto);
-        return ProductDto.fromEntity(product);
-    }
+                .orElseThrow(() -> new RuntimeException("상품이 존재하지 않습니다."));
 
-    /**
-     * 전체 상품 조회
-     */
-    @Transactional(readOnly = true)
-    public List<ProductDto> findAllProduct() {
-        return productRepository.findAll()
-                .stream()
-                .map(ProductDto::fromEntity)  // 엔티티 → DTO 변환
-                .collect(Collectors.toList());
+        product.updateFromDto(dto);
+        return toResponseDto(product);
     }
 
     /**
      * 상품 삭제
      */
-    @Transactional
     public void deleteProduct(Long id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("상품이 존재하지 않습니다. ID: " + id));
-        productRepository.delete(product);
+        productRepository.deleteById(id);
+    }
+
+    private AdminProductResponseDto toResponseDto(Product product) {
+        return new AdminProductResponseDto(
+                product.getProductId(),
+                product.getProductName(),
+                product.getProductType(),
+                product.getPrice(),
+                product.getProductInfo(),
+                product.getManufacturer(),
+                product.getIsDiscount(),
+                product.getDiscountRate(),
+                product.getIsRecommend()
+        );
     }
 }

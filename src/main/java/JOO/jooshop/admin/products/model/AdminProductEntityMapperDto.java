@@ -1,7 +1,8 @@
-package JOO.jooshop.admin.products.dto;
+package JOO.jooshop.admin.products.model;
 
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.entity.enums.ProductType;
+import JOO.jooshop.product.model.ProductRequestDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProductDto {
+public class AdminProductEntityMapperDto {
 
     private Long productId;
     private String productName;
@@ -31,8 +32,8 @@ public class ProductDto {
     /**
      * Entity → DTO 변환 (정적 팩토리)
      */
-    public static ProductDto fromEntity(Product product) {
-        return ProductDto.builder()
+    public static AdminProductEntityMapperDto fromEntity(Product product) {
+        return AdminProductEntityMapperDto.builder()
                 .productId(product.getProductId())
                 .productName(product.getProductName())
                 .productType(product.getProductType())
@@ -45,6 +46,21 @@ public class ProductDto {
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
                 .build();
+    }
+
+    /**
+     *  일반 상품(ProductRequestDto) → AdminProductEntityMapperDto 변환 생성자
+     *  (ProductServiceV1.updateProduct 에서 사용됨)
+     */
+    public AdminProductEntityMapperDto(ProductRequestDto dto) {
+        this.productName = dto.getProductName();
+        this.productType = dto.getProductType();
+        this.price = dto.getPrice();
+        this.productInfo = dto.getProductInfo();
+        this.manufacturer = dto.getManufacturer();
+        this.isDiscount = dto.getIsDiscount();
+        this.discountRate = dto.getDiscountRate();
+        this.isRecommend = dto.getIsRecommend();
     }
 
     /** DTO → Entity (신규 생성용) */

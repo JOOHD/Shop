@@ -18,12 +18,12 @@ import java.util.stream.Collectors;
 @Data
 @EqualsAndHashCode(of = "productId")
 @AllArgsConstructor
-public class ProductApiDto {
-
+public class ProductDetailResponseDto {
     /**
-     * API용 단일 상품 조회 DTO
-     * - 내부 API, 관리자 상세 페이지용
-     * - 찜 목록 포함
+     * 목적: 회원용 상품 상세 조회 API에서 반환되는 DTO
+     *
+     * - 옵션, 썸네일, 찜한 사용자 정보까지 포함
+     * - HTML 렌더링보다는 JSON API 응답용
      */
 
     private Long productId;                 // 상품 PK
@@ -46,7 +46,7 @@ public class ProductApiDto {
     private Long inventoryId;                 // 기본 옵션 inventoryId
     private String thumbnailUrl;              // 대표 이미지
 
-    public ProductApiDto(Product product) {
+    public ProductDetailResponseDto(Product product) {
         this.productId = product.getProductId();
         this.productName = product.getProductName();
         this.price = product.getPrice();
@@ -67,6 +67,14 @@ public class ProductApiDto {
                 .collect(Collectors.toList());
         this.thumbnailUrl = this.productThumbnails.isEmpty() ? "" : this.productThumbnails.get(0);
         this.inventoryId = !options.isEmpty() ? options.get(0).getInventoryId() : null;
+    }
+
+    /**
+     * 🔹 builder 스타일 체이닝 메서드 추가
+     */
+    public ProductDetailResponseDto withInventoryId(Long inventoryId) {
+        this.inventoryId = inventoryId;
+        return this;
     }
 
 }

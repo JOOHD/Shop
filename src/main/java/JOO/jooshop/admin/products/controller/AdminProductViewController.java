@@ -13,16 +13,19 @@ public class AdminProductViewController {
 
     private final AdminProductService productService;
 
+    /* Thymeleaf 뷰 */
     @GetMapping
     public String listPage() {
-        return "admin/product/product-list"; // Thyleaf 뷰
+        return "admin/product/product-list";
     }
 
+    /* 등록 페이지 */
     @GetMapping("/new")
     public String createPage() {
-        return "admin/product/product-form"; // 등록 페이지
+        return "admin/product/product-form";
     }
 
+    /*  */
     @GetMapping("/{id}/edit")
     public String editPage(@PathVariable Long id, Model model) {
         model.addAttribute("productId", id);

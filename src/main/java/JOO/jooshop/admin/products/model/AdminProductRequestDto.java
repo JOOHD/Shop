@@ -1,4 +1,4 @@
-package JOO.jooshop.admin.products.dto;
+package JOO.jooshop.admin.products.model;
 
 import JOO.jooshop.product.entity.enums.ProductType;
 import lombok.Getter;
@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 
 @Getter
 @Setter
-public class ProductCreateDto {
+public class AdminProductRequestDto {
     private String productName;
     private ProductType productType;
     private BigDecimal price;
