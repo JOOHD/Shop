@@ -2,7 +2,7 @@ package JOO.jooshop.productThumbnail.controller;
 
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.product.entity.Product;
-import JOO.jooshop.product.model.ProductDetailDto;
+import JOO.jooshop.product.model.ProductDetailResponseDto;
 import JOO.jooshop.product.service.ProductServiceV1;
 import JOO.jooshop.productThumbnail.entity.ProductThumbnail;
 import JOO.jooshop.productThumbnail.service.ProductThumbnailServiceV1;
@@ -47,7 +47,7 @@ public class ProductViewController { // view 용 컨트롤러
                                 @CookieValue(name = "accessAuthorization", required = false) String accessTokenWithPrefix,
                                 Model model) {
 
-        ProductDetailDto productDetail = productService.productDetail(productId);
+        ProductDetailResponseDto productDetail = productService.productDetail(productId);
 
         model.addAttribute("product", productDetail);
         model.addAttribute("sizes", productDetail.getSizes()); // DTO에서 제공하는 사이즈 리스트

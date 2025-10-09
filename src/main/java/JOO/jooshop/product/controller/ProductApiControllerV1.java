@@ -2,8 +2,6 @@ package JOO.jooshop.product.controller;
 
 import JOO.jooshop.global.queries.Condition;
 import JOO.jooshop.global.queries.OrderBy;
-import JOO.jooshop.product.entity.Product;
-import JOO.jooshop.product.dto.ProductResponseDto;
 import JOO.jooshop.product.model.*;
 import JOO.jooshop.product.service.ProductOrderService;
 import JOO.jooshop.product.service.ProductRankingService;
@@ -13,7 +11,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;

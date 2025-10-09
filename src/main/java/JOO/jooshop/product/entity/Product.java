@@ -10,6 +10,7 @@ import JOO.jooshop.wishList.entity.WishList;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 import lombok.Getter;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -20,6 +21,7 @@ import java.util.List;
 
 @Entity
 @Getter
+@Builder
 @Table(name = "products_table")
 public class Product {
 
@@ -66,7 +68,17 @@ public class Product {
 
     private Long wishListCount;
 
+    /** 기본 생성자 */ 
     public Product() {}
+
+    /** dummy data factory method */
+    public static Product createProductById(Long productId) {
+        return Product.builder()
+                .productId(productId)
+                .productName("Product_" + productId)
+                .price(BigDecimal.valueOf(10000)) // default
+                .build();
+    }
 
     /** AdminProductRequestDto 기반 생성자 */
     public Product(JOO.jooshop.admin.products.model.AdminProductRequestDto dto) {

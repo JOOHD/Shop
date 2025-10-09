@@ -55,12 +55,17 @@ public class ProductManagement {
     @Column(name = "product_stock")
     private Long productStock;
 
+    // Lombok 빌더에서 초기값 유지하려면 @Builder.Default 필수
+    @Builder.Default
     private boolean isSoldOut = false;
 
+    @Builder.Default
     private boolean isRestockAvailable = false;
 
+    @Builder.Default
     private boolean isRestocked = false;
 
+    @Builder.Default
     @ManyToMany(mappedBy = "productManagements")
     private List<Orders> orders = new ArrayList<>();
 

@@ -33,7 +33,6 @@ public class ProductResponseDto {
     private LocalDateTime updatedAt;
     private List<String> thumbnails;
 
-    // Product 엔티티를 받아 필요한 필드만 변환
     public ProductResponseDto(Product product) {
         this.productId = product.getProductId();
         this.productName = product.getProductName();

@@ -3,6 +3,7 @@ package JOO.jooshop.product.model;
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.entity.enums.ProductType;
 import JOO.jooshop.productManagement.entity.ProductManagement;
+import JOO.jooshop.productManagement.entity.enums.Size;
 import JOO.jooshop.productThumbnail.entity.ProductThumbnail;
 import JOO.jooshop.wishList.model.WishListDto;
 import lombok.AllArgsConstructor;
@@ -70,11 +71,25 @@ public class ProductDetailResponseDto {
     }
 
     /**
-     * 🔹 builder 스타일 체이닝 메서드 추가
+     *  builder 스타일 체이닝 메서드 추가
      */
     public ProductDetailResponseDto withInventoryId(Long inventoryId) {
         this.inventoryId = inventoryId;
         return this;
+    }
+
+    /**
+     *
+     */
+    public List<Size> getSizes() {
+        if (options == null || options.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return options.stream()
+                .map(ProductManagement::getSize)
+                .distinct()
+                .collect(Collectors.toList());
     }
 
 }

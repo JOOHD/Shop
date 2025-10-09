@@ -1,6 +1,6 @@
 package JOO.jooshop.product.repository;
 
-import JOO.jooshop.product.model.ProductDetailDto;
+import JOO.jooshop.product.model.ProductDetailResponseDto;
 import org.springframework.data.repository.query.Param;
 import JOO.jooshop.product.entity.Product;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -27,7 +27,7 @@ public interface ProductRepositoryV1 extends JpaRepository<Product, Long> {
             "JOIN p.productManagements m " +  // 다시 JOIN
             "JOIN p.productThumbnails t " +
             "WHERE p.productId = :id")
-    List<ProductDetailDto> findProductDetailById(@Param("id") Long productId);
+    List<ProductDetailResponseDto> findProductDetailById(@Param("id") Long productId);
 
 
 }

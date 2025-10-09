@@ -2,6 +2,7 @@ package JOO.jooshop.global.dummydata.util;
 
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.entity.enums.ProductType;
+import JOO.jooshop.product.model.ProductRequestDto;
 import JOO.jooshop.product.repository.ProductRepositoryV1;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,15 +11,17 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 
 /**
- * The ProductDataUtil class is responsible for generating and saving product data. It uses the ProductRepositoryV1
- * interface to save each product to the database. The generated product data is based on the given count parameter.
+ * ProductDataUtil 클래스는 더미 상품 데이터를 생성하고 DB에 저장하는 역할을 합니다.
+ * ProductRepositoryV1을 이용해 생성한 Product 엔티티를 저장합니다.
+ * 생성된 상품 데이터는 이미지 경로 정보를 기반으로 합니다.
  */
 @Component
 @RequiredArgsConstructor
@@ -27,28 +30,11 @@ public class ProductDataUtil {
 
     private final ProductRepositoryV1 productRepository;
 
-    public static final String PRODUCT_NAME_TEMPLATE = "Product %d";
-    public static final String PRODUCT_INFO_TEMPLATE = "This is a %s product";
-    public static final String MANUFACTURER_NAME_TEMPLATE = "Manufacturer %d";
-
-//    public List<Product> generateProductData(int count) {
-//        return IntStream.rangeClosed(1, count)
-//                .mapToObj(this::createProduct)
-//                .map(this::saveProduct)
-//                .collect(Collectors.toList());
-//    }
-
-//    private Product createProduct(int index) {
-//        ProductType productType = getProductType(index);
-//        String productName = buildProductName(index);
-//        String productInfo = buildProductInfo(productType);
-//        String manufacturer = buildManufacturerName(index);
-//        int price = computePrice(index);
-//        boolean isDiscount = isDiscount(index);
-//        boolean isRecommend = isRecommend(index);
-//        return Product.createDummyProduct(productName, productType, price, productInfo, manufacturer, isDiscount, isRecommend);
-//    }
-
+    /**
+     * 이미지 경로를 기반으로 Product 엔티티를 생성하고 DB에 저장합니다.
+     * @param imagePaths 이미지 경로 리스트
+     * @return 저장된 Product 엔티티 리스트
+     */
     public List<Product> generateProductDataWithImages(List<String> imagePaths) {
         return imagePaths.stream()
                 .map(this::createProductFromImagePath)
@@ -56,73 +42,80 @@ public class ProductDataUtil {
                 .collect(Collectors.toList());
     }
 
-
+    /**
+     * 이미지 경로를 기반으로 Product 엔티티를 생성합니다. (DTO 기반)
+     * @param imagePath 이미지 파일 경로 (카테고리 정보 포함)
+     * @return 생성된 Product 엔티티
+     */
     private Product createProductFromImagePath(String imagePath) {
         String[] splitPath = imagePath.split("_");
-        String category = splitPath[0];
+        if (splitPath.length < 2) {
+            throw new IllegalArgumentException("잘못된 이미지 경로 형식: " + imagePath);
+        }
         String subCategory = splitPath[1];
         Random rand = new Random();
 
+        // ProductType 결정
         ProductType productType = getProductType(subCategory);
-        String productName = "Product for " + subCategory;
-        String productInfo = "This is a " + productType.toString().toLowerCase() + " product for " + subCategory;
+
+        // 기본 정보
+        String productName = productType + " - " + subCategory;
+        String productInfo = "official " + productType.toString().toLowerCase() + " product for " + subCategory;
         String manufacturer = "Manufacturer for " + subCategory;
-        // 가격을 100, 200, 300, 400, 500 중에서 랜덤하게 select.
+
+        // 랜덤 가격 및 할인율 설정
         int[] prices = {200, 300, 400, 500};
         int[] discountRates = {10, 20, 30, 40, 50};
 
         BigDecimal price = BigDecimal.valueOf(prices[rand.nextInt(prices.length)]);
-
         boolean isDiscount = rand.nextBoolean();
-        // isDiscount 여부에 따라, discountRate 를 정해주도록 리펙토링 [24.06.03]
-        Integer discountRate;
-        if (isDiscount) {
-            discountRate = discountRates[rand.nextInt(discountRates.length)];
-        } else {
-            discountRate = null;
-        }
-
+        Integer discountRate = isDiscount ? discountRates[rand.nextInt(discountRates.length)] : null;
         boolean isRecommend = rand.nextBoolean();
+        // int stock = rand.nextInt(50) + 1; // 1~50 worh
+        Long wishListCount = 0L;
 
-        // You might want to set imagePath to your product here if you have such field in your Product entity
-        return new Product(productName, productType, price, productInfo, manufacturer, isDiscount, discountRate, isRecommend);
+        // Builder 로 Product 생성
+        Product product = Product.builder()
+                .productType(productType)
+                .productName(productName)
+                .productInfo(productInfo)
+                .manufacturer(manufacturer)
+                .price(price)
+                .isDiscount(isDiscount)
+                .discountRate(discountRate)
+                .isRecommend(isRecommend)
+                .wishListCount(wishListCount)
+                .build();
+
+        return product;
     }
 
-    // 단순히 DB 에 저장하는 로직
+    /**
+     * Product 엔티티를 DB에 저장하고, 제약조건 위반 시 로그를 남깁니다.
+     */
     private Product saveProduct(Product product) {
-        log.info("Product details: " + product.toString());
-
+        log.info("상품 저장: {}", product.getProductName());
         try {
             return productRepository.save(product);
         } catch (DataIntegrityViolationException ex) {
-            if (ex.getCause() instanceof ConstraintViolationException) {
-                ConstraintViolationException constraintException = (ConstraintViolationException) ex.getCause();
-                log.error("Constraint violation for Product: " + product.toString(), constraintException.getSQLException());
+            if (ex.getCause() instanceof ConstraintViolationException cve) {
+                log.error("상품 제약조건 위반: {}", product.getProductName(), cve.getSQLException());
             }
             throw ex;
         }
     }
 
+    /**
+     * 서브카테고리 문자열을 기반으로 ProductType 결정
+     * 축구 용품/유니폼 관련
+     */
     private ProductType getProductType(String subCategory) {
-        return switch (subCategory) {
-            case "blouse", "skirt", "dress", "two-piece", "short-padding", "boots" -> ProductType.WOMAN;
-            case "hoodie", "knit-sweater", "long-shirts", "long-sleeve", "short-shirts", "short-sleeve", "sweatshirt",
-                 "long", "shorts", "set-up", "cardigan", "coat", "jacket", "lightweight-padding", "long-padding",
-                 "vest", "sandal", "sneakers", "bag", "cap", "socks" -> ProductType.UNISEX;
-            default -> ProductType.MAN;
+        return switch (subCategory.toLowerCase()) {
+            case "home-jersey", "away-jersey", "third-jersey", "long-sleeve", "short-sleeve" -> ProductType.UNISEX; // 유니폼 상의
+            case "shorts", "socks", "goalkeeper-gloves" -> ProductType.MAN; // 하의/용품
+            case "training-jersey", "track-suit", "warm-up-jersey" -> ProductType.WOMAN; // 트레이닝/여성용
+            default -> ProductType.UNISEX; // 기타 기본값
         };
-    }
-
-    private String buildProductName(int index) {
-        return String.format(PRODUCT_NAME_TEMPLATE, index);
-    }
-
-    private String buildProductInfo(ProductType productType) {
-        return String.format(PRODUCT_INFO_TEMPLATE, productType.toString().toLowerCase());
-    }
-
-    private String buildManufacturerName(int index) {
-        return String.format(MANUFACTURER_NAME_TEMPLATE, index);
     }
 
 }
