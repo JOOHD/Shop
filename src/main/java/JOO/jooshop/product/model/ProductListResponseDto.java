@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProductListDto {
+public class ProductListResponseDto {
 
     /**
      * 상품 목록 조회용 DTO
@@ -35,7 +35,7 @@ public class ProductListDto {
     private Boolean isRecommend;
     private List<String> productThumbnails; // 썸네일 리스트 추가
 
-    public ProductListDto(Product product) {
+    public ProductListResponseDto(Product product) {
         this(
                 product.getProductId(),
                 product.getProductType(),

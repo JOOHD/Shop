@@ -36,7 +36,7 @@ public class ProductServiceV1 {
     /**
      * ProductRequestDto → 클라이언트가 보내는 요청용 DTO
      * ProductDetailResponseDto → API 응답용 DTO (상품 상세, 옵션, 썸네일 포함)
-     * ProductListDto → 상품 목록 조회용 DTO (대표 썸네일 + 최소 정보)
+     * ProductListResponseDto → 상품 목록 조회용 DTO (대표 썸네일 + 최소 정보)
      */
 
     public final ProductRepositoryV1 productRepository;
@@ -79,33 +79,36 @@ public class ProductServiceV1 {
      * 상품 목록 조회(전체)
      */
     @Transactional(readOnly = true)
-    public List<ProductListDto> getAllProducts() {
+    public List<ProductListResponseDto> getAllProducts() {
         return productRepository.findAll()
                 .stream()
-                .map(ProductListDto::new) // new ProductDetailResponseDto(product) 호출됨
+                .map(ProductListResponseDto::new) // new ProductDetailResponseDto(product) 호출됨
                 .collect(Collectors.toList());
     }
 
     /**
      *  상품 상세 조회
+     *  1. N+1 문제 방지: fetch join으로 한 번에 모든 연관 엔티티 로딩
+     *  2. DTO 변환 책임 분리: Repository는 엔티티만 가져오고, DTO 생성은 Service에서
      */
     @Transactional(readOnly = true)
     public ProductDetailResponseDto productDetail(Long productId) {
-        // 상품 조회
-        Product product = productRepository.findById(productId)
+        // Repository 에서 fetch join 으로 연관 엔티티까지 한 번에 가져오기
+        Product product = productRepository.findProductWithDetailsByProductId(productId)
                 .orElseThrow(() -> new NoSuchElementException(PRODUCT_NOT_FOUND));
 
-        // 상품 조회 시 조회수 증가
+        // 상품 조회 시. 조회수 증가
         productRankingService.increaseProductViews(productId);
+
+        // ProductDetailResponseDto 생성
+        ProductDetailResponseDto dto = new ProductDetailResponseDto(product);
 
         // ProductManagement 옵션 전체 가져오기
         List<ProductManagement> options = product.getProductManagements();
-        if (options.isEmpty()) {
-            throw new NoSuchElementException("상품 옵션을 찾을 수 없습니다.");
+        if (!options.isEmpty()) {
+            dto.withInventoryId(options.get(0).getInventoryId());
         }
 
-        ProductDetailResponseDto dto = new ProductDetailResponseDto(product);
-        dto.withInventoryId(options.get(0).getInventoryId());
         return dto;
     }
 

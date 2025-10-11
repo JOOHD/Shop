@@ -2,7 +2,7 @@ package JOO.jooshop.admin.products.controller;
 
 import JOO.jooshop.admin.products.model.AdminProductEntityMapperDto;
 import JOO.jooshop.admin.products.model.AdminProductRequestDto;
-import JOO.jooshop.admin.products.model.AdminProductResponseDto;
+import JOO.jooshop.admin.products.model.AdminProductResponseDto ;
 import JOO.jooshop.admin.products.service.AdminProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,20 +20,20 @@ public class AdminProductApiController {
 
     /* 상품 조회 */
     @GetMapping
-    public ResponseEntity<List<AdminProductResponseDto>> list() {
+    public ResponseEntity<List<AdminProductResponseDto >> list() {
         return ResponseEntity.ok(productService.findAllProduct());
     }
 
     /* 상품 등록 */
     @PostMapping
-    public ResponseEntity<AdminProductResponseDto> createProduct(@RequestBody AdminProductRequestDto dto) {
-        AdminProductResponseDto saved = productService.createProduct(dto);
+    public ResponseEntity<AdminProductResponseDto > createProduct(@RequestBody AdminProductRequestDto dto) {
+        AdminProductResponseDto  saved = productService.createProduct(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     /* 상품 수정 */
     @PutMapping("/{id}")
-    public ResponseEntity<AdminProductResponseDto> updateProduct(
+    public ResponseEntity<AdminProductResponseDto > updateProduct(
                                                 @PathVariable Long id,
                                                 @RequestBody AdminProductEntityMapperDto dto) {
         return ResponseEntity.ok(productService.updateProduct(id, dto));

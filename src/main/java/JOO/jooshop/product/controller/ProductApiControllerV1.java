@@ -81,7 +81,7 @@ public class ProductApiControllerV1 {
      *  - 페이징(Page), 정렬(OrderBy), 조건(Condition), 검색(keyword)을 모두 통합 지원.
      */
     @GetMapping("/products")
-    public Page<ProductListDto> getFilteredAndSortedProducts(
+    public Page<ProductListResponseDto> getFilteredAndSortedProducts(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size,
             @RequestParam(name = "condition", required = false) Condition condition,
@@ -100,7 +100,7 @@ public class ProductApiControllerV1 {
      * - Controller에서 List 직접 반환 대신 ResponseEntity 사용 -> REST 응답 일관성
      */
     @GetMapping("/products/all")
-    public ResponseEntity<List<ProductListDto>> getAllProducts() {
+    public ResponseEntity<List<ProductListResponseDto>> getAllProducts() {
         return ResponseEntity.ok(productService.getAllProducts());
     }
 
@@ -108,7 +108,7 @@ public class ProductApiControllerV1 {
      * 상품 수정
      *
      * 기존 문제점:
-     *  - ProductResponseDto를 직접 생성하며, 서비스/컨트롤러 간 DTO 불일치 발생.
+     *  - ProductSummaryResponseDto 를 직접 생성하며, 서비스/컨트롤러 간 DTO 불일치 발생.
      *
      *  [리팩토링 포인트]
      *  - updateProduct() 반환 타입을 ProductDetailResponseDto로 변경 → 단일 DTO 구조 유지.

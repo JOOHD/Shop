@@ -13,22 +13,22 @@ public class AdminProductViewController {
 
     private final AdminProductService productService;
 
-    /* Thymeleaf 뷰 */
+    /* 상품 Thymeleaf 뷰 */
     @GetMapping
     public String listPage() {
-        return "admin/product/product-list";
+        return "admin/products/productList";
     }
 
-    /* 등록 페이지 */
+    /* 상품 등록 페이지 */
     @GetMapping("/new")
     public String createPage() {
-        return "admin/product/product-form";
+        return "admin/products/productForm";
     }
 
-    /*  */
+    /* 상품 수정 페이지 */
     @GetMapping("/{id}/edit")
     public String editPage(@PathVariable Long id, Model model) {
         model.addAttribute("productId", id);
-        return "admin/product/product-edit";
+        return "admin/product/productEdit";
     }
 }

@@ -20,6 +20,11 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @ValidDiscountRate // 커스텀 유효성 검사 애노테이션 적용
 public class ProductRequestDto {
+
+    /**
+     * 상품 등록/수정 후, 요청 DTO, 조회용 DTO
+     */
+
     @NotBlank(message = "상품 이름은 필수입니다.")
     private String productName;
     private ProductType productType;

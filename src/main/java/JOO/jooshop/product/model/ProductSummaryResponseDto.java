@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProductResponseDto {
+public class ProductSummaryResponseDto  {
 
     /**
      * 목적: 회원용 API에서 상품 등록/수정 후 반환 혹은 간단 상품 조회용 DTO
@@ -33,7 +33,7 @@ public class ProductResponseDto {
     private LocalDateTime updatedAt;
     private List<String> thumbnails;
 
-    public ProductResponseDto(Product product) {
+    public ProductSummaryResponseDto (Product product) {
         this.productId = product.getProductId();
         this.productName = product.getProductName();
         this.productType = product.getProductType();

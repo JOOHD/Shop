@@ -10,8 +10,10 @@ import JOO.jooshop.wishList.entity.WishList;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
@@ -22,6 +24,8 @@ import java.util.List;
 @Entity
 @Getter
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor  // JPA용 기본 생성자
 @Table(name = "products_table")
 public class Product {
 
@@ -52,7 +56,7 @@ public class Product {
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductThumbnail> productThumbnails = new ArrayList<>();
@@ -68,8 +72,18 @@ public class Product {
 
     private Long wishListCount;
 
-    /** 기본 생성자 */ 
-    public Product() {}
+    /** persist() 전에 자동으로 createdAt, updatedAt 세팅 */
+    @PrePersist
+    public void onCreate() {
+        this.createdAt = (this.createdAt == null) ? LocalDateTime.now() : this.createdAt;
+        this.updatedAt = (this.updatedAt == null) ? LocalDateTime.now() : this.updatedAt;
+    }
+
+    /** update 시 자동으로 updatedAt 변경 */
+    @PreUpdate
+    public void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 
     /** dummy data factory method */
     public static Product createProductById(Long productId) {
@@ -94,7 +108,7 @@ public class Product {
         this.updatedAt = LocalDateTime.now();
     }
 
-    /** Admin용 DTO 업데이트 (기존 유지) */
+    /** Admin용 DTO 업데이트 */
     public void updateFromDto(AdminProductEntityMapperDto dto) {
         this.productName = dto.getProductName();
         this.productType = dto.getProductType();
@@ -125,7 +139,4 @@ public class Product {
         this.isRecommend = dto.getIsRecommend();
         this.updatedAt = LocalDateTime.now();
     }
-
-
 }
-

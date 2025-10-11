@@ -71,15 +71,21 @@ public class ProductDetailResponseDto {
     }
 
     /**
-     *  builder 스타일 체이닝 메서드 추가
+     *  builder 스타일 체이닝 메서드
+     *
+     *  ProductDetailResponseDto 객체의 inventoryId 필드를 설정하고,
+     *  메서드 체이닝이 가능하도록 현재 객체를 반환한다.
      */
     public ProductDetailResponseDto withInventoryId(Long inventoryId) {
         this.inventoryId = inventoryId;
-        return this;
+        return this; // ProductDetailResponseDto 객체
     }
 
     /**
+     *  상품 옵션에서 사용 가능한 사이즈 목록 조회
      *
+     *  ProductManagement 옵션 리스트(options)에서 중복 없이 Size 정보를 추출한다.
+     *  옵션이 없으면 빈 리스트를 반환한다.
      */
     public List<Size> getSizes() {
         if (options == null || options.isEmpty()) {
@@ -87,9 +93,9 @@ public class ProductDetailResponseDto {
         }
 
         return options.stream()
-                .map(ProductManagement::getSize)
-                .distinct()
-                .collect(Collectors.toList());
+                .map(ProductManagement::getSize) // 각 옵션에서 Size 추출 
+                .distinct()                      // 중복 제거
+                .collect(Collectors.toList());   // 리스트로 변환
     }
 
 }

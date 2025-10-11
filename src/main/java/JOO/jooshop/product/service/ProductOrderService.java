@@ -5,7 +5,7 @@ import JOO.jooshop.global.queries.OrderBy;
 import JOO.jooshop.global.queries.ProductQueryHelper;
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.entity.QProduct;
-import JOO.jooshop.product.model.ProductListDto;
+import JOO.jooshop.product.model.ProductListResponseDto;
 import JOO.jooshop.product.repository.ProductColorRepositoryV1;
 import JOO.jooshop.product.repository.ProductRepositoryV1;
 import JOO.jooshop.productThumbnail.entity.ProductThumbnail;
@@ -44,7 +44,7 @@ public class ProductOrderService {
      * @param order
      * @return
      */
-    public Page<ProductListDto> getFilteredAndSortedProducts(int page, int size, Condition condition, OrderBy order, Long category, String keyword) {
+    public Page<ProductListResponseDto> getFilteredAndSortedProducts(int page, int size, Condition condition, OrderBy order, Long category, String keyword) {
         // 필터링
         BooleanBuilder filterBuilder = ProductQueryHelper.createFilterBuilder(condition, category, keyword, QProduct.product);
 
@@ -61,12 +61,12 @@ public class ProductOrderService {
         // querydsl 개발진 측에서 fetchCount 와 groupby 를 함께 사용할 때 생기는 문제로 인해 fetchcount 함수를 deprecated 시켰다고함.
 //        .fetchCount();
 
-        // ProductListDto 로 변환
-        List<ProductListDto> productList = mapToProductListDto(results);
+        // ProductListResponseDto 로 변환
+        List<ProductListResponseDto> productList = mapToProductListResponseDto(results);
 
         /*
-        List<ProductListDto> productList = results.stream()
-                .map(ProductListDto::new)
+        List<ProductListResponseDto> productList = results.stream()
+                .map(ProductListResponseDto::new)
                 .collect(Collectors.toList());
         */
         return new PageImpl<>(productList, PageRequest.of(page, size), totalCount);
@@ -83,18 +83,18 @@ public class ProductOrderService {
                 .fetch();
     }
 
-    // Product 리스트 -> ProductListDto 리스트로 변환 메서드
-    private List<ProductListDto> mapToProductListDto(List<Product> results) {
+    // Product 리스트 -> ProductListResponseDto 리스트로 변환 메서드
+    private List<ProductListResponseDto> mapToProductListResponseDto(List<Product> results) {
         return results.stream()
-                .map(product -> { // Product -> ProductListDto 변환
-                    ProductListDto productListDto = modelMapper.map(product, ProductListDto.class);
+                .map(product -> { // Product -> ProductListResponseDto 변환
+                    ProductListResponseDto ProductListResponseDto = modelMapper.map(product, ProductListResponseDto.class);
                     // ProductThumbnail 의 imagePath 를 매핑
-                    productListDto.setProductThumbnails(
+                    ProductListResponseDto.setProductThumbnails(
                             product.getProductThumbnails().stream()
                                     .map(ProductThumbnail::getImagePath)
                                     .toList()
                     );
-                    return productListDto;
+                    return ProductListResponseDto;
                 })
                 .toList();
     }
