@@ -78,6 +78,9 @@ spring:
       key: ${IMP_API_KEY}
       secretkey: ${IMP_SECRET_KEY}
 
+  thymeleaf:
+    cache: false
+
 logging:
   level:
     #    org.hibernate.SQL: debug    # SQL 쿼리 출력

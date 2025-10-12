@@ -1,0 +1,106 @@
+.admin-register-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    background: #fff;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.page-title {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #e8e8e8;
+    padding-bottom: .5rem;
+}
+
+.form-section {
+    margin-bottom: 2rem;
+}
+
+.form-section h2 {
+    margin-bottom: .75rem;
+    font-size: 1.2rem;
+    color: #b30000;
+}
+
+.form-section label {
+    display: block;
+    font-weight: 600;
+    margin-top: .75rem;
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: .6rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-top: .3rem;
+}
+
+.image-upload img {
+    max-width: 120px;
+    border-radius: 8px;
+    margin-top: .5rem;
+}
+
+#contentPreview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-top: .5rem;
+}
+
+.content-preview-img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.option-row {
+    display: flex;
+    gap: .5rem;
+    margin-top: .5rem;
+    align-items: center;
+}
+
+.add-option-btn {
+    margin-top: .75rem;
+    background: #b30000;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: .5rem 1rem;
+    cursor: pointer;
+}
+
+.remove-option-btn {
+    background: none;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.register-btn {
+    background: #b30000;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: .6rem 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+.cancel-btn {
+    background: #ccc;
+    border: none;
+    border-radius: 8px;
+    padding: .6rem 1.2rem;
+    cursor: pointer;
+}

@@ -27,7 +27,7 @@ public class AdminProductApiController {
     /* 상품 등록 */
     @PostMapping
     public ResponseEntity<AdminProductResponseDto > createProduct(@RequestBody AdminProductRequestDto dto) {
-        AdminProductResponseDto  saved = productService.createProduct(dto);
+        AdminProductResponseDto saved = productService.createProduct(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 

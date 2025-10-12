@@ -51,17 +51,25 @@
 
     <!-- 로그인 (ADMIN) -->
       <div class="admin-icons" sec:authorize="hasRole('ADMIN')">
-          <a href="/admin/products" title="상품 관리">
-              <i class="fas fa-cubes"></i><span>상품 관리</span>
-          </a>
+          <div class="admin-dropdown">
+              <a href="#" title="상품 관리" class="admin-dropdown-toggle">
+                  <i class="fas fa-cubes"></i>
+              </a>
+              <!-- 드롭다운 메뉴 -->
+              <div class="admin-dropdown-menu">
+                  <a href="/admin/products/list">상품 목록</a>
+                  <a href="/admin/products/register">상품 등록</a>
+                  <!-- 수정은 특정 상품 선택 후 이동 가능 -->
+              </div>
+          </div>
           <a href="/admin/orders" title="주문 관리">
-              <i class="fas fa-truck"></i><span>주문 관리</span>
+              <i class="fas fa-truck"></i>
           </a>
           <a href="/admin/members" title="회원 관리">
-              <i class="fas fa-users"></i><span>회원 관리</span>
+              <i class="fas fa-users"></i>
           </a>
           <a href="/logout" title="로그아웃">
-              <i class="fas fa-sign-out-alt"></i><span>로그아웃</span>
+              <i class="fas fa-sign-out-alt"></i>
           </a>
       </div>
   </div>

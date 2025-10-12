@@ -68,10 +68,10 @@ public class Member {
     @Column(name = "is_banned")
     private boolean banned = false;
 
-    @Column(name = "is_accountExpired")
+    @Column(name = "is_account_expired")
     private boolean accountExpired = false;
 
-    @Column(name = "is_passwordExpired")
+    @Column(name = "is_password_expired")
     private boolean passwordExpired = false;
 
     @Column(name = "is_admin")

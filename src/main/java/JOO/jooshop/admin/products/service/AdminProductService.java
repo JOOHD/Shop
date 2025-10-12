@@ -22,7 +22,7 @@ public class AdminProductService {
     /**
      * 전체 상품 조회
      */
-    public List<AdminProductResponseDto > findAllProduct() {
+    public List<AdminProductResponseDto> findAllProduct() {
         return productRepository.findAll()
                 .stream()
                 .map(this::toResponseDto)
@@ -32,7 +32,7 @@ public class AdminProductService {
     /**
      * 상품 등록
      */
-    public AdminProductResponseDto  createProduct(AdminProductRequestDto dto) {
+    public AdminProductResponseDto createProduct(AdminProductRequestDto dto) {
         Product product = new Product(dto);
         Product saved = productRepository.save(product);
         return toResponseDto(saved);
@@ -41,7 +41,7 @@ public class AdminProductService {
     /**
      * 상품 수정
      */
-    public AdminProductResponseDto  updateProduct(Long id, AdminProductEntityMapperDto dto) {
+    public AdminProductResponseDto updateProduct(Long id, AdminProductEntityMapperDto dto) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("상품이 존재하지 않습니다."));
 
@@ -56,7 +56,7 @@ public class AdminProductService {
         productRepository.deleteById(id);
     }
 
-    private AdminProductResponseDto  toResponseDto(Product product) {
+    private AdminProductResponseDto toResponseDto(Product product) {
         return new AdminProductResponseDto (
                 product.getProductId(),
                 product.getProductName(),

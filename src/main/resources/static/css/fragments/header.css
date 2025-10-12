@@ -95,3 +95,56 @@
     }
 }
 
+/* ADMIN 드롭다운 */
+.admin-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.admin-dropdown-toggle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #111;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 20px;
+    transition: color 0.2s ease-in-out;
+}
+
+.admin-dropdown-toggle:hover {
+    color: #DA291C;
+}
+
+.admin-dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 120%; /* 아이콘 바로 아래 */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #fff;
+    min-width: 140px;
+    border-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 1000;
+    flex-direction: column;
+    padding: 5px 0;
+}
+
+.admin-dropdown-menu a {
+    display: block;
+    padding: 8px 12px;
+    color: #111;
+    text-decoration: none;
+    text-align: center;
+}
+
+.admin-dropdown-menu a:hover {
+    background-color: #f0f0f0;
+}
+
+/* hover 시 메뉴 열기 */
+.admin-dropdown:hover .admin-dropdown-menu {
+    display: flex;
+}
+

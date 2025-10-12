@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>상품 등록 - 관리자</title>
+    <link rel="stylesheet" href="/css/fragments/header.css" />
+    <link rel="stylesheet" href="/css/admin/productRegister.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+
+<!-- 관리자 헤더 -->
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="admin-register-container">
+
+    <h1 class="page-title"><i class="fa-solid fa-shirt"></i> 상품 등록</h1>
+
+    <!-- 상품 등록 폼 -->
+    <form id="productForm" enctype="multipart/form-data">
+
+        <!-- 기본 정보 -->
+        <section class="form-section">
+            <h2>기본 정보</h2>
+            <label>상품명</label>
+            <input type="text" name="productName" placeholder="예: 2025 맨유 홈 저지" required />
+
+            <label>상품 타입</label>
+            <select name="productType" required>
+                <option value="">-- 선택 --</option>
+                <option value="HOME_JERSEY">홈 저지</option>
+                <option value="AWAY_JERSEY">어웨이 저지</option>
+                <option value="THIRD_JERSEY">서드 저지</option>
+                <option value="LONG_SLEEVE">롱슬리브</option>
+                <option value="TRAINING_WEAR">트레이닝 웨어</option>
+                <option value="ACCESSORY">액세서리</option>
+            </select>
+
+            <label>가격</label>
+            <input type="number" name="price" placeholder="₩ 금액" required />
+
+            <label>할인율(%)</label>
+            <input type="number" name="discountRate" value="0" min="0" max="100" />
+
+            <label>상품 설명</label>
+            <textarea name="description" rows="5" placeholder="상품에 대한 상세 설명을 입력하세요."></textarea>
+        </section>
+
+        <!-- 이미지 업로드 -->
+        <section class="form-section">
+            <h2>이미지 등록</h2>
+            <div class="image-upload">
+                <label>대표 이미지</label>
+                <input type="file" id="thumbnail" name="thumbnail" accept="image/*" required />
+                <img id="thumbnailPreview" src="/images/no-image.png" alt="미리보기" />
+
+                <label>상세 이미지</label>
+                <input type="file" id="contentImages" name="contentImages" accept="image/*" multiple />
+                <div id="contentPreview"></div>
+            </div>
+        </section>
+
+        <!-- 옵션 (사이즈 / 재고 등록) -->
+        <section class="form-section">
+            <h2>옵션 등록</h2>
+            <div id="optionContainer">
+                <div class="option-row">
+                    <input type="text" name="size" placeholder="사이즈 (예: M)" required />
+                    <input type="number" name="stock" placeholder="재고 수량" required />
+                    <button type="button" class="remove-option-btn"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+            <button type="button" id="addOptionBtn" class="add-option-btn"><i class="fa-solid fa-plus"></i> 옵션 추가</button>
+        </section>
+
+        <!-- 액션 -->
+        <div class="action-buttons">
+            <button type="submit" class="register-btn">상품 등록</button>
+            <button type="button" class="cancel-btn" onclick="history.back()">취소</button>
+        </div>
+
+    </form>
+</main>
+
+<script>
+    // 대표 이미지 미리보기
+    document.getElementById("thumbnail").addEventListener("change", e => {
+        const file = e.target.files[0];
+        if (file) document.getElementById("thumbnailPreview").src = URL.createObjectURL(file);
+    });
+
+    // 상세 이미지 미리보기
+    document.getElementById("contentImages").addEventListener("change", e => {
+        const preview = document.getElementById("contentPreview");
+        preview.innerHTML = "";
+        Array.from(e.target.files).forEach(file => {
+            const img = document.createElement("img");
+            img.src = URL.createObjectURL(file);
+            img.classList.add("content-preview-img");
+            preview.appendChild(img);
+        });
+    });
+
+    // 옵션 추가/삭제
+    document.getElementById("addOptionBtn").addEventListener("click", () => {
+        const row = document.createElement("div");
+        row.classList.add("option-row");
+        row.innerHTML = `
+            <input type="text" name="size" placeholder="사이즈 (예: L)" required />
+            <input type="number" name="stock" placeholder="재고 수량" required />
+            <button type="button" class="remove-option-btn"><i class="fa-solid fa-xmark"></i></button>
+        `;
+        document.getElementById("optionContainer").appendChild(row);
+    });
+
+    document.getElementById("optionContainer").addEventListener("click", e => {
+        if (e.target.closest(".remove-option-btn")) {
+            e.target.closest(".option-row").remove();
+        }
+    });
+
+    // 상품 등록 (비동기 요청)
+    document.getElementById("productRegister").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+
+        try {
+            const res = await fetch("/api/v1/admin/products/register", {
+                method: "POST",
+                body: formData,
+                credentials: include"
+            });
+
+            if (!res.ok) throw new Error("상품 등록 실패");
+            alert("상품이 등록되었습니다!");
+            location.href = "/admin/products";
+        } catch (err) {
+            alert(err.message);
+        }
+    });
+
+    
+</script>
+</body>
+</html>
