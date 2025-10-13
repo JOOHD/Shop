@@ -1,150 +1,144 @@
-/* Header 전체 스타일 */
+/* Header 전체 */
 .header-bar {
-    height: 70px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-    background-color: #ffffff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
+  height: 70px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
-/* 좌측/우측 아이콘 컨테이너 */
+/* 좌측/우측 공통 */
 .left-icons,
 .right-icons {
-    display: flex;
-    align-items: center;
-    gap: 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
-/* 아이콘 공통 스타일 */
 .left-icons i,
 .right-icons i {
-    font-size: 20px;
-    cursor: pointer;
-    color: #111;
-    transition: color 0.2s ease-in-out;
+  font-size: 20px;
+  cursor: pointer;
+  color: #111;
+  transition: color 0.2s ease-in-out;
 }
 
-/* 아이콘 마우스 오버 시 색상 변경 */
 .left-icons i:hover,
 .right-icons i:hover {
-    color: #DA291C;
+  color: #DA291C;
 }
 
 /* 중앙 로고 */
 .header-center {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
-
 .header-logo-link {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  display: flex;
+  align-items: center;
 }
-
 .logo {
-    height: 40px;
+  height: 40px;
 }
 
-/* USER / ADMIN 공통 아이콘 영역 */
+/* USER / ADMIN 공통 아이콘 */
 .user-icons,
 .admin-icons {
-    display: flex;
-    align-items: center;
-    gap: 18px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
 }
-
-/* 각 아이콘 + 텍스트 */
 .user-icons a,
 .admin-icons a {
-    display: flex;
-    flex-direction: column; /* 아이콘 위, 텍스트 아래 */
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    color: #111;
-    text-decoration: none;
-    transition: color 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: #111;
+  text-decoration: none;
+  transition: color 0.2s ease-in-out;
 }
-
-/* 아이콘 크기 */
 .user-icons a i,
 .admin-icons a i {
-    font-size: 20px;
-    margin-bottom: 5px;
+  font-size: 20px;
+  margin-bottom: 5px;
 }
-
-/* hover 시 강조 */
 .user-icons a:hover,
 .admin-icons a:hover {
-    color: #DA291C;
+  color: #DA291C;
 }
 
-/* 반응형 (작은 화면에서는 텍스트 숨김) */
+/* 반응형: 텍스트 숨김 */
 @media (max-width: 768px) {
-    .user-icons a span,
-    .admin-icons a span {
-        display: none;
-    }
+  .user-icons a span,
+  .admin-icons a span {
+    display: none;
+  }
 }
 
-/* ADMIN 드롭다운 */
+/* ADMIN 드롭다운 (클릭 토글형) */
 .admin-dropdown {
-    position: relative;
-    display: inline-block;
+  position: relative;
+  display: inline-block;
 }
 
 .admin-dropdown-toggle {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #111;
-    text-decoration: none;
-    cursor: pointer;
-    font-size: 20px;
-    transition: color 0.2s ease-in-out;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #111;
+  cursor: pointer;
+  font-size: 20px;
+  transition: color 0.2s ease-in-out;
 }
 
 .admin-dropdown-toggle:hover {
-    color: #DA291C;
+  color: #DA291C;
 }
 
+/* 기본적으로 숨김 */
 .admin-dropdown-menu {
-    display: none;
-    position: absolute;
-    top: 120%; /* 아이콘 바로 아래 */
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #fff;
-    min-width: 140px;
-    border-radius: 5px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    z-index: 1000;
-    flex-direction: column;
-    padding: 5px 0;
+  position: absolute;
+  top: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  min-width: 150px;
+  display: none;
+  flex-direction: column;
+  padding: 8px 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* 활성화 시 표시 */
+.admin-dropdown-menu.active {
+  display: flex;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(4px);
 }
 
 .admin-dropdown-menu a {
-    display: block;
-    padding: 8px 12px;
-    color: #111;
-    text-decoration: none;
-    text-align: center;
+  padding: 10px 15px;
+  color: #111;
+  text-decoration: none;
+  text-align: center;
+  transition: background 0.2s ease;
 }
 
 .admin-dropdown-menu a:hover {
-    background-color: #f0f0f0;
+  background-color: #f5f5f5;
+  color: #DA291C;
 }
-
-/* hover 시 메뉴 열기 */
-.admin-dropdown:hover .admin-dropdown-menu {
-    display: flex;
-}
-

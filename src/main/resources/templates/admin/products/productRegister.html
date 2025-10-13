@@ -83,25 +83,54 @@
 </main>
 
 <script>
-    // 대표 이미지 미리보기
-    document.getElementById("thumbnail").addEventListener("change", e => {
-        const file = e.target.files[0];
-        if (file) document.getElementById("thumbnailPreview").src = URL.createObjectURL(file);
-    });
+    // === 대표 이미지 미리보기 ===
+    const thumbnailInput = document.getElementById("thumbnail");
+    const thumbnailPreview = document.getElementById("thumbnailPreview");
 
-    // 상세 이미지 미리보기
-    document.getElementById("contentImages").addEventListener("change", e => {
-        const preview = document.getElementById("contentPreview");
-        preview.innerHTML = "";
-        Array.from(e.target.files).forEach(file => {
-            const img = document.createElement("img");
-            img.src = URL.createObjectURL(file);
-            img.classList.add("content-preview-img");
-            preview.appendChild(img);
+    if (thumbnailInput && thumbnailPreview) {
+        thumbnailInput.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                thumbnailPreview.src = URL.createObjectURL(file);
+            } else {
+                thumbnailPreview.src = "/images/no-image.png"; // 파일 없을 시 기본 이미지
+            }
         });
-    });
+    }
 
-    // 옵션 추가/삭제
+    // === 상세 이미지 미리보기 ===
+    const contentImagesInput = document.getElementById("contentImages");
+    const contentPreview = document.getElementById("contentPreview");
+
+    if (contentImagesInput && contentPreview) {
+        contentImagesInput.addEventListener("change", (e) => {
+            contentPreview.innerHTML = ""; // 이전 미리보기 초기화
+
+            const files = Array.from(e.target.files);
+            if (files.length === 0) {
+                const noImageMsg = document.createElement("p");
+                noImageMsg.textContent = "선택된 이미지가 없습니다.";
+                noImageMsg.style.color = "#888";
+                contentPreview.appendChild(noImageMsg);
+                return;
+            }
+
+            files.forEach(file => {
+                const img = document.createElement("img");
+                img.src = URL.createObjectURL(file);
+                img.classList.add("content-preview-img");
+
+                // 클릭 시 이미지 삭제 가능 (선택 취소 느낌)
+                img.addEventListener("click", () => {
+                    img.remove();
+                });
+
+                contentPreview.appendChild(img);
+            });
+        });
+    }
+
+    // === 옵션 추가/삭제 ===
     document.getElementById("addOptionBtn").addEventListener("click", () => {
         const row = document.createElement("div");
         row.classList.add("option-row");
@@ -119,8 +148,8 @@
         }
     });
 
-    // 상품 등록 (비동기 요청)
-    document.getElementById("productRegister").addEventListener("submit", async (e) => {
+    // === 상품 등록 (비동기 요청) ===
+    document.getElementById("productForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
 
@@ -128,7 +157,7 @@
             const res = await fetch("/api/v1/admin/products/register", {
                 method: "POST",
                 body: formData,
-                credentials: include"
+                credentials: 'include'
             });
 
             if (!res.ok) throw new Error("상품 등록 실패");
@@ -138,8 +167,7 @@
             alert(err.message);
         }
     });
-
-    
 </script>
+
 </body>
 </html>
