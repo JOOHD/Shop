@@ -1,4 +1,6 @@
-/* Header 전체 */
+/* ==============================
+   Header 전체
+============================== */
 .header-bar {
   height: 70px;
   display: flex;
@@ -12,7 +14,9 @@
   z-index: 1000;
 }
 
-/* 좌측/우측 공통 */
+/* ==============================
+   좌측 / 우측 공통
+============================== */
 .left-icons,
 .right-icons {
   display: flex;
@@ -33,7 +37,9 @@
   color: #DA291C;
 }
 
-/* 중앙 로고 */
+/* ==============================
+   중앙 로고
+============================== */
 .header-center {
   flex: 1;
   display: flex;
@@ -48,7 +54,9 @@
   height: 40px;
 }
 
-/* USER / ADMIN 공통 아이콘 */
+/* ==============================
+   USER / ADMIN 공통 아이콘
+============================== */
 .user-icons,
 .admin-icons {
   display: flex;
@@ -76,7 +84,9 @@
   color: #DA291C;
 }
 
-/* 반응형: 텍스트 숨김 */
+/* ==============================
+   반응형: 텍스트 숨김
+============================== */
 @media (max-width: 768px) {
   .user-icons a span,
   .admin-icons a span {
@@ -84,7 +94,9 @@
   }
 }
 
-/* ADMIN 드롭다운 (클릭 토글형) */
+/* ==============================
+   ADMIN 드롭다운 (hover 전환형)
+============================== */
 .admin-dropdown {
   position: relative;
   display: inline-block;
@@ -104,38 +116,44 @@
   color: #DA291C;
 }
 
-/* 기본적으로 숨김 */
+/* 메뉴 숨김: display 항상 flex, visibility로 제어 */
 .admin-dropdown-menu {
   position: absolute;
   top: 120%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateY(0);
   background-color: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   min-width: 150px;
-  display: none;
+  display: flex;
   flex-direction: column;
   padding: 8px 0;
+
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  z-index: 9999;
 }
 
-/* 활성화 시 표시 */
-.admin-dropdown-menu.active {
-  display: flex;
+/* hover 시 표시 */
+.admin-dropdown:hover .admin-dropdown-menu {
   opacity: 1;
+  visibility: visible;
   pointer-events: auto;
-  transform: translateX(-50%) translateY(4px);
+  transform: translateX(-50%) translateY(6px);
 }
 
+/* ==============================
+   드롭다운 내부 링크
+============================== */
 .admin-dropdown-menu a {
   padding: 10px 15px;
   color: #111;
   text-decoration: none;
   text-align: center;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .admin-dropdown-menu a:hover {

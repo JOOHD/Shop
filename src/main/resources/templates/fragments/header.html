@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <title>Header</title>
-    <link rel="stylesheet" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" href="/css/fragments/header.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
@@ -43,10 +43,9 @@
         <!-- 로그인 (ADMIN) -->
         <div class="admin-icons" sec:authorize="hasRole('ADMIN')">
             <div class="admin-dropdown">
-                <a href="#" title="상품 관리" class="admin-dropdown-toggle">
+                <a href="/admin/products/list" title="상품 관리" class="admin-dropdown-toggle">
                     <i class="fas fa-cubes"></i>
                 </a>
-                <!-- 드롭다운 메뉴 -->
                 <div class="admin-dropdown-menu">
                     <a href="/admin/products/list">상품 목록</a>
                     <a href="/admin/products/register">상품 등록</a>
@@ -84,14 +83,6 @@
       }
     }
 
-    // 드롭다운 토글
-    document.querySelectorAll(".admin-dropdown-toggle").forEach(toggle => {
-        toggle.addEventListener("click", e => {
-            e.preventDefault();
-            const menu = toggle.nextElementSibling;
-            menu.classList.toggle("active"); // CSS에서 display: block/none 조정
-        });
-    });
 </script>
 
 </body>

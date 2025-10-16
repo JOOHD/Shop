@@ -1,6 +1,7 @@
 package JOO.jooshop.contentImgs.controller;
 
 import JOO.jooshop.contentImgs.entity.ContentImages;
+import JOO.jooshop.contentImgs.entity.enums.UploadType;
 import JOO.jooshop.contentImgs.service.ContentImgService;
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.repository.ProductRepositoryV1;
@@ -27,9 +28,11 @@ public class ContentImgController {
 
     // 이미지 업로드
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadContentImg(@RequestParam("productId") Long productId, @RequestParam("image") List<MultipartFile> images) {
+    public ResponseEntity<String> uploadContentImg(@RequestParam("productId") Long productId,
+                                                   @RequestParam("image") List<MultipartFile> images,
+                                                   UploadType uploadType) {
         Product product = productRepository.findByProductId(productId).orElseThrow(() -> new NoSuchElementException(PRODUCT_NOT_FOUND));
-        contentImgService.uploadContentImage(product, images);
+        contentImgService.uploadContentImage(product, images, uploadType);
         return ResponseEntity.status(HttpStatus.CREATED).body("이미지 업로드 완료");
     }
 

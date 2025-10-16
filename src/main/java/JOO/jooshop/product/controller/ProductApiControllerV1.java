@@ -1,5 +1,6 @@
 package JOO.jooshop.product.controller;
 
+import JOO.jooshop.contentImgs.entity.enums.UploadType;
 import JOO.jooshop.global.queries.Condition;
 import JOO.jooshop.global.queries.OrderBy;
 import JOO.jooshop.product.model.*;
@@ -50,11 +51,12 @@ public class ProductApiControllerV1 {
     public ResponseEntity<String> createProduct(
             @Valid @RequestPart("requestDto") String requestDtoStr,
             @RequestPart(value = "thumbnailImgs", required = false) List<MultipartFile> thumbnailImgs,
-            @RequestPart(value = "contentImgs", required = false) List<MultipartFile> contentImgs
+            @RequestPart(value = "contentImgs", required = false) List<MultipartFile> contentImgs,
+            UploadType uploadType
     ) throws JsonProcessingException {
 
         ProductRequestDto requestDto = objectMapper.readValue(requestDtoStr, ProductRequestDto.class);
-        Long productId = productService.createProduct(requestDto, thumbnailImgs, contentImgs);
+        Long productId = productService.createProduct(requestDto, thumbnailImgs, contentImgs, uploadType);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body("상품 등록 완료. Id : " + productId);
     }

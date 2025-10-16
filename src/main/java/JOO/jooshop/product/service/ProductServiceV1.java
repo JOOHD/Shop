@@ -1,5 +1,6 @@
 package JOO.jooshop.product.service;
 
+import JOO.jooshop.contentImgs.entity.enums.UploadType;
 import JOO.jooshop.contentImgs.service.ContentImgService;
 import JOO.jooshop.global.authorization.RequiresRole;
 import JOO.jooshop.members.entity.enums.MemberRole;
@@ -52,7 +53,8 @@ public class ProductServiceV1 {
     @RequiresRole({MemberRole.ADMIN, MemberRole.SELLER})
     public Long createProduct(ProductRequestDto requestDto,
                               @Nullable List<MultipartFile> thumbnailImgs,
-                              @Nullable List<MultipartFile> contentImgs) {
+                              @Nullable List<MultipartFile> contentImgs,
+                              UploadType uploadType) {
 
         if (requestDto.getPrice() == null || requestDto.getPrice().compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("가격은 0 이상이어야 합니다.");
@@ -69,7 +71,7 @@ public class ProductServiceV1 {
 
         if (contentImgs != null && !contentImgs.isEmpty() &&
             !Objects.equals(contentImgs.get(0).getOriginalFilename(), "")) {
-            contentImgService.uploadContentImage(product, contentImgs);
+            contentImgService.uploadContentImage(product, contentImgs, uploadType);
         }
 
         return product.getProductId();

@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -26,17 +27,20 @@ public class AdminProductApiController {
 
     /* 상품 등록 */
     @PostMapping
-    public ResponseEntity<AdminProductResponseDto > createProduct(@RequestBody AdminProductRequestDto dto) {
-        AdminProductResponseDto saved = productService.createProduct(dto);
+    public ResponseEntity<AdminProductResponseDto > createProduct(
+            @RequestPart("product") AdminProductRequestDto dto,
+            @RequestPart(value = "images", required = false)List<MultipartFile> images) {
+        AdminProductResponseDto saved = productService.createProduct(dto, images);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     /* 상품 수정 */
     @PutMapping("/{id}")
-    public ResponseEntity<AdminProductResponseDto > updateProduct(
-                                                @PathVariable Long id,
-                                                @RequestBody AdminProductEntityMapperDto dto) {
-        return ResponseEntity.ok(productService.updateProduct(id, dto));
+    public ResponseEntity<AdminProductResponseDto> updateProduct(
+            @PathVariable Long id,
+            @RequestPart("product") AdminProductEntityMapperDto dto,
+            @RequestPart(value = "images", required = false)List<MultipartFile> images) {
+        return ResponseEntity.ok(productService.updateProduct(id, dto, images));
     }
 
     /* 상품 삭제 */
