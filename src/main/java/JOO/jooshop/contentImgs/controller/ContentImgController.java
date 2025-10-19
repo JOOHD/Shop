@@ -46,7 +46,7 @@ public class ContentImgController {
     // 상품 id로 이미지 조회 (경로 리스트)
     @GetMapping("/{productId}")
     public ResponseEntity<List<String>> getProductContentImgs(@PathVariable("contentImgId") Long productId) {
-        List<ContentImages> contentImages = contentImgService.getContentImgs(productId);
+        List<ContentImages> contentImages = contentImgService.getContentImages(productId);
         if (!contentImages.isEmpty()) {
             List<String> imagePaths = contentImages.stream()
                     .map(ContentImages::getImagePath)

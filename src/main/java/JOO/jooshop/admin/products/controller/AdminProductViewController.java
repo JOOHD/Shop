@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/admin/products")
 @RequiredArgsConstructor
-public class AdminProductViewController {
+public class AdminProductViewController { // 페이지 라우팅
 
     private final AdminProductService productService;
 

@@ -1,17 +1,21 @@
 package JOO.jooshop.contentImgs.entity;
 
+import JOO.jooshop.contentImgs.entity.enums.UploadType;
 import JOO.jooshop.product.entity.Product;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Getter
+@Setter
 @Entity
 @Table(name = "content_imgs")
-@NoArgsConstructor // 디폴트 생성자
-public class ContentImages { // json api 용 컨트롤러 (productViewController 와 연관성 없음)
+@NoArgsConstructor
+public class ContentImages {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "content_img_id")
@@ -24,26 +28,22 @@ public class ContentImages { // json api 용 컨트롤러 (productViewController
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "upload_type", nullable = false)
+    private UploadType uploadType;
+
     @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt;
 
-    // 생성자 추가
-    public ContentImages(Product product, String imagePath) {
+    public ContentImages(Product product, String imagePath, UploadType uploadType) {
         this.product = product;
         this.imagePath = imagePath;
+        this.uploadType = uploadType;
         this.createdAt = LocalDateTime.now();
-
     }
+
     @Override
     public String toString() {
-        return this.getImagePath(); // imagePath를 반환 (객체 -> 문자열 반환)
-    }
-
-    public void setProduct(Product product) { // contentImage.setProduct(newProduct); 상품 변경
-        this.product = product;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) { // 날짜 수동 변경
-        this.createdAt = createdAt;
+        return this.getImagePath();
     }
 }

@@ -12,10 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
+@Setter
 @Entity
 @Builder(toBuilder = true)
 @AllArgsConstructor // 오버로딩 된 생성자 예방
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @Table(name = "product_management")
 public class ProductManagement {
     /*

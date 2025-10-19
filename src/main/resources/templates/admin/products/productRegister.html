@@ -83,52 +83,93 @@
 </main>
 
 <script>
-    // === 대표 이미지 미리보기 ===
+    let thumbnailUrl = "";   // 서버 업로드된 대표 이미지 URL
+    let contentUrls = [];    // 서버 업로드된 상세 이미지 URL 리스트
+
+    // === 대표 이미지 자동 업로드 & 미리보기 ===
     const thumbnailInput = document.getElementById("thumbnail");
     const thumbnailPreview = document.getElementById("thumbnailPreview");
 
-    if (thumbnailInput && thumbnailPreview) {
-        thumbnailInput.addEventListener("change", (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                thumbnailPreview.src = URL.createObjectURL(file);
-            } else {
-                thumbnailPreview.src = "/images/no-image.png"; // 파일 없을 시 기본 이미지
-            }
-        });
-    }
+    thumbnailInput.addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
 
-    // === 상세 이미지 미리보기 ===
+        // 미리보기
+        thumbnailPreview.src = URL.createObjectURL(file);
+
+        // 서버 업로드
+        const form = new FormData();
+        form.append("file", file);
+
+        try {
+            const res = await fetch("/api/admin/products/upload/thumbnail", {
+                method: "POST",
+                body: form,
+                credentials: "include"
+            });
+            const data = await res.json();
+            if (res.ok) {
+                thumbnailUrl = data.uri; // 업로드된 이미지 URL 저장
+            } else {
+                alert(data.error || "썸네일 업로드 실패");
+                thumbnailUrl = "";
+                thumbnailPreview.src = "/images/no-image.png");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("썸네일 업로드 실패");
+            thumbnailUrl = "";
+            thumbnailPreview.src = "/images/no-image.png";
+        }
+    });
+
+    // === 상세 이미지 자동 업로드 & 미리보기 ===
     const contentImagesInput = document.getElementById("contentImages");
     const contentPreview = document.getElementById("contentPreview");
 
-    if (contentImagesInput && contentPreview) {
-        contentImagesInput.addEventListener("change", (e) => {
-            contentPreview.innerHTML = ""; // 이전 미리보기 초기화
+    contentImagesInput.addEventListener("change", async (e) => {
+        contentPreview.innerHTML = ""; // 이전 미리보기 초기화
+        contentUrls = [];
 
-            const files = Array.from(e.target.files);
-            if (files.length === 0) {
-                const noImageMsg = document.createElement("p");
-                noImageMsg.textContent = "선택된 이미지가 없습니다.";
-                noImageMsg.style.color = "#888";
-                contentPreview.appendChild(noImageMsg);
-                return;
-            }
+        const files = Array.from(e.target.files);
+        if (files.length === 0) {
+            const p = document.createElement("p");
+            p.textContent = "선택된 이미지가 없습니다.";
+            p.style.color = "#888";
+            contentPreview.appendChild(p);
+            return;
+        }
 
-            files.forEach(file => {
-                const img = document.createElement("img");
-                img.src = URL.createObjectURL(file);
-                img.classList.add("content-preview-img");
+        for (const file of files) {
+            const img = document.createElement("img");
+            img.src = URL.createObjectURL(file);
+            img.classList.add("content-preview-img");
+            contentPreview.appendChild(img);
 
-                // 클릭 시 이미지 삭제 가능 (선택 취소 느낌)
-                img.addEventListener("click", () => {
-                    img.remove();
+            // 서버 업로드
+            const form = new FormData();
+            form.append("file", file);
+            try {
+                const res = await fetch("/api/admin/products/upload/content", {
+                    method: "POST",
+                    body: form,
+                    credentials: "include"
                 });
+                const data =await res.json();
+                if (res.ok) {
+                     contentUrls.push(data.uri); // 서버에서 단일 URI 반환
+                } else {
+                    alert(data.error || "상세 이미지 업로드 실패");
+                    img.remove();
+                }
+            } catch (err) {
+                console.error(err);
+                alert("상세 이미지 업로드 실패");
+                img.remove();
+            }
+        }
+    });
 
-                contentPreview.appendChild(img);
-            });
-        });
-    }
 
     // === 옵션 추가/삭제 ===
     document.getElementById("addOptionBtn").addEventListener("click", () => {
@@ -151,7 +192,29 @@
     // === 상품 등록 (비동기 요청) ===
     document.getElementById("productForm").addEventListener("submit", async (e) => {
         e.preventDefault();
-        const formData = new FormData(e.target);
+
+        if (!thumbnailUrl) {
+            alert("대표 이미지를 업로드해주세요.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("productName", e.target.productName.value);
+        formData.append("productType", e.target.productType.value);
+        formData.append("price", e.target.price.value);
+        formData.append("discountRate", e.target.discountRate.value);
+        formData.append("description", e.target.description.value);
+        formData.append("thumbnailUrl", thumbnailUrl);
+        contentUrls.forEach(url => formData.append("contentUrls", url));
+
+        // 옵션
+        const optionRows = document.querySelectorAll("#optionContainer .option-row");
+        optionRows.forEach((row, idx) => {
+            const size = row.querySelector('input[name="size"]').value;
+            const stock = row.querySelector('input[name="stock"]').value;
+            formData.append(`options[${idx}].size`, size);
+            formData.append(`options[${idx}].stock`, stock);
+        });
 
         try {
             const res = await fetch("/api/v1/admin/products/register", {
@@ -159,11 +222,12 @@
                 body: formData,
                 credentials: 'include'
             });
-
             if (!res.ok) throw new Error("상품 등록 실패");
+
             alert("상품이 등록되었습니다!");
             location.href = "/admin/products";
         } catch (err) {
+            console.error(err);
             alert(err.message);
         }
     });
