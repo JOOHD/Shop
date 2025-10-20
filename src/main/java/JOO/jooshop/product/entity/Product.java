@@ -6,7 +6,7 @@ import JOO.jooshop.product.entity.enums.ProductType;
 import JOO.jooshop.product.model.ProductRequestDto;
 import JOO.jooshop.productManagement.entity.ProductManagement;
 import JOO.jooshop.productManagement.entity.enums.Size;
-import JOO.jooshop.productThumbnail.entity.ProductThumbnail;
+import JOO.jooshop.thumbnail.entity.ProductThumbnail;
 import JOO.jooshop.wishList.entity.WishList;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -92,7 +92,7 @@ public class Product {
             this.productManagements.add(pm);
         }
     }
-    
+
     /* update 시 자동으로 updatedAt 변경 */
     @PreUpdate
     public void onUpdate() {

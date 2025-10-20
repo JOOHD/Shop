@@ -42,7 +42,7 @@ public class QProduct extends EntityPathBase<Product> {
 
     public final StringPath productName = createString("productName");
 
-    public final ListPath<JOO.jooshop.productThumbnail.entity.ProductThumbnail, JOO.jooshop.productThumbnail.entity.QProductThumbnail> productThumbnails = this.<JOO.jooshop.productThumbnail.entity.ProductThumbnail, JOO.jooshop.productThumbnail.entity.QProductThumbnail>createList("productThumbnails", JOO.jooshop.productThumbnail.entity.ProductThumbnail.class, JOO.jooshop.productThumbnail.entity.QProductThumbnail.class, PathInits.DIRECT2);
+    public final ListPath<JOO.jooshop.thumbnail.entity.ProductThumbnail, JOO.jooshop.thumbnail.entity.QProductThumbnail> productThumbnails = this.<JOO.jooshop.thumbnail.entity.ProductThumbnail, JOO.jooshop.thumbnail.entity.QProductThumbnail>createList("productThumbnails", JOO.jooshop.thumbnail.entity.ProductThumbnail.class, JOO.jooshop.thumbnail.entity.QProductThumbnail.class, PathInits.DIRECT2);
 
     public final EnumPath<JOO.jooshop.product.entity.enums.ProductType> productType = createEnum("productType", JOO.jooshop.product.entity.enums.ProductType.class);
 

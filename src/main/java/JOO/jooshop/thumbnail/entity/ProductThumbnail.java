@@ -1,12 +1,9 @@
-package JOO.jooshop.productThumbnail.entity;
+package JOO.jooshop.thumbnail.entity;
 
-import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.entity.Product;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -36,21 +33,5 @@ public class ProductThumbnail {
         this.imagePath = imagePath;
         this.createdAt = LocalDateTime.now();
 
-    }
-
-    public void updateItemImg(String imagePath){
-        this.imagePath = imagePath;
-    }
-
-    public void setImagePath(String imagePath) {
-        this.imagePath = imagePath;
-    }
-
-    public void setProduct(Product product) {
-        this.product = product;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
     }
 }

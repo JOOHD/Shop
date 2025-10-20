@@ -1,9 +1,8 @@
-package JOO.jooshop.productThumbnail.controller;
+package JOO.jooshop.thumbnail.controller;
 
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.repository.ProductRepositoryV1;
-import JOO.jooshop.productThumbnail.entity.ProductThumbnail;
-import JOO.jooshop.productThumbnail.service.ProductThumbnailServiceV1;
+import JOO.jooshop.thumbnail.service.ThumbnailServiceV1;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -13,7 +12,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 
 import static JOO.jooshop.global.Exception.ResponseMessageConstants.DELETE_SUCCESS;
 import static JOO.jooshop.global.Exception.ResponseMessageConstants.PRODUCT_NOT_FOUND;
@@ -22,35 +20,32 @@ import static JOO.jooshop.global.Exception.ResponseMessageConstants.PRODUCT_NOT_
 @RestController
 @RequestMapping("/api/v1/thumbnail")
 @RequiredArgsConstructor
-public class ProductThumbnailControllerV1 {
+public class ThumbnailApiControllerV1 {
 
-    private final ProductThumbnailServiceV1 productThumbnailService;
+    private final ThumbnailServiceV1 thumbnailService;
     private final ProductRepositoryV1 productRepository;
 
     // 썸네일 업로드
     @PostMapping("/upload")
     public ResponseEntity<String> uploadThumbnail(@RequestParam("productId") Long productId, @RequestParam("image") List<MultipartFile> images) {
         Product product = productRepository.findByProductId(productId).orElseThrow(() -> new NoSuchElementException(PRODUCT_NOT_FOUND));
-        productThumbnailService.uploadThumbnail(product, images);
+        thumbnailService.uploadThumbnail(product, images);
         return ResponseEntity.status(HttpStatus.CREATED).body("썸네일 업로드 완료");
     }
 
     // 썸네일 삭제
     @DeleteMapping("/delete/{thumbnailId}")
     public ResponseEntity<String> deleteThumbnail(@PathVariable("thumbnailId") Long thumbnailId) {
-        productThumbnailService.deleteThumbnail(thumbnailId);
+        thumbnailService.deleteThumbnail(thumbnailId);
         return ResponseEntity.status(HttpStatus.OK).body(DELETE_SUCCESS);
     }
 
     // 상품 id로 썸네일 조회 (경로 리스트)
     @GetMapping("/{productId}")
     public ResponseEntity<List<String>> getProductThumbnails(@PathVariable("productId") Long productId) {
-        List<ProductThumbnail> thumbnails = productThumbnailService.getProductThumbnails(productId);
+        List<String> thumbnails = thumbnailService.getProductThumbnails(productId);
         if (!thumbnails.isEmpty()) {
-            List<String> thumbnailPaths = thumbnails.stream()
-                    .map(ProductThumbnail::getImagePath)
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok().body(thumbnailPaths);
+            return ResponseEntity.ok().body(thumbnails);
         } else {
             return ResponseEntity.notFound().build();
         }

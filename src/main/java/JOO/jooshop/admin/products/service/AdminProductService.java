@@ -6,6 +6,7 @@ import JOO.jooshop.admin.products.repository.AdminProductRepository;
 import JOO.jooshop.contentImgs.entity.enums.UploadType;
 import JOO.jooshop.contentImgs.service.ContentImgService;
 import JOO.jooshop.product.entity.Product;
+import JOO.jooshop.thumbnail.service.ThumbnailServiceV1;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 public class AdminProductService {
 
     private final AdminProductRepository productRepository;
+    private final ThumbnailServiceV1 thumbnailService;
     private final ContentImgService contentImgService;
 
     /** 전체 상품 조회 */
@@ -60,9 +62,10 @@ public class AdminProductService {
 
     /** 이미지 + 옵션 처리 메서드 */
     private void handleImagesAndOptions(Product product, AdminProductRequestDto dto) {
-        // 1. 썸네일 등록
-        if (dto.getThumbnailUrl() != null) {
-            contentImgService.registerThumbnail(product, dto.getThumbnailUrl());
+        // 1. 썸네일 등록 (front에서 URL 전달 시)
+        if (dto.getThumbnailUrl() != null && !dto.getThumbnailUrl().isBlank()) {
+            // List<String>이 아니라 단일 URL일 경우, 내부에서 List로 감싸서 처리하도록
+            thumbnailService.uploadThumbnail(product, dto.getThumbnailUrl());
         }
 
         // 2. 상세 이미지 등록

@@ -1,7 +1,7 @@
 package JOO.jooshop.wishList.model;
 
 import JOO.jooshop.product.entity.enums.ProductType;
-import JOO.jooshop.productThumbnail.entity.ProductThumbnail;
+import JOO.jooshop.thumbnail.entity.ProductThumbnail;
 import JOO.jooshop.wishList.entity.WishList;
 import lombok.AllArgsConstructor;
 import lombok.Data;

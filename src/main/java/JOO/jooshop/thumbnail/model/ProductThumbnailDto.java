@@ -1,7 +1,7 @@
-package JOO.jooshop.productThumbnail.model;
+package JOO.jooshop.thumbnail.model;
 
 
-import JOO.jooshop.productThumbnail.entity.ProductThumbnail;
+import JOO.jooshop.thumbnail.entity.ProductThumbnail;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

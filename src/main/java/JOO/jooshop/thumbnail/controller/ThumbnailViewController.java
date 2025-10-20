@@ -1,11 +1,11 @@
-package JOO.jooshop.productThumbnail.controller;
+package JOO.jooshop.thumbnail.controller;
 
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.model.ProductDetailResponseDto;
 import JOO.jooshop.product.service.ProductServiceV1;
-import JOO.jooshop.productThumbnail.entity.ProductThumbnail;
-import JOO.jooshop.productThumbnail.service.ProductThumbnailServiceV1;
+import JOO.jooshop.thumbnail.entity.ProductThumbnail;
+import JOO.jooshop.thumbnail.service.ProductThumbnailServiceV1;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -21,7 +21,7 @@ import java.util.List;
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/products")
-public class ProductViewController { // view 용 컨트롤러
+public class ThumbnailViewController { // view 용 컨트롤러
 
     private final JWTUtil jwtUtil;
     private final ProductServiceV1 productService;

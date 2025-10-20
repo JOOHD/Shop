@@ -2,8 +2,8 @@ package JOO.jooshop.global.dummydata.util;
 
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.repository.ProductRepositoryV1;
-import JOO.jooshop.productThumbnail.entity.ProductThumbnail;
-import JOO.jooshop.productThumbnail.repository.ProductThumbnailRepositoryV1;
+import JOO.jooshop.thumbnail.entity.ProductThumbnail;
+import JOO.jooshop.thumbnail.repository.ProductThumbnailRepositoryV1;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

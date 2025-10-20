@@ -8,7 +8,7 @@ import JOO.jooshop.product.entity.QProduct;
 import JOO.jooshop.product.model.ProductListResponseDto;
 import JOO.jooshop.product.repository.ProductColorRepositoryV1;
 import JOO.jooshop.product.repository.ProductRepositoryV1;
-import JOO.jooshop.productThumbnail.entity.ProductThumbnail;
+import JOO.jooshop.thumbnail.entity.ProductThumbnail;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;

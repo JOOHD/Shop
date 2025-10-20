@@ -12,7 +12,7 @@ import java.util.List;
 
 @Repository
 public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
-    List<Inquiry> findByProduct_ProductId(Long productId);
+    List<Inquiry> findByProductProductId(Long productId);
 
     @Modifying
     @Query("UPDATE Inquiry i SET i.inquiryType = :inquiryType, i.inquiryTitle = :inquiryTitle WHERE i.inquiryId = :inquiryId")

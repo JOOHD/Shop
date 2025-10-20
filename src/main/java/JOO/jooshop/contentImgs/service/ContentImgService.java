@@ -22,7 +22,7 @@ public class ContentImgService {
 
     private final ContentImagesRepository contentImagesRepository;
 
-    /* 범용 이미지 업로드 */
+    /* 상세 이미지 업로드 */
     public void uploadContentImage(Product product, List<MultipartFile> images, UploadType uploadType) {
         if (images == null || images.isEmpty()) return;
 
@@ -38,32 +38,7 @@ public class ContentImgService {
         }
     }
 
-    /* 단일 이미지 서버 업로드 후 URL 반환 */
-    public String saveSingleImage(MultipartFile image, UploadType uploadType) throws IOException {
-        if (image == null || image.isEmpty()) return null;
-        return saveContentImage(image, uploadType.getLocalPath(), uploadType.getDbPath());
-    }
-
-    /* 멀티 이미지 서버 업로드 후 URL 반환 */
-    public List<String> saveMultipleImages(List<MultipartFile> images, UploadType uploadType) throws IOException {
-        List<String> urls = new ArrayList<>();
-        if (images == null || images.isEmpty()) return urls;
-
-        for (MultipartFile image : images) {
-            String url = saveContentImage(image, uploadType.getLocalPath(), uploadType.getDbPath());
-            if (url != null) urls.add(url);
-        }
-        return urls;
-    }
-
-    /* 프론트에서 넘어온 썸네일 URL 등록 */
-    public void registerThumbnail(Product product, String thumbnailUrl) {
-        if (thumbnailUrl == null || thumbnailUrl.isBlank()) return;
-        ContentImages contentImages = new ContentImages(product, thumbnailUrl, UploadType.PRODUCT);
-        contentImagesRepository.save(contentImages);
-    }
-
-    /* 프론트에서 넘어온 상세 이미지 URL 등록 */
+    /* 상세 이미지 URL 등록 (front 에서 직접 URL 전달 시) */
     public void registerContentImages(Product product, List<String> urls, UploadType uploadType) {
         if (urls == null || urls.isEmpty()) return;
         for (String url : urls) {
@@ -75,7 +50,7 @@ public class ContentImgService {
 
     /* 특정 상품 이미지 조회 */
     public List<ContentImages> getContentImages(Long productId) {
-        return contentImagesRepository.findByProduct_ProductId(productId);
+        return contentImagesRepository.findByProductProductId(productId);
     }
 
     /* 실제 파일 저장 */
@@ -96,16 +71,21 @@ public class ContentImgService {
         return dbFilePath;
     }
 
-    /* 이미지 삭제 */
+    /* 상세 이미지 삭제 */
+    @Transactional
     public void deleteContentImage(Long contentImgId) {
         ContentImages contentImage = contentImagesRepository.findById(contentImgId)
                 .orElseThrow(() -> new NoSuchElementException("해당 사진을 찾을 수 없습니다."));
 
+        // 파일 삭제
         String imagePath = "src/main/resources/static" + contentImage.getImagePath();
-        contentImagesRepository.delete(contentImage);
         deleteImageFile(imagePath);
+
+        // DB 삭제
+        contentImagesRepository.delete(contentImage);
     }
 
+    // 이미지 파일
     private void deleteImageFile(String imagePath) {
         if (imagePath == null || imagePath.isBlank()) return;
 

@@ -2,7 +2,7 @@ package JOO.jooshop.product.model;
 
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.entity.enums.ProductType;
-import JOO.jooshop.productThumbnail.entity.ProductThumbnail;
+import JOO.jooshop.thumbnail.entity.ProductThumbnail;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

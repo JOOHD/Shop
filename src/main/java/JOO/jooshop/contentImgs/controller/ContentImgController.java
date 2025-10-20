@@ -28,10 +28,14 @@ public class ContentImgController {
 
     // 이미지 업로드
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadContentImg(@RequestParam("productId") Long productId,
-                                                   @RequestParam("image") List<MultipartFile> images,
-                                                   UploadType uploadType) {
-        Product product = productRepository.findByProductId(productId).orElseThrow(() -> new NoSuchElementException(PRODUCT_NOT_FOUND));
+    public ResponseEntity<String> uploadContentImg(
+            @RequestParam("productId") Long productId,
+            @RequestParam("image") List<MultipartFile> images,
+            @RequestParam("uploadType") UploadType uploadType
+    ) {
+        Product product = productRepository.findByProductId(productId)
+                .orElseThrow(() -> new NoSuchElementException(PRODUCT_NOT_FOUND));
+
         contentImgService.uploadContentImage(product, images, uploadType);
         return ResponseEntity.status(HttpStatus.CREATED).body("이미지 업로드 완료");
     }
@@ -43,10 +47,11 @@ public class ContentImgController {
         return ResponseEntity.status(HttpStatus.OK).body(DELETE_SUCCESS);
     }
 
-    // 상품 id로 이미지 조회 (경로 리스트)
+    // 상품별 이미지 조회 (경로 리스트)
     @GetMapping("/{productId}")
     public ResponseEntity<List<String>> getProductContentImgs(@PathVariable("contentImgId") Long productId) {
         List<ContentImages> contentImages = contentImgService.getContentImages(productId);
+
         if (!contentImages.isEmpty()) {
             List<String> imagePaths = contentImages.stream()
                     .map(ContentImages::getImagePath)

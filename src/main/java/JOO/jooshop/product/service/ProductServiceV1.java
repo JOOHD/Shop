@@ -11,7 +11,7 @@ import JOO.jooshop.product.model.ProductDetailResponseDto;
 import JOO.jooshop.product.repository.ProductColorRepositoryV1;
 import JOO.jooshop.product.repository.ProductRepositoryV1;
 import JOO.jooshop.productManagement.entity.ProductManagement;
-import JOO.jooshop.productThumbnail.service.ProductThumbnailServiceV1;
+import JOO.jooshop.thumbnail.service.ProductThumbnailServiceV1;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
