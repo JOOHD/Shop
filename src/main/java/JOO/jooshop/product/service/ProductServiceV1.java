@@ -11,7 +11,7 @@ import JOO.jooshop.product.model.ProductDetailResponseDto;
 import JOO.jooshop.product.repository.ProductColorRepositoryV1;
 import JOO.jooshop.product.repository.ProductRepositoryV1;
 import JOO.jooshop.productManagement.entity.ProductManagement;
-import JOO.jooshop.thumbnail.service.ProductThumbnailServiceV1;
+import JOO.jooshop.thumbnail.service.ThumbnailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -26,7 +26,7 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static JOO.jooshop.global.Exception.ResponseMessageConstants.PRODUCT_NOT_FOUND;
+import static JOO.jooshop.global.exception.ResponseMessageConstants.PRODUCT_NOT_FOUND;
 
 @Service
 @Transactional(rollbackFor = Exception.class)
@@ -43,7 +43,7 @@ public class ProductServiceV1 {
     public final ProductRepositoryV1 productRepository;
     public final ProductColorRepositoryV1 productColorRepository;
     public final ModelMapper modelMapper;
-    private final ProductThumbnailServiceV1 productThumbnailService;
+    private final ThumbnailService thumbnailService;
     private final ContentImgService contentImgService;
     private final ProductRankingService productRankingService;
 
@@ -52,30 +52,25 @@ public class ProductServiceV1 {
      */
     @RequiresRole({MemberRole.ADMIN, MemberRole.SELLER})
     public Long createProduct(ProductRequestDto requestDto,
-                              @Nullable List<MultipartFile> thumbnailImgs,
-                              @Nullable List<MultipartFile> contentImgs,
+                              String thumbnailUrl,      // thumbnail 은 대표 1장
+                              List<String> contentUrls, // contentImg 는 여러장
                               UploadType uploadType) {
-
-        if (requestDto.getPrice() == null || requestDto.getPrice().compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("가격은 0 이상이어야 합니다.");
-        }
-
         Product product = new Product(requestDto);
         productRepository.save(product);
 
-        // 추가 - 썸네일 저장 메서드 실행
-        if (thumbnailImgs != null && !thumbnailImgs.isEmpty() &&
-            !Objects.equals(thumbnailImgs.get(0).getOriginalFilename(), "")) {
-            productThumbnailService.uploadThumbnail(product, thumbnailImgs);
+        // 썸네일 처리
+        if (thumbnailUrl != null && !thumbnailUrl.isBlank()) {
+            thumbnailService.uploadThumbnailImages(product, thumbnailUrl);
         }
 
-        if (contentImgs != null && !contentImgs.isEmpty() &&
-            !Objects.equals(contentImgs.get(0).getOriginalFilename(), "")) {
-            contentImgService.uploadContentImage(product, contentImgs, uploadType);
+        // 상세 이미지 처리
+        if (contentUrls != null && !contentUrls.isEmpty()) {
+            contentImgService.uploadContentImages(product, contentUrls, uploadType);
         }
 
         return product.getProductId();
     }
+
 
     /**
      * 상품 목록 조회(전체)

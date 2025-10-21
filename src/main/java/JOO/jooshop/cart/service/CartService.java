@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
-import static JOO.jooshop.global.Exception.ResponseMessageConstants.*;
+import static JOO.jooshop.global.exception.ResponseMessageConstants.*;
 import static JOO.jooshop.global.authorization.MemberAuthorizationUtil.verifyUserIdMatch;
 
 @Service

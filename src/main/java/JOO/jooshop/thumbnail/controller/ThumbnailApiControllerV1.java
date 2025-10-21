@@ -2,7 +2,7 @@ package JOO.jooshop.thumbnail.controller;
 
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.repository.ProductRepositoryV1;
-import JOO.jooshop.thumbnail.service.ThumbnailServiceV1;
+import JOO.jooshop.thumbnail.service.ThumbnailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -13,8 +13,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import static JOO.jooshop.global.Exception.ResponseMessageConstants.DELETE_SUCCESS;
-import static JOO.jooshop.global.Exception.ResponseMessageConstants.PRODUCT_NOT_FOUND;
+import static JOO.jooshop.global.exception.ResponseMessageConstants.DELETE_SUCCESS;
+import static JOO.jooshop.global.exception.ResponseMessageConstants.PRODUCT_NOT_FOUND;
 
 @Slf4j
 @RestController
@@ -22,14 +22,15 @@ import static JOO.jooshop.global.Exception.ResponseMessageConstants.PRODUCT_NOT_
 @RequiredArgsConstructor
 public class ThumbnailApiControllerV1 {
 
-    private final ThumbnailServiceV1 thumbnailService;
+    private final ThumbnailService thumbnailService;
     private final ProductRepositoryV1 productRepository;
 
     // 썸네일 업로드
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadThumbnail(@RequestParam("productId") Long productId, @RequestParam("image") List<MultipartFile> images) {
+    public ResponseEntity<String> uploadThumbnail(@RequestParam("productId") Long productId,
+                                                  String thumbnailUrl) {
         Product product = productRepository.findByProductId(productId).orElseThrow(() -> new NoSuchElementException(PRODUCT_NOT_FOUND));
-        thumbnailService.uploadThumbnail(product, images);
+        thumbnailService.uploadThumbnailImages(product, thumbnailUrl);
         return ResponseEntity.status(HttpStatus.CREATED).body("썸네일 업로드 완료");
     }
 

@@ -2,8 +2,6 @@ package JOO.jooshop.order.service;
 
 import JOO.jooshop.cart.entity.Cart;
 import JOO.jooshop.cart.repository.CartRepository;
-import JOO.jooshop.global.Exception.customException.MemberNotMatchException;
-import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
 import JOO.jooshop.order.entity.OrderProduct;
 import JOO.jooshop.order.entity.Orders;
@@ -12,12 +10,10 @@ import JOO.jooshop.order.model.OrderDto;
 import JOO.jooshop.order.repository.OrderRepository;
 import JOO.jooshop.order.repository.RedisOrderRepository;
 import JOO.jooshop.product.entity.Product;
-import JOO.jooshop.productManagement.entity.ProductManagement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

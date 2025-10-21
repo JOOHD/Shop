@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static JOO.jooshop.global.Exception.ResponseMessageConstants.DELETE_SUCCESS;
+import static JOO.jooshop.global.exception.ResponseMessageConstants.DELETE_SUCCESS;
 @RestController
 @RequestMapping("/api/v1/inquiry/reply")
 @RequiredArgsConstructor

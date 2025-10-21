@@ -1,6 +1,6 @@
-package JOO.jooshop.global.Exception;
+package JOO.jooshop.global.exception;
 
-import JOO.jooshop.global.Exception.customException.*;
+import JOO.jooshop.global.exception.customException.*;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;

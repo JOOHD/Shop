@@ -1,6 +1,7 @@
 package JOO.jooshop.thumbnail.service;
 
 import JOO.jooshop.global.authorization.RequiresRole;
+import JOO.jooshop.global.file.FileStorageService;
 import JOO.jooshop.members.entity.enums.MemberRole;
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.repository.ProductRepositoryV1;
@@ -25,45 +26,37 @@ import java.util.stream.Collectors;
 @Service
 @Transactional(rollbackFor = Exception.class)
 @RequiredArgsConstructor
-public class ThumbnailServiceV1 {
+public class ThumbnailService {
+    /* 25.10.21 리팩토링
+     * 1. MultipartFile 관련 코드 제거 → 실무에서는 파일 서버(예: S3)에 이미 업로드된 URL만 저장.
+     * 2. 메서드 이름과 역할 단순화 → uploadThumbnailImages(Product, String) 처럼 URL 처리용만 유지.
+     * 3. 삭제와 조회는 그대로 유지 → DB와 파일 삭제는 필요.
+     */
 
+    private final FileStorageService fileStorageService;
     private final ProductThumbnailRepositoryV1 productThumbnailRepository;
 
     /* 썸네일 업로드 */
     @RequiresRole({MemberRole.ADMIN, MemberRole.SELLER})
-    public void uploadThumbnail(Product product, List<MultipartFile> images) {
-        if (images == null || images.isEmpty()) return;
+    public void uploadThumbnailImages(Product product, String thumbnailUrl) {
+        if (thumbnailUrl == null || thumbnailUrl.isBlank()) return;
 
-        String uploadsDir = "src/main/resources/static/uploads/thumbnails/";
-
-        for (MultipartFile image : images) {
-            try {
-                String dbFilePath = saveThumbnail(image, uploadsDir);
-                ProductThumbnail thumbnail = new ProductThumbnail(product, dbFilePath);
-                productThumbnailRepository.save(thumbnail);
-            } catch (IOException e) {
-                log.error("썸네일 업로드 실패: {}", image.getOriginalFilename(), e);
-                throw new RuntimeException("썸네일 업로드 중 오류가 발생했습니다.");
-            }
-        }
+        ProductThumbnail thumbnailImage = new ProductThumbnail(product, thumbnailUrl);
+        productThumbnailRepository.save(thumbnailImage);
     }
 
-    private String saveThumbnail(MultipartFile image, String uploadDir) throws IOException {
-        String fileName = UUID.randomUUID().toString().replace("-", "") + "_" + image.getOriginalFilename();
-        String filePath = uploadDir + fileName;
-        String dbFilePath = "uploads/thumbnails/" + fileName;
-
-        Path path = Paths.get(filePath);
-        Files.createDirectories(path.getParent());
-        Files.write(path, image.getBytes());
-
-        return dbFilePath;
+    /* 모든 썸네일 전체 조회 */
+    public List<String> getAllThumbnails() {
+        return mapToImagePaths(productThumbnailRepository.findAll());
     }
 
-    /* 썸네일 조회 */
+    /* 특정 상품 썸네일 조회 */
     public List<String> getProductThumbnails(Long productId) {
-        return productThumbnailRepository.findByProductProductId(productId)
-                .stream()
+        return mapToImagePaths(productThumbnailRepository.findByProductProductId(productId));
+    }
+
+    private List<String> mapToImagePaths(List<ProductThumbnail> thumbnails) {
+        return thumbnails.stream()
                 .map(ProductThumbnail::getImagePath)
                 .collect(Collectors.toList());
     }
@@ -79,18 +72,10 @@ public class ThumbnailServiceV1 {
         ProductThumbnail thumbnail = productThumbnailRepository.findById(thumbnailId)
                 .orElseThrow(() -> new NoSuchElementException("해당 사진을 찾을 수 없습니다."));
 
-        String imagePath = "src/main/resources/static" + thumbnail.getImagePath();
+        // DB에서 삭제
         productThumbnailRepository.delete(thumbnail);
-        deleteImageFile(imagePath);
-    }
-    // 파일 삭제 메서드
-    private void deleteImageFile(String imagePath) {
-        try {
-            Path path = Paths.get(imagePath);
-            Files.deleteIfExists(path);
-        } catch (IOException e) {
-            log.error("파일 삭제 실패: {}", imagePath, e);
-            throw new RuntimeException("썸네일 파일 삭제 실패.");
-        }
+
+        // 실제 파일 삭제
+        fileStorageService.deleteFile(thumbnail.getImagePath());
     }
 }

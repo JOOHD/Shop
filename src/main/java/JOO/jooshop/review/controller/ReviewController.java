@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import static JOO.jooshop.global.Exception.ResponseMessageConstants.*;
+import static JOO.jooshop.global.exception.ResponseMessageConstants.*;
 
 @RestController
 @RequestMapping("api/v1/review")

@@ -21,7 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-import static JOO.jooshop.global.Exception.ResponseMessageConstants.DELETE_SUCCESS;
+import static JOO.jooshop.global.exception.ResponseMessageConstants.DELETE_SUCCESS;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -50,13 +50,11 @@ public class ProductApiControllerV1 {
     @PostMapping("/products/new")
     public ResponseEntity<String> createProduct(
             @Valid @RequestPart("requestDto") String requestDtoStr,
-            @RequestPart(value = "thumbnailImgs", required = false) List<MultipartFile> thumbnailImgs,
-            @RequestPart(value = "contentImgs", required = false) List<MultipartFile> contentImgs,
-            UploadType uploadType
+            String thumbnailUrl, List<String> contentUrls, UploadType uploadType
     ) throws JsonProcessingException {
 
         ProductRequestDto requestDto = objectMapper.readValue(requestDtoStr, ProductRequestDto.class);
-        Long productId = productService.createProduct(requestDto, thumbnailImgs, contentImgs, uploadType);
+        Long productId = productService.createProduct(requestDto, thumbnailUrl, contentUrls, uploadType);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body("상품 등록 완료. Id : " + productId);
     }

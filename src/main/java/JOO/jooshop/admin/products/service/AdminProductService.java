@@ -5,23 +5,27 @@ import JOO.jooshop.admin.products.model.AdminProductResponseDto ;
 import JOO.jooshop.admin.products.repository.AdminProductRepository;
 import JOO.jooshop.contentImgs.entity.enums.UploadType;
 import JOO.jooshop.contentImgs.service.ContentImgService;
+import JOO.jooshop.global.file.FileStorageService;
 import JOO.jooshop.product.entity.Product;
-import JOO.jooshop.thumbnail.service.ThumbnailServiceV1;
+import JOO.jooshop.thumbnail.service.ThumbnailService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class AdminProductService {
 
-    private final AdminProductRepository productRepository;
-    private final ThumbnailServiceV1 thumbnailService;
+    private final FileStorageService fileStorageService;
+    private final ThumbnailService thumbnailService;
     private final ContentImgService contentImgService;
+    private final AdminProductRepository productRepository;
 
     /** 전체 상품 조회 */
     public List<AdminProductResponseDto> findAllProduct() {
@@ -62,20 +66,19 @@ public class AdminProductService {
 
     /** 이미지 + 옵션 처리 메서드 */
     private void handleImagesAndOptions(Product product, AdminProductRequestDto dto) {
-        // 1. 썸네일 등록 (front에서 URL 전달 시)
+        // 1. 썸네일 URL 등록
         if (dto.getThumbnailUrl() != null && !dto.getThumbnailUrl().isBlank()) {
-            // List<String>이 아니라 단일 URL일 경우, 내부에서 List로 감싸서 처리하도록
-            thumbnailService.uploadThumbnail(product, dto.getThumbnailUrl());
+            thumbnailService.uploadThumbnailImages(product, dto.getThumbnailUrl());
         }
 
-        // 2. 상세 이미지 등록
+        // 2. 상세 이미지 URL 등록
         if (dto.getContentUrls() != null && !dto.getContentUrls().isEmpty()) {
-            contentImgService.registerContentImages(product, dto.getContentUrls(), UploadType.PRODUCT);
+            contentImgService.uploadContentImages(product, dto.getContentUrls(), UploadType.PRODUCT);
         }
 
         // 3. 옵션 업데이트
         if (dto.getOptions() != null && !dto.getOptions().isEmpty()) {
-            product.updateProductManagements(dto.getOptions()); // Product 엔티티 안에서 처리
+            product.updateProductManagements(dto.getOptions());
         }
     }
 

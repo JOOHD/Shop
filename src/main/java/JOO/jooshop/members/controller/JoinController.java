@@ -1,7 +1,7 @@
 package JOO.jooshop.members.controller;
 
-import JOO.jooshop.global.Exception.customException.ExistingMemberException;
-import JOO.jooshop.global.Exception.customException.InvalidCredentialsException;
+import JOO.jooshop.global.exception.customException.ExistingMemberException;
+import JOO.jooshop.global.exception.customException.InvalidCredentialsException;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.mail.service.EmailMemberService;;
 import JOO.jooshop.members.model.JoinMemberRequest;

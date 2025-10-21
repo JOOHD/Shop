@@ -6,7 +6,6 @@ import JOO.jooshop.admin.products.service.AdminProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -23,21 +22,19 @@ public class AdminProductApiController {
         return ResponseEntity.ok(productService.findAllProduct());
     }
 
-    /** 상품 등록 (이미지 포함) */
-    @PostMapping(consumes = {"multipart/form-data"})
+    /** 상품 등록 (URL 기반 이미지) */
+    @PostMapping
     public ResponseEntity<AdminProductResponseDto> createProduct(
-            @ModelAttribute AdminProductRequestDto dto,
-            @RequestParam(value = "images", required = false) List<MultipartFile> images
+            @RequestBody AdminProductRequestDto dto
     ) {
         return ResponseEntity.ok(productService.createProduct(dto));
     }
 
-    /** 상품 수정 (이미지 교체 가능) */
-    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
+    /** 상품 수정 (URL 기반 이미지) */
+    @PutMapping("/{id}")
     public ResponseEntity<AdminProductResponseDto> updateProduct(
             @PathVariable Long id,
-            @ModelAttribute AdminProductRequestDto dto,
-            @RequestParam(value = "images", required = false) List<MultipartFile> images
+            @RequestBody AdminProductRequestDto dto
     ) {
         return ResponseEntity.ok(productService.updateProduct(id, dto));
     }

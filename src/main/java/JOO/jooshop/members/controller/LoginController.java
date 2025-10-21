@@ -1,7 +1,7 @@
 package JOO.jooshop.members.controller;
 
-import JOO.jooshop.global.Exception.customException.InvalidCredentialsException;
-import JOO.jooshop.global.Exception.customException.UnverifiedEmailException;
+import JOO.jooshop.global.exception.customException.InvalidCredentialsException;
+import JOO.jooshop.global.exception.customException.UnverifiedEmailException;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.members.model.LoginRequest;
 import JOO.jooshop.members.service.MemberService;
@@ -12,12 +12,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor

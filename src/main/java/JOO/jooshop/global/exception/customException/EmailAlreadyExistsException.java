@@ -1,4 +1,4 @@
-package JOO.jooshop.global.Exception.customException;
+package JOO.jooshop.global.exception.customException;
 
 public class EmailAlreadyExistsException extends RuntimeException {
 

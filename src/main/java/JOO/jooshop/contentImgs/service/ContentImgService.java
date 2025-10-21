@@ -3,8 +3,10 @@ package JOO.jooshop.contentImgs.service;
 import JOO.jooshop.contentImgs.entity.enums.UploadType;
 import JOO.jooshop.contentImgs.entity.ContentImages;
 import JOO.jooshop.contentImgs.repository.ContentImagesRepository;
+import JOO.jooshop.global.file.FileStorageService;
 import JOO.jooshop.product.entity.Product;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,60 +17,51 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+@Slf4j
 @Service
 @Transactional(rollbackFor = Exception.class)
 @RequiredArgsConstructor
 public class ContentImgService {
 
+    private final FileStorageService fileStorageService;
     private final ContentImagesRepository contentImagesRepository;
 
-    /* 상세 이미지 업로드 */
-    public void uploadContentImage(Product product, List<MultipartFile> images, UploadType uploadType) {
+    /*  파일 저장 책임 분리 (실무)
+        - 실제 이미지 파일 업로드는 프론트엔드(예: AWS S3 SDK, CloudFront 등)나 별도 파일 서버에서 처리함.
+        - 백엔드는 이미 업로드된 URL만 저장해서 책임이 단순해짐.
+    */
+    public void uploadContentImages(Product product, List<String> contentUrls, UploadType uploadType) {
+        if (contentUrls == null || contentUrls.isEmpty()) return;
+
+        for (String contentUrl : contentUrls) {
+            if (contentUrl == null || contentUrl.isBlank()) continue;
+            ContentImages contentImage = new ContentImages(product, contentUrl, uploadType);
+            contentImagesRepository.save(contentImage);
+        }
+    }
+    /*  상세 이미지 업로드 (개발/테스트용)
+        - 서버가 직접 파일을 받아서 local/storage 저장
+        - MultipartFile 로 업로드 후, URL 생성
+
+    public void uploadContentImages(Product product, List<MultipartFile> images, UploadType uploadType) {
         if (images == null || images.isEmpty()) return;
 
-        try {
-            String uploadsDir = uploadType.getLocalPath();
-            for (MultipartFile image : images) {
-                String dbFilePath = saveContentImage(image, uploadsDir, uploadType.getDbPath());
-                ContentImages contentImages = new ContentImages(product, dbFilePath, uploadType);
-                contentImagesRepository.save(contentImages);
+        for (MultipartFile image : images) {
+            try {
+                String dbFileUrl = fileStorageService.saveFileUrl(image, uploadType.getDbPath());
+                ContentImages contentImage = new ContentImages(product, dbFileUrl, uploadType);
+                contentImagesRepository.save(contentImage);
+            } catch (IOException e) {
+                log.error("상세 이미지 업로드 실패: {}", image.getOriginalFilename(), e);
+                throw new RuntimeException("상세 이미지 업로드 중 오류가 발생했습니다.", e);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
-
-    /* 상세 이미지 URL 등록 (front 에서 직접 URL 전달 시) */
-    public void registerContentImages(Product product, List<String> urls, UploadType uploadType) {
-        if (urls == null || urls.isEmpty()) return;
-        for (String url : urls) {
-            if (url == null || url.isBlank()) continue;
-            ContentImages contentImages = new ContentImages(product, url, uploadType);
-            contentImagesRepository.save(contentImages);
-        }
-    }
+    */
 
     /* 특정 상품 이미지 조회 */
     public List<ContentImages> getContentImages(Long productId) {
         return contentImagesRepository.findByProductProductId(productId);
-    }
-
-    /* 실제 파일 저장 */
-    private String saveContentImage(MultipartFile image, String uploadsDir, String dbBasePath) throws IOException {
-        if (image == null || image.isEmpty()) return null;
-
-        String originalFilename = image.getOriginalFilename();
-        if (originalFilename == null || originalFilename.isBlank()) return null;
-
-        String fileName = UUID.randomUUID().toString().replace("-", "") + "_" + originalFilename;
-        String filePath = uploadsDir + fileName;
-        String dbFilePath = dbBasePath + fileName;
-
-        Path path = Paths.get(filePath);
-        Files.createDirectories(path.getParent());
-        Files.write(path, image.getBytes());
-
-        return dbFilePath;
     }
 
     /* 상세 이미지 삭제 */
@@ -77,23 +70,7 @@ public class ContentImgService {
         ContentImages contentImage = contentImagesRepository.findById(contentImgId)
                 .orElseThrow(() -> new NoSuchElementException("해당 사진을 찾을 수 없습니다."));
 
-        // 파일 삭제
-        String imagePath = "src/main/resources/static" + contentImage.getImagePath();
-        deleteImageFile(imagePath);
-
-        // DB 삭제
         contentImagesRepository.delete(contentImage);
-    }
-
-    // 이미지 파일
-    private void deleteImageFile(String imagePath) {
-        if (imagePath == null || imagePath.isBlank()) return;
-
-        try {
-            Path path = Paths.get(imagePath);
-            Files.deleteIfExists(path);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        fileStorageService.deleteFile(contentImage.getImagePath());
     }
 }

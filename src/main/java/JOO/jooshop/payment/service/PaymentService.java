@@ -2,9 +2,9 @@ package JOO.jooshop.payment.service;
 
 import JOO.jooshop.cart.entity.Cart;
 import JOO.jooshop.cart.repository.CartRepository;
-import JOO.jooshop.global.Exception.customException.PaymentCancelFailureException;
-import JOO.jooshop.global.Exception.customException.PaymentHistoryNotFoundException;
-import JOO.jooshop.global.Exception.ResponseMessageConstants;
+import JOO.jooshop.global.exception.customException.PaymentCancelFailureException;
+import JOO.jooshop.global.exception.customException.PaymentHistoryNotFoundException;
+import JOO.jooshop.global.exception.ResponseMessageConstants;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
 import JOO.jooshop.order.entity.OrderProduct;

@@ -5,7 +5,7 @@ import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.model.ProductDetailResponseDto;
 import JOO.jooshop.product.service.ProductServiceV1;
 import JOO.jooshop.thumbnail.entity.ProductThumbnail;
-import JOO.jooshop.thumbnail.service.ProductThumbnailServiceV1;
+import JOO.jooshop.thumbnail.service.ThumbnailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -25,19 +25,19 @@ public class ThumbnailViewController { // view 용 컨트롤러
 
     private final JWTUtil jwtUtil;
     private final ProductServiceV1 productService;
-    private final ProductThumbnailServiceV1 productThumbnailService;
+    private final ThumbnailService thumbnailService;
 
     @GetMapping
     public String productList(Model model) { // 상품 전체 조회
-        List<Product> products = productThumbnailService.getAllProductsWithThumbnails();
+        List<String> products = thumbnailService.getAllThumbnails();
 
         // 로그용 확인
-        for (Product product : products) {
-            log.info("Product: {}", product.getProductName());
-            for (ProductThumbnail thumb : product.getProductThumbnails()) {
-                log.info("Thumbnail: {}", thumb.getImagePath());
-            }
-        }
+//        for (Product product : products) {
+//            log.info("Product: {}", product.getProductName());
+//            for (ProductThumbnail thumb : product.getProductThumbnails()) {
+//                log.info("Thumbnail: {}", thumb.getImagePath());
+//            }
+//        }
         model.addAttribute("products", products);
         return "products/productList";
     }

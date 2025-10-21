@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.UnsupportedEncodingException;
 import java.util.NoSuchElementException;
-import static JOO.jooshop.global.Exception.ResponseMessageConstants.*;
+import static JOO.jooshop.global.exception.ResponseMessageConstants.*;
 
 @Service
 @Transactional

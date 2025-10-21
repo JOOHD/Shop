@@ -15,8 +15,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
-import static JOO.jooshop.global.Exception.ResponseMessageConstants.PRODUCT_NOT_FOUND;
-import static JOO.jooshop.global.Exception.ResponseMessageConstants.DELETE_SUCCESS;
+import static JOO.jooshop.global.exception.ResponseMessageConstants.PRODUCT_NOT_FOUND;
+import static JOO.jooshop.global.exception.ResponseMessageConstants.DELETE_SUCCESS;
 
 @RestController
 @RequestMapping("/api/v1/product/image")
@@ -30,13 +30,13 @@ public class ContentImgController {
     @PostMapping("/upload")
     public ResponseEntity<String> uploadContentImg(
             @RequestParam("productId") Long productId,
-            @RequestParam("image") List<MultipartFile> images,
-            @RequestParam("uploadType") UploadType uploadType
+            @RequestParam("uploadType") UploadType uploadType,
+            List<String> contentUrls
     ) {
         Product product = productRepository.findByProductId(productId)
                 .orElseThrow(() -> new NoSuchElementException(PRODUCT_NOT_FOUND));
 
-        contentImgService.uploadContentImage(product, images, uploadType);
+        contentImgService.uploadContentImages(product, contentUrls, uploadType);
         return ResponseEntity.status(HttpStatus.CREATED).body("이미지 업로드 완료");
     }
 

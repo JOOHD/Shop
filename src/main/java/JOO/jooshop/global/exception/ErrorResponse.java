@@ -1,4 +1,4 @@
-package JOO.jooshop.global.Exception;
+package JOO.jooshop.global.exception;
 
 import java.time.LocalDateTime;
 

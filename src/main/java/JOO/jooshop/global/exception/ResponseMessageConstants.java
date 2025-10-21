@@ -1,4 +1,4 @@
-package JOO.jooshop.global.Exception;
+package JOO.jooshop.global.exception;
 
 public class ResponseMessageConstants {
     public static final String PRODUCT_NOT_FOUND = "상품을 찾을 수 없습니다.";
