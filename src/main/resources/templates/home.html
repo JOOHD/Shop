@@ -1,10 +1,11 @@
 <!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head>
     <title>UNITED SHOP</title>
     <meta charset="UTF-8" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="/css/home.css">
+    <link rel="stylesheet" href="/css/fragments/header.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
 
@@ -12,6 +13,7 @@
 
 <!-- HEADER Fragment Include -->
 <div th:replace="~{fragments/header :: header}"></div>
+<div class="overlay" onclick="toggleSidebar()"></div>
 
 <!-- 사이드바 -->
 <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>

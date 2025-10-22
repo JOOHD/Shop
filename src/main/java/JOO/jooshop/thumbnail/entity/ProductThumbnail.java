@@ -2,6 +2,8 @@ package JOO.jooshop.thumbnail.entity;
 
 import JOO.jooshop.product.entity.Product;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -9,7 +11,9 @@ import java.time.LocalDateTime;
 
 @Getter
 @Entity
+@Builder
 @NoArgsConstructor // 디폴트 생성자
+@AllArgsConstructor
 @Table(name = "product_thumbnails")
 public class ProductThumbnail {
     @Id

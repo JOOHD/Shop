@@ -26,17 +26,17 @@ public class ContentImgController {
     private final ContentImgService contentImgService;
     private final ProductRepositoryV1 productRepository;
 
-    // 이미지 업로드
+    // 이미지 업로드 (MultipartFile)
     @PostMapping("/upload")
     public ResponseEntity<String> uploadContentImg(
             @RequestParam("productId") Long productId,
             @RequestParam("uploadType") UploadType uploadType,
-            List<String> contentUrls
+            @RequestParam("images") List<MultipartFile> images
     ) {
         Product product = productRepository.findByProductId(productId)
                 .orElseThrow(() -> new NoSuchElementException(PRODUCT_NOT_FOUND));
 
-        contentImgService.uploadContentImages(product, contentUrls, uploadType);
+        contentImgService.uploadContentImages(product, images, uploadType);
         return ResponseEntity.status(HttpStatus.CREATED).body("이미지 업로드 완료");
     }
 
@@ -49,7 +49,7 @@ public class ContentImgController {
 
     // 상품별 이미지 조회 (경로 리스트)
     @GetMapping("/{productId}")
-    public ResponseEntity<List<String>> getProductContentImgs(@PathVariable("contentImgId") Long productId) {
+    public ResponseEntity<List<String>> getProductContentImgs(@PathVariable("productId") Long productId) {
         List<ContentImages> contentImages = contentImgService.getContentImages(productId);
 
         if (!contentImages.isEmpty()) {
@@ -62,20 +62,3 @@ public class ContentImgController {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

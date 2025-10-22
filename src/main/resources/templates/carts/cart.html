@@ -36,7 +36,7 @@
 
 <script>
     
-    // ✅ withAuth: JWT 쿠키 기반 인증 요청용 설정
+    //  withAuth: JWT 쿠키 기반 인증 요청용 설정
     // credentials: 'include' 로 쿠키 전송
     function withAuth(init={}) {
         return Object.assign({
@@ -47,7 +47,7 @@
     }
 
     
-    // ✅ 장바구니 조회
+    //  장바구니 조회
     async function fetchCartItems() {
         const res = await fetch('/api/v1/cart/my', withAuth());
         if (!res.ok) throw new Error("장바구니 조회 실패");
@@ -56,7 +56,7 @@
     }
 
     
-    // ✅ 장바구니 렌더링
+    //  장바구니 렌더링
     // 원가격/할인율/총금액 표시
     // 수량 변경/삭제/전체 선택 기능 포함
     function renderCart(cartItems) {
@@ -94,14 +94,14 @@
         });
 
         
-        // ✅ 주문하기 클릭 시 tempOrder.html로 이동
+        //  주문하기 클릭 시 tempOrder.html로 이동
         // 선택 상품만 sessionStorage에 담음
         document.getElementById('order-now').onclick = handleOrderNow;
         calculatePrice();
     }
 
     
-    // ✅ 수량 변경
+    //  수량 변경
     function updateCount(cartId, newCount) {
         if (newCount < 1) { alert('수량은 1 이상이어야 합니다.'); fetchCartItems(); return; }
         fetch(`/api/v1/cart/${cartId}`, withAuth({ method:'PUT', body:JSON.stringify({ quantity: parseInt(newCount, 10) }) }))
@@ -110,7 +110,7 @@
     }
 
     
-    // ✅ 개별 삭제
+    //  개별 삭제
     function deleteCartItem(cartId) {
         if (!confirm('삭제하시겠습니까?')) return;
         fetch(`/api/v1/cart/${cartId}`, withAuth({ method:'DELETE' }))
@@ -119,7 +119,7 @@
     }
 
     
-    // ✅ 주문하기 클릭 이벤트
+    //  주문하기 클릭 이벤트
     // - JWT 쿠키로 로그인 사용자 정보 확인
     // - 선택 상품만 sessionStorage에 저장
     async function handleOrderNow() {
@@ -165,7 +165,7 @@
     }
 
     
-    // ✅ 합계 계산 및 UI 반영
+    //  합계 계산 및 UI 반영
     function calculatePrice() {
         let total = 0;
         document.querySelectorAll('.cart-item').forEach(item => {
@@ -183,7 +183,7 @@
     }
 
     
-    // ✅ 선택 삭제 & 전체 선택 기능
+    //  선택 삭제 & 전체 선택 기능
     document.getElementById('delete-selected').addEventListener('click', () => {
         const selected = [...document.querySelectorAll('.item-select:checked')];
         if (!selected.length) return alert('선택된 상품이 없습니다.');

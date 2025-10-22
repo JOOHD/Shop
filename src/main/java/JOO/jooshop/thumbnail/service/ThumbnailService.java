@@ -1,11 +1,9 @@
 package JOO.jooshop.thumbnail.service;
 
-import JOO.jooshop.global.authorization.RequiresRole;
 import JOO.jooshop.global.file.FileStorageService;
-import JOO.jooshop.members.entity.enums.MemberRole;
 import JOO.jooshop.product.entity.Product;
-import JOO.jooshop.product.repository.ProductRepositoryV1;
 import JOO.jooshop.thumbnail.entity.ProductThumbnail;
+import JOO.jooshop.thumbnail.model.ProductThumbnailDto;
 import JOO.jooshop.thumbnail.repository.ProductThumbnailRepositoryV1;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,68 +12,67 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@Transactional(rollbackFor = Exception.class)
 @RequiredArgsConstructor
 public class ThumbnailService {
-    /* 25.10.21 리팩토링
-     * 1. MultipartFile 관련 코드 제거 → 실무에서는 파일 서버(예: S3)에 이미 업로드된 URL만 저장.
-     * 2. 메서드 이름과 역할 단순화 → uploadThumbnailImages(Product, String) 처럼 URL 처리용만 유지.
-     * 3. 삭제와 조회는 그대로 유지 → DB와 파일 삭제는 필요.
-     */
 
-    private final FileStorageService fileStorageService;
     private final ProductThumbnailRepositoryV1 productThumbnailRepository;
+    private final FileStorageService fileStorageService;
 
-    /* 썸네일 업로드 */
-    @RequiresRole({MemberRole.ADMIN, MemberRole.SELLER})
-    public void uploadThumbnailImages(Product product, String thumbnailUrl) {
-        if (thumbnailUrl == null || thumbnailUrl.isBlank()) return;
+    private static final String THUMBNAIL_DIR = "thumbnails"; // 저장 폴더
 
-        ProductThumbnail thumbnailImage = new ProductThumbnail(product, thumbnailUrl);
-        productThumbnailRepository.save(thumbnailImage);
+    /** 썸네일 업로드 (MultipartFile 적용) */
+    @Transactional
+    public void uploadThumbnailImages(Product product, MultipartFile thumbnailFile) {
+        if (thumbnailFile == null || thumbnailFile.isEmpty()) {
+            throw new IllegalArgumentException("썸네일 파일이 비어있습니다.");
+        }
+
+        try {
+            // 파일 저장
+            String relativePath = fileStorageService.saveFile(thumbnailFile, THUMBNAIL_DIR);
+
+            // 엔티티 저장
+            ProductThumbnail thumbnail = new ProductThumbnail(product, relativePath);
+            productThumbnailRepository.save(thumbnail);
+
+        } catch (IOException e) {
+            log.error("썸네일 업로드 실패: {}", e.getMessage(), e);
+            throw new RuntimeException("썸네일 업로드 실패", e);
+        }
     }
 
-    /* 모든 썸네일 전체 조회 */
-    public List<String> getAllThumbnails() {
-        return mapToImagePaths(productThumbnailRepository.findAll());
-    }
-
-    /* 특정 상품 썸네일 조회 */
-    public List<String> getProductThumbnails(Long productId) {
-        return mapToImagePaths(productThumbnailRepository.findByProductProductId(productId));
-    }
-
-    private List<String> mapToImagePaths(List<ProductThumbnail> thumbnails) {
-        return thumbnails.stream()
-                .map(ProductThumbnail::getImagePath)
-                .collect(Collectors.toList());
-    }
-    // <List<ProductThumbnail>> -> List<String> stream 사용 시, 타입 변경
-    // -> boot는 Jackson 을 사용해서 java 객체를 JSON으로 직렬화
-//    public List<ProductThumbnail> getProductThumbnails(Long productId) {
-//        return productThumbnailRepository.findByProductProductId(productId);
-//    }
-
-    /* 썸네일 삭제 */
-    @RequiresRole({MemberRole.ADMIN, MemberRole.SELLER})
+    /** 썸네일 삭제 */
+    @Transactional
     public void deleteThumbnail(Long thumbnailId) {
-        ProductThumbnail thumbnail = productThumbnailRepository.findById(thumbnailId)
-                .orElseThrow(() -> new NoSuchElementException("해당 사진을 찾을 수 없습니다."));
+        productThumbnailRepository.findById(thumbnailId).ifPresent(thumbnail -> {
+            try {
+                fileStorageService.deleteFile(thumbnail.getImagePath());
+            } catch (Exception e) {
+                log.error("썸네일 파일 삭제 실패: {}", thumbnail.getImagePath(), e);
+            }
+            productThumbnailRepository.delete(thumbnail);
+        });
+    }
 
-        // DB에서 삭제
-        productThumbnailRepository.delete(thumbnail);
+    /** 상품별 썸네일 URL 반환 */
+    @Transactional(readOnly = true)
+    public List<String> getProductThumbnails(Long productId) {
+        return productThumbnailRepository.findByProductProductId(productId)
+                .stream()
+                .map(ProductThumbnail::getImagePath)
+                .toList();
+    }
 
-        // 실제 파일 삭제
-        fileStorageService.deleteFile(thumbnail.getImagePath());
+    /** 전체 상품 + DTO 반환 (뷰용) */
+    @Transactional(readOnly = true)
+    public List<ProductThumbnailDto> getAllThumbnails() {
+        return productThumbnailRepository.findAll()
+                .stream()
+                .map(ProductThumbnailDto::new)
+                .toList();
     }
 }

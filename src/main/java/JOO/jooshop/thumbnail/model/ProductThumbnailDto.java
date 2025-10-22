@@ -1,6 +1,5 @@
 package JOO.jooshop.thumbnail.model;
 
-
 import JOO.jooshop.thumbnail.entity.ProductThumbnail;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,16 +9,15 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(of = "thumbnailId")
 @AllArgsConstructor
 public class ProductThumbnailDto {
-    private Long thumbnailId;
-    private String imageUrl;
-    private Long productId; // Product 테이블의 productId를 참조
 
-    // Entity -> dto 변환
+    private Long thumbnailId;   // 썸네일 고유 ID
+    private String imagePath;   // DB에 저장된 상대 URL 또는 이미지 경로
+    private Long productId;     // 연관된 Product의 ID
+
+    /** Entity -> DTO 변환 생성자 */
     public ProductThumbnailDto(ProductThumbnail thumbnail) {
-        this(
-                thumbnail.getThumbnailId(),
-                thumbnail.getImagePath(),
-                thumbnail.getProduct().getProductId() // thumbnail -> product 참조 객체, 한 번 더 호출
-        );
+        this.thumbnailId = thumbnail.getThumbnailId();
+        this.imagePath = thumbnail.getImagePath();
+        this.productId = thumbnail.getProduct().getProductId();
     }
 }

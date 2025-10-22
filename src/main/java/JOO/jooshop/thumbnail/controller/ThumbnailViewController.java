@@ -1,19 +1,15 @@
 package JOO.jooshop.thumbnail.controller;
 
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
-import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.model.ProductDetailResponseDto;
 import JOO.jooshop.product.service.ProductServiceV1;
-import JOO.jooshop.thumbnail.entity.ProductThumbnail;
+import JOO.jooshop.thumbnail.model.ProductThumbnailDto;
 import JOO.jooshop.thumbnail.service.ThumbnailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -21,36 +17,30 @@ import java.util.List;
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/products")
-public class ThumbnailViewController { // view 용 컨트롤러
+public class ThumbnailViewController {
 
     private final JWTUtil jwtUtil;
     private final ProductServiceV1 productService;
     private final ThumbnailService thumbnailService;
 
+    /* 상품 전체 조회 */
     @GetMapping
-    public String productList(Model model) { // 상품 전체 조회
-        List<String> products = thumbnailService.getAllThumbnails();
-
-        // 로그용 확인
-//        for (Product product : products) {
-//            log.info("Product: {}", product.getProductName());
-//            for (ProductThumbnail thumb : product.getProductThumbnails()) {
-//                log.info("Thumbnail: {}", thumb.getImagePath());
-//            }
-//        }
+    public String productList(Model model) {
+        List<ProductThumbnailDto> products = thumbnailService.getAllThumbnails();
         model.addAttribute("products", products);
         return "products/productList";
     }
 
-    @GetMapping("/{productId}") // 상품 상세 정보
-    public String productDetail(@PathVariable("productId") Long productId,
+    /* 상품 상세 조회 */
+    @GetMapping("/{productId}")
+    public String productDetail(@PathVariable Long productId,
                                 @CookieValue(name = "accessAuthorization", required = false) String accessTokenWithPrefix,
                                 Model model) {
 
         ProductDetailResponseDto productDetail = productService.productDetail(productId);
 
         model.addAttribute("product", productDetail);
-        model.addAttribute("sizes", productDetail.getSizes()); // DTO에서 제공하는 사이즈 리스트
+        model.addAttribute("sizes", productDetail.getSizes());
 
         String memberId = null;
         try {
@@ -68,5 +58,4 @@ public class ThumbnailViewController { // view 용 컨트롤러
 
         return "products/productDetail";
     }
-
 }

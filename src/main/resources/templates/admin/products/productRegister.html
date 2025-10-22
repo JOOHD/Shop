@@ -9,16 +9,12 @@
 </head>
 <body>
 
-<!-- 관리자 헤더 -->
 <div th:replace="~{fragments/header :: header}"></div>
 
 <main class="admin-register-container">
-
     <h1 class="page-title"><i class="fa-solid fa-shirt"></i> 상품 등록</h1>
 
-    <!-- 상품 등록 폼 -->
-    <form id="productForm" enctype="multipart/form-data">
-
+    <form id="productForm">
         <!-- 기본 정보 -->
         <section class="form-section">
             <h2>기본 정보</h2>
@@ -46,21 +42,20 @@
             <textarea name="description" rows="5" placeholder="상품에 대한 상세 설명을 입력하세요."></textarea>
         </section>
 
-        <!-- 이미지 업로드 -->
+        <!-- 이미지 등록 (MultipartFile 기반) -->
         <section class="form-section">
-            <h2>이미지 등록</h2>
-            <div class="image-upload">
-                <label>대표 이미지</label>
-                <input type="file" id="thumbnail" name="thumbnail" accept="image/*" required />
-                <img id="thumbnailPreview" src="/images/no-image.png" alt="미리보기" />
+            <h2>이미지 등록 (파일 업로드)</h2>
+            <label>대표 이미지 (썸네일)</label>
+            <input type="file" id="thumbnailFileInput" name="thumbnailFile" accept="image/*" required />
+            <img id="thumbnailPreview" src="/images/no-image.png" alt="미리보기" />
 
-                <label>상세 이미지</label>
-                <input type="file" id="contentImages" name="contentImages" accept="image/*" multiple />
-                <div id="contentPreview"></div>
-            </div>
+            <label>상세 이미지 (여러 파일 선택 가능)</label>
+            <input type="file" id="contentFilesInput" name="contentFiles" accept="image/*" multiple />
+            <div id="contentPreview"></div>
         </section>
 
-        <!-- 옵션 (사이즈 / 재고 등록) -->
+
+        <!-- 옵션 -->
         <section class="form-section">
             <h2>옵션 등록</h2>
             <div id="optionContainer">
@@ -78,159 +73,87 @@
             <button type="submit" class="register-btn">상품 등록</button>
             <button type="button" class="cancel-btn" onclick="history.back()">취소</button>
         </div>
-
     </form>
 </main>
 
 <script>
-    let thumbnailUrl = "";   // 서버 업로드된 대표 이미지 URL
-    let contentUrls = [];    // 서버 업로드된 상세 이미지 URL 리스트
+    // === 대표 이미지 미리보기 ===
+const thumbnailFileInput = document.getElementById("thumbnailFileInput");
+const thumbnailPreview = document.getElementById("thumbnailPreview");
 
-    // === 대표 이미지 자동 업로드 & 미리보기 ===
-    const thumbnailInput = document.getElementById("thumbnail");
-    const thumbnailPreview = document.getElementById("thumbnailPreview");
+thumbnailFileInput.addEventListener("change", () => {
+    const file = thumbnailFileInput.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = e => thumbnailPreview.src = e.target.result;
+        reader.readAsDataURL(file);
+    } else {
+        thumbnailPreview.src = "/images/no-image.png";
+    }
+});
 
-    thumbnailInput.addEventListener("change", async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+// === 상세 이미지 미리보기 ===
+const contentFilesInput = document.getElementById("contentFilesInput");
+const contentPreview = document.getElementById("contentPreview");
 
-        // 미리보기
-        thumbnailPreview.src = URL.createObjectURL(file);
-
-        // 서버 업로드
-        const form = new FormData();
-        form.append("file", file);
-
-        try {
-            const res = await fetch("/api/admin/products/upload/thumbnail", {
-                method: "POST",
-                body: form,
-                credentials: "include"
-            });
-            const data = await res.json();
-            if (res.ok) {
-                thumbnailUrl = data.uri; // 업로드된 이미지 URL 저장
-            } else {
-                alert(data.error || "썸네일 업로드 실패");
-                thumbnailUrl = "";
-                thumbnailPreview.src = "/images/no-image.png";
-            }
-        } catch (err) {
-            console.error(err);
-            alert("썸네일 업로드 실패");
-            thumbnailUrl = "";
-            thumbnailPreview.src = "/images/no-image.png";
-        }
-    });
-
-    // === 상세 이미지 자동 업로드 & 미리보기 ===
-    const contentImagesInput = document.getElementById("contentImages");
-    const contentPreview = document.getElementById("contentPreview");
-
-    contentImagesInput.addEventListener("change", async (e) => {
-        contentPreview.innerHTML = ""; // 이전 미리보기 초기화
-        contentUrls = [];
-
-        const files = Array.from(e.target.files);
-        if (files.length === 0) {
-            const p = document.createElement("p");
-            p.textContent = "선택된 이미지가 없습니다.";
-            p.style.color = "#888";
-            contentPreview.appendChild(p);
-            return;
-        }
-
-        for (const file of files) {
+contentFilesInput.addEventListener("change", () => {
+    contentPreview.innerHTML = "";
+    Array.from(contentFilesInput.files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = e => {
             const img = document.createElement("img");
-            img.src = URL.createObjectURL(file);
+            img.src = e.target.result;
             img.classList.add("content-preview-img");
             contentPreview.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+    });
+});
 
-            // 서버 업로드
-            const form = new FormData();
-            form.append("file", file);
-            try {
-                const res = await fetch("/api/admin/products/upload/content", {
-                    method: "POST",
-                    body: form,
-                    credentials: "include"
-                });
-                const data =await res.json();
-                if (res.ok) {
-                     contentUrls.push(data.uri); // 서버에서 단일 URI 반환
-                } else {
-                    alert(data.error || "상세 이미지 업로드 실패");
-                    img.remove();
-                }
-            } catch (err) {
-                console.error(err);
-                alert("상세 이미지 업로드 실패");
-                img.remove();
-            }
-        }
+// === 상품 등록 요청 (Multipart) ===
+document.getElementById("productForm").addEventListener("submit", async e => {
+    e.preventDefault();
+
+    const formData = new FormData();
+    formData.append("productName", e.target.productName.value);
+    formData.append("productType", e.target.productType.value);
+    formData.append("price", e.target.price.value);
+    formData.append("discountRate", e.target.discountRate.value);
+    formData.append("description", e.target.description.value);
+
+    // 썸네일 파일
+    if (thumbnailFileInput.files[0]) {
+        formData.append("thumbnailFile", thumbnailFileInput.files[0]);
+    }
+
+    // 상세 이미지 파일 (여러 개)
+    Array.from(contentFilesInput.files).forEach(file => {
+        formData.append("contentFiles", file);
     });
 
-
-    // === 옵션 추가/삭제 ===
-    document.getElementById("addOptionBtn").addEventListener("click", () => {
-        const row = document.createElement("div");
-        row.classList.add("option-row");
-        row.innerHTML = `
-            <input type="text" name="size" placeholder="사이즈 (예: L)" required />
-            <input type="number" name="stock" placeholder="재고 수량" required />
-            <button type="button" class="remove-option-btn"><i class="fa-solid fa-xmark"></i></button>
-        `;
-        document.getElementById("optionContainer").appendChild(row);
+    // 옵션
+    const optionRows = document.querySelectorAll("#optionContainer .option-row");
+    optionRows.forEach((row, idx) => {
+        const size = row.querySelector('input[name="size"]').value;
+        const stock = row.querySelector('input[name="stock"]').value;
+        formData.append(`options[${idx}].size`, size);
+        formData.append(`options[${idx}].stock`, stock);
     });
 
-    document.getElementById("optionContainer").addEventListener("click", e => {
-        if (e.target.closest(".remove-option-btn")) {
-            e.target.closest(".option-row").remove();
-        }
-    });
-
-    // === 상품 등록 (비동기 요청) ===
-    document.getElementById("productForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        if (!thumbnailUrl) {
-            alert("대표 이미지를 업로드해주세요.");
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append("productName", e.target.productName.value);
-        formData.append("productType", e.target.productType.value);
-        formData.append("price", e.target.price.value);
-        formData.append("discountRate", e.target.discountRate.value);
-        formData.append("description", e.target.description.value);
-        formData.append("thumbnailUrl", thumbnailUrl);
-        contentUrls.forEach(url => formData.append("contentUrls", url));
-
-        // 옵션
-        const optionRows = document.querySelectorAll("#optionContainer .option-row");
-        optionRows.forEach((row, idx) => {
-            const size = row.querySelector('input[name="size"]').value;
-            const stock = row.querySelector('input[name="stock"]').value;
-            formData.append(`options[${idx}].size`, size);
-            formData.append(`options[${idx}].stock`, stock);
+    try {
+        const res = await fetch("/api/admin/products", { // AdminProductApiController 기준
+            method: "POST",
+            body: formData,
+            credentials: "include"
         });
-
-        try {
-            const res = await fetch("/api/v1/admin/products/register", {
-                method: "POST",
-                body: formData,
-                credentials: 'include'
-            });
-            if (!res.ok) throw new Error("상품 등록 실패");
-
-            alert("상품이 등록되었습니다!");
-            location.href = "/admin/products";
-        } catch (err) {
-            console.error(err);
-            alert(err.message);
-        }
-    });
+        if (!res.ok) throw new Error("상품 등록 실패");
+        alert("상품이 등록되었습니다!");
+        location.href = "/admin/products";
+    } catch (err) {
+        console.error(err);
+        alert(err.message);
+    }
+});
 </script>
 
 </body>

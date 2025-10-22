@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static JOO.jooshop.global.exception.ResponseMessageConstants.DELETE_SUCCESS;
@@ -50,11 +51,13 @@ public class ProductApiControllerV1 {
     @PostMapping("/products/new")
     public ResponseEntity<String> createProduct(
             @Valid @RequestPart("requestDto") String requestDtoStr,
-            String thumbnailUrl, List<String> contentUrls, UploadType uploadType
+            @Nullable MultipartFile thumbnail,
+            @Nullable List<MultipartFile> contentImages,
+            UploadType uploadType
     ) throws JsonProcessingException {
 
         ProductRequestDto requestDto = objectMapper.readValue(requestDtoStr, ProductRequestDto.class);
-        Long productId = productService.createProduct(requestDto, thumbnailUrl, contentUrls, uploadType);
+        Long productId = productService.createProduct(requestDto, thumbnail, contentImages, uploadType);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body("상품 등록 완료. Id : " + productId);
     }
@@ -118,8 +121,10 @@ public class ProductApiControllerV1 {
     @PutMapping("/products/{productId}")
     public ResponseEntity<ProductDetailResponseDto> updateProduct(
             @PathVariable Long productId,
-            @Valid @RequestBody ProductRequestDto request) {
-        ProductDetailResponseDto updated = productService.updateProduct(productId, request);
+            @Valid @RequestBody ProductRequestDto request,
+            @Nullable MultipartFile thumbnail,
+            @Nullable List<MultipartFile> contentImages) {
+        ProductDetailResponseDto updated = productService.updateProduct(productId, request, thumbnail, contentImages);
         return ResponseEntity.ok(updated);
     }
 
