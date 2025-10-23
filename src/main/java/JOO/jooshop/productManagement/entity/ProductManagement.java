@@ -4,6 +4,7 @@ import JOO.jooshop.order.entity.Orders;
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.categorys.entity.Category;
 import JOO.jooshop.product.entity.ProductColor;
+import JOO.jooshop.product.entity.enums.Gender;
 import JOO.jooshop.productManagement.entity.enums.Size;
 import jakarta.persistence.*;
 import lombok.*;
@@ -42,6 +43,10 @@ public class ProductManagement {
     @ManyToOne
     @JoinColumn(name = "category_id", unique = false, nullable = false)
     private Category category;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "gender", nullable = false)
+    private Gender gender;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "size", nullable = false)

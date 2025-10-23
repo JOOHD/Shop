@@ -42,24 +42,32 @@
             <textarea name="description" rows="5" placeholder="상품에 대한 상세 설명을 입력하세요."></textarea>
         </section>
 
-        <!-- 이미지 등록 (MultipartFile 기반) -->
+        <!-- 이미지 등록 (MultipartFile / 기존 이미지 선택) -->
         <section class="form-section">
             <h2>이미지 등록 (파일 업로드)</h2>
-            <label>대표 이미지 (썸네일)</label>
-            <input type="file" id="thumbnailFileInput" name="thumbnailFile" accept="image/*" required />
-            <img id="thumbnailPreview" src="/images/no-image.png" alt="미리보기" />
 
-            <label>상세 이미지 (여러 파일 선택 가능)</label>
+            <!-- thumbnail -->
+            <label>썸네일 </label>
+            <input type="file" id="thumbnailFileInput" name="thumbnailFile" accept="image/*" required />
+            <img id="thumbnailPreview" alt="미리보기" style="display:none;"/>
+
+            <!-- contentImgs -->
+            <label>상세 이미지 </label>
             <input type="file" id="contentFilesInput" name="contentFiles" accept="image/*" multiple />
             <div id="contentPreview"></div>
         </section>
-
 
         <!-- 옵션 -->
         <section class="form-section">
             <h2>옵션 등록</h2>
             <div id="optionContainer">
                 <div class="option-row">
+                    <select name="gender" required>
+                        <option value="">성별 선택</option>
+                        <option value="MAN">남성</option>
+                        <option value="WOMAN">여성</option>
+                        <option value="UNISEX">유니섹스</option>
+                    </select>
                     <input type="text" name="size" placeholder="사이즈 (예: M)" required />
                     <input type="number" name="stock" placeholder="재고 수량" required />
                     <button type="button" class="remove-option-btn"><i class="fa-solid fa-xmark"></i></button>
@@ -77,7 +85,7 @@
 </main>
 
 <script>
-    // === 대표 이미지 미리보기 ===
+// === 썸네일 미리보기 ===
 const thumbnailFileInput = document.getElementById("thumbnailFileInput");
 const thumbnailPreview = document.getElementById("thumbnailPreview");
 
@@ -85,10 +93,14 @@ thumbnailFileInput.addEventListener("change", () => {
     const file = thumbnailFileInput.files[0];
     if (file) {
         const reader = new FileReader();
-        reader.onload = e => thumbnailPreview.src = e.target.result;
+        reader.onload = e =>  {
+            thumbnailPreview.src = e.target.result;
+            thumbnailPreview.style.display = "block"; // 선택 시 보여줌
+        };
         reader.readAsDataURL(file);
     } else {
-        thumbnailPreview.src = "/images/no-image.png";
+        thumbnailPreview.src = "";
+        thumbnailPreview.style.display = "none"; // 선택 없으면 숨김
     }
 });
 
@@ -114,6 +126,12 @@ contentFilesInput.addEventListener("change", () => {
 document.getElementById("productForm").addEventListener("submit", async e => {
     e.preventDefault();
 
+    // 썸네일 선택 여부 체크
+    if (!thumbnailFileInput.files[0]) {
+        alert("썸네일를 선택해주세요.");
+        return;
+    }
+
     const formData = new FormData();
     formData.append("productName", e.target.productName.value);
     formData.append("productType", e.target.productType.value);
@@ -122,9 +140,7 @@ document.getElementById("productForm").addEventListener("submit", async e => {
     formData.append("description", e.target.description.value);
 
     // 썸네일 파일
-    if (thumbnailFileInput.files[0]) {
-        formData.append("thumbnailFile", thumbnailFileInput.files[0]);
-    }
+    formData.append("thumbnailFile", thumbnailFileInput.files[0]);
 
     // 상세 이미지 파일 (여러 개)
     Array.from(contentFilesInput.files).forEach(file => {
@@ -134,8 +150,10 @@ document.getElementById("productForm").addEventListener("submit", async e => {
     // 옵션
     const optionRows = document.querySelectorAll("#optionContainer .option-row");
     optionRows.forEach((row, idx) => {
+        const gender = row.querySelector('select[name="gender"]').value;
         const size = row.querySelector('input[name="size"]').value;
         const stock = row.querySelector('input[name="stock"]').value;
+        formData.append(`options[${idx}].gender`, gender);
         formData.append(`options[${idx}].size`, size);
         formData.append(`options[${idx}].stock`, stock);
     });

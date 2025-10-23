@@ -20,7 +20,7 @@ import java.util.UUID;
 public class FileStorageService {
 
     // 🔹 static 폴더 내 저장 기본 경로
-    private static final String BASE_DIR = "src/main/resources/static/upload/";
+    private static final String BASE_DIR = "src/main/resources/static/uploads/";
 
     /**
      *  파일 저장 (MultipartFile)
@@ -63,7 +63,7 @@ public class FileStorageService {
 
         try {
             // "/upload/" 부분을 제거하고 실제 파일 경로로 변환
-            String cleanPath = relativePath.replaceFirst("^/upload/", "");
+            String cleanPath = relativePath.replaceFirst("^/uploads/", "");
             Path path = Paths.get(BASE_DIR + cleanPath);
             Files.deleteIfExists(path);
         } catch (IOException e) {

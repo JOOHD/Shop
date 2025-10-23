@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 @Transactional
 public class AdminProductService {
 
-    private final FileStorageService fileStorageService;
     private final ThumbnailService thumbnailService;
     private final ContentImgService contentImgService;
     private final AdminProductRepository productRepository;

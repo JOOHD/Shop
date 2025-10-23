@@ -45,7 +45,7 @@ public class ProductDetailResponseDto {
     private List<ProductManagement> options;   // 상품 옵션
     private List<String> productThumbnails;   // 썸네일 경로
     private Long inventoryId;                 // 기본 옵션 inventoryId
-    private String thumbnailUrl;              // 대표 이미지
+    private String thumbnailUrl;              // 썸네일
 
     public ProductDetailResponseDto(Product product) {
         this.productId = product.getProductId();

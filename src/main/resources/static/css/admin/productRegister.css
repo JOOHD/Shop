@@ -65,6 +65,18 @@ input, select, textarea {
     align-items: center;
 }
 
+.option-row select {
+    width: 120px; /* 성별 select 넓이 */
+    padding: .5rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+.option-row input[type="text"],
+.option-row input[type="number"] {
+    flex: 1;
+}
+
 .add-option-btn {
     margin-top: .75rem;
     background: #b30000;

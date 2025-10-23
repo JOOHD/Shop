@@ -21,7 +21,7 @@ public class ProductRankResponseDto {
     private Boolean isDiscount;       // 할인 여부 (true = 할인중, false = 비할인)
     private Integer discountRate;     // 할인율 (퍼센트로 저장, 예: 20 -> 20%)
     private Boolean isRecommend;      // 추천 상품 여부 (true면 추천 상품)
-    private String productThumbnails; // 상품 썸네일 이미지 경로나 URL (대표 이미지)
+    private String productThumbnails; // 상품 썸네일 이미지 경로나 URL (썸네일)
 
 
     public ProductRankResponseDto(Product product) {

@@ -1,5 +1,6 @@
 package JOO.jooshop.admin.products.model;
 
+import JOO.jooshop.product.entity.enums.Gender;
 import JOO.jooshop.product.entity.enums.ProductType;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,7 +23,7 @@ public class AdminProductRequestDto {
     private Boolean isRecommend = false;
 
     // 이미지 URL
-    private String thumbnailUrl;        // 대표 이미지
+    private String thumbnailUrl;        // 썸네일
     private List<String> contentUrls;  // 상세 이미지 리스트
 
     // 옵션 리스트 (ProductManagement와 연결)
@@ -35,6 +36,7 @@ public class AdminProductRequestDto {
         private String color;    // 필요 시
         private String category; // 필요 시
         private String size;
+        private Gender gender;
         private Long stock;
     }
 

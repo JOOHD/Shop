@@ -24,9 +24,9 @@ public class QRefresh extends EntityPathBase<Refresh> {
 
     public final DateTimePath<java.time.LocalDateTime> expiration = createDateTime("expiration", java.time.LocalDateTime.class);
 
-    public final NumberPath<Long> id = createNumber("id", Long.class);
-
     public final QMember member;
+
+    public final NumberPath<Long> refreshId = createNumber("refreshId", Long.class);
 
     public final StringPath refreshToken = createString("refreshToken");
 

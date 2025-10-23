@@ -48,7 +48,7 @@ public class ContentImgService {
      * 특정 상품 이미지 조회
      */
     public List<ContentImages> getContentImages(Long productId) {
-        return contentImagesRepository.findByProductProductId(productId);
+        return contentImagesRepository.findByProduct_ProductId(productId);
     }
 
     /**

@@ -4,8 +4,10 @@ import JOO.jooshop.thumbnail.entity.ProductThumbnail;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 @Data
+@Getter
 @EqualsAndHashCode(of = "thumbnailId")
 @AllArgsConstructor
 public class ProductThumbnailDto {

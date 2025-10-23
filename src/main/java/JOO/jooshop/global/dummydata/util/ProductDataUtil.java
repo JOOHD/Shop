@@ -110,12 +110,23 @@ public class ProductDataUtil {
      * 축구 용품/유니폼 관련
      */
     private ProductType getProductType(String subCategory) {
-        return switch (subCategory.toLowerCase()) {
-            case "home-jersey", "away-jersey", "third-jersey", "long-sleeve", "short-sleeve" -> ProductType.UNISEX; // 유니폼 상의
-            case "shorts", "socks", "goalkeeper-gloves" -> ProductType.MAN; // 하의/용품
-            case "training-jersey", "track-suit", "warm-up-jersey" -> ProductType.WOMAN; // 트레이닝/여성용
-            default -> ProductType.UNISEX; // 기타 기본값
+        if (subCategory == null || subCategory.isBlank()) {
+            return ProductType.ACCESSORY; // 기본값
+        }
+
+        // 하이픈(-)을 언더스코어(_)로 바꾸고 대문자로 변환
+        String normalized = subCategory.trim().toUpperCase().replace("-", "_");
+
+        return switch (normalized) {
+            case "HOME_JERSEY" -> ProductType.HOME_JERSEY;
+            case "AWAY_JERSEY" -> ProductType.AWAY_JERSEY;
+            case "THIRD_JERSEY" -> ProductType.THIRD_JERSEY;
+            case "LONG_SLEEVE" -> ProductType.LONG_SLEEVE;
+            case "TRAINING_WEAR", "TRAINING_JERSEY", "TRACK_SUIT", "WARM_UP_JERSEY" -> ProductType.TRAINING_WEAR;
+            default -> ProductType.ACCESSORY;
         };
     }
+
+
 
 }

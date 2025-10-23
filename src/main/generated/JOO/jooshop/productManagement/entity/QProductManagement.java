@@ -28,6 +28,8 @@ public class QProductManagement extends EntityPathBase<ProductManagement> {
 
     public final JOO.jooshop.product.entity.QProductColor color;
 
+    public final EnumPath<JOO.jooshop.product.entity.enums.Gender> gender = createEnum("gender", JOO.jooshop.product.entity.enums.Gender.class);
+
     public final NumberPath<Long> initialStock = createNumber("initialStock", Long.class);
 
     public final NumberPath<Long> inventoryId = createNumber("inventoryId", Long.class);

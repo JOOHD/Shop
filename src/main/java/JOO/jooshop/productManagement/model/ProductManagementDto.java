@@ -1,5 +1,6 @@
 package JOO.jooshop.productManagement.model;
 
+import JOO.jooshop.product.entity.enums.Gender;
 import JOO.jooshop.productManagement.entity.ProductManagement;
 import JOO.jooshop.productManagement.entity.enums.Size;
 import lombok.AllArgsConstructor;
@@ -29,6 +30,7 @@ public class ProductManagementDto {
     private String color;
     private Long categoryId;    // ProductCategory 테이블의 pk 참조
     private String category;
+    Gender gender; // enum
     Size size; //enum
     private Long initialStock;
     private Long additionalStock;
@@ -53,6 +55,7 @@ public class ProductManagementDto {
                 productManagement.getColor().getColor(),
                 productManagement.getCategory().getCategoryId(),
                 productManagement.getCategory().getName(),
+                productManagement.getGender(),
                 productManagement.getSize(),
                 productManagement.getInitialStock(),
                 productManagement.getAdditionalStock(),
@@ -80,6 +83,7 @@ public class ProductManagementDto {
                 .color(productManagement.getColor().getColor())
                 .categoryId(productManagement.getCategory().getCategoryId())
                 .category(productManagement.getCategory().getName())
+                .gender(productManagement.getGender())
                 .size(productManagement.getSize())
                 .initialStock(productManagement.getInitialStock())
                 .additionalStock(productManagement.getAdditionalStock())

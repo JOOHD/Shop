@@ -96,7 +96,7 @@ public class InquiryService {
      * @return
      */
     public List<InquiryDto> inquiryListByProductId(Long productId) {
-        return inquiryRepository.findByProductProductId(productId).stream()
+        return inquiryRepository.findByProduct_ProductId(productId).stream()
                 .map(inquiry -> InquiryDto.mapInquiryToDto(inquiry, false))
                 .collect(Collectors.toList());
     }
