@@ -23,7 +23,7 @@ public class AdminProductApiController {
         return ResponseEntity.ok(productService.findAllProduct());
     }
 
-    /** 이미지 등록 */
+    /** 상품 등록 */
     @PostMapping(consumes = {"multipart/form-data"})
     public ResponseEntity<AdminProductResponseDto> createProduct(
             @ModelAttribute AdminProductRequestDto dto,
@@ -33,7 +33,7 @@ public class AdminProductApiController {
         return ResponseEntity.ok(productService.createProduct(dto, thumbnail, contentImages));
     }
 
-    /** 이미지 수정 */
+    /** 상품 수정 */
     @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<AdminProductResponseDto> updateProduct(
             @PathVariable Long id,

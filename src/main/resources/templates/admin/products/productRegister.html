@@ -48,12 +48,12 @@
 
             <!-- thumbnail -->
             <label>썸네일 </label>
-            <input type="file" id="thumbnailFileInput" name="thumbnailFile" accept="image/*" required />
+            <input type="file" id="thumbnailInput" name="thumbnail" accept="image/*" required />
             <img id="thumbnailPreview" alt="미리보기" style="display:none;"/>
 
             <!-- contentImgs -->
             <label>상세 이미지 </label>
-            <input type="file" id="contentFilesInput" name="contentFiles" accept="image/*" multiple />
+            <input type="file" id="contentImagesInput" name="contentImages" accept="image/*" multiple />
             <div id="contentPreview"></div>
         </section>
 
@@ -86,11 +86,11 @@
 
 <script>
 // === 썸네일 미리보기 ===
-const thumbnailFileInput = document.getElementById("thumbnailFileInput");
+const thumbnailInput = document.getElementById("thumbnailInput");
 const thumbnailPreview = document.getElementById("thumbnailPreview");
 
-thumbnailFileInput.addEventListener("change", () => {
-    const file = thumbnailFileInput.files[0];
+thumbnailInput.addEventListener("change", () => {
+    const file = thumbnailInput.files[0];
     if (file) {
         const reader = new FileReader();
         reader.onload = e =>  {
@@ -105,12 +105,12 @@ thumbnailFileInput.addEventListener("change", () => {
 });
 
 // === 상세 이미지 미리보기 ===
-const contentFilesInput = document.getElementById("contentFilesInput");
+const contentImagesInput = document.getElementById("contentImagesInput");
 const contentPreview = document.getElementById("contentPreview");
 
-contentFilesInput.addEventListener("change", () => {
+contentImagesInput.addEventListener("change", () => {
     contentPreview.innerHTML = "";
-    Array.from(contentFilesInput.files).forEach(file => {
+    Array.from(contentImagesInput.files).forEach(file => {
         const reader = new FileReader();
         reader.onload = e => {
             const img = document.createElement("img");
@@ -127,7 +127,7 @@ document.getElementById("productForm").addEventListener("submit", async e => {
     e.preventDefault();
 
     // 썸네일 선택 여부 체크
-    if (!thumbnailFileInput.files[0]) {
+    if (!thumbnailInput.files[0]) {
         alert("썸네일를 선택해주세요.");
         return;
     }
@@ -140,11 +140,11 @@ document.getElementById("productForm").addEventListener("submit", async e => {
     formData.append("description", e.target.description.value);
 
     // 썸네일 파일
-    formData.append("thumbnailFile", thumbnailFileInput.files[0]);
+    formData.append("thumbnail", thumbnailInput.files[0]);
 
     // 상세 이미지 파일 (여러 개)
-    Array.from(contentFilesInput.files).forEach(file => {
-        formData.append("contentFiles", file);
+    Array.from(contentImagesInput.files).forEach(file => {
+        formData.append("contentImages", file);
     });
 
     // 옵션
