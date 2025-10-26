@@ -20,9 +20,12 @@ public class QProduct extends EntityPathBase<Product> {
 
     public static final QProduct product = new QProduct("product");
 
+    public final JOO.jooshop.global.time.QBaseEntity _super = new JOO.jooshop.global.time.QBaseEntity(this);
+
     public final ListPath<JOO.jooshop.contentImgs.entity.ContentImages, JOO.jooshop.contentImgs.entity.QContentImages> contentImages = this.<JOO.jooshop.contentImgs.entity.ContentImages, JOO.jooshop.contentImgs.entity.QContentImages>createList("contentImages", JOO.jooshop.contentImgs.entity.ContentImages.class, JOO.jooshop.contentImgs.entity.QContentImages.class, PathInits.DIRECT2);
 
-    public final DateTimePath<java.time.LocalDateTime> createdAt = createDateTime("createdAt", java.time.LocalDateTime.class);
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 
     public final NumberPath<Integer> discountRate = createNumber("discountRate", Integer.class);
 
@@ -46,7 +49,8 @@ public class QProduct extends EntityPathBase<Product> {
 
     public final EnumPath<JOO.jooshop.product.entity.enums.ProductType> productType = createEnum("productType", JOO.jooshop.product.entity.enums.ProductType.class);
 
-    public final DateTimePath<java.time.LocalDateTime> updatedAt = createDateTime("updatedAt", java.time.LocalDateTime.class);
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
 
     public final NumberPath<Long> wishListCount = createNumber("wishListCount", Long.class);
 
