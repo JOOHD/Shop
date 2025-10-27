@@ -68,7 +68,17 @@
                         <option value="WOMAN">여성</option>
                         <option value="UNISEX">유니섹스</option>
                     </select>
-                    <input type="text" name="size" placeholder="사이즈 (예: M)" required />
+
+                    <select name="size" required>
+                        <option value="">사이즈 선택</option>
+                        <option value="XS">XS</option>
+                        <option value="S">S</option>
+                        <option value="M">M</option>
+                        <option value="L">L</option>
+                        <option value="XL">XL</option>
+                        <option value="XXL">XXL</option>
+                    </select>
+
                     <input type="number" name="stock" placeholder="재고 수량" required />
                     <button type="button" class="remove-option-btn"><i class="fa-solid fa-xmark"></i></button>
                 </div>
@@ -122,13 +132,51 @@ contentImagesInput.addEventListener("change", () => {
     });
 });
 
+// === 옵션 동적 추가/삭제 ===
+const addOptionBtn = document.getElementById("addOptionBtn");
+const optionContainer = document.getElementById("optionContainer");
+
+addOptionBtn.addEvenListener("click", () => {
+    const optionRow = document.createElement("div");
+    optionRow.classList.add("option-row");
+
+    optionRow.innerHTML = `
+        <select name="gender" required>
+            <option value="">성별 선택</option>
+            <option value="MAN">남성</option>
+            <option value="WOMAN">여성</option>
+            <option value="UNISEX">유니섹스</option>
+        </select>
+
+        <select name="size" required>
+            <option value="">사이즈 선택</option>
+            <option value="XS">XS</option>
+            <option value="S">S</option>
+            <option value="M">M</option>
+            <option value="L">L</option>
+            <option value="XL">XL</option>
+            <option value="XXL">XXL</option>
+        </select>
+
+        <input type="number" name="stock" placeholder="재고 수량" required />
+
+        <button type="button" class="remove-option-btn"><i class="fa-solid fa-xmark"></i></button>
+    `;
+
+    optionContainer.appendChild(optionRow);
+
+    // 삭제 버튼 이벤트
+    optionRow.querySelector(".remove-option-btn").addEventListener("click", () => {
+        optionRow.remove();
+    });
+});
+
 // === 상품 등록 요청 (Multipart) ===
 document.getElementById("productForm").addEventListener("submit", async e => {
     e.preventDefault();
 
-    // 썸네일 선택 여부 체크
     if (!thumbnailInput.files[0]) {
-        alert("썸네일를 선택해주세요.");
+        alert("썸네일을 선택해주세요.");
         return;
     }
 
@@ -139,19 +187,15 @@ document.getElementById("productForm").addEventListener("submit", async e => {
     formData.append("discountRate", e.target.discountRate.value);
     formData.append("description", e.target.description.value);
 
-    // 썸네일 파일
     formData.append("thumbnail", thumbnailInput.files[0]);
-
-    // 상세 이미지 파일 (여러 개)
     Array.from(contentImagesInput.files).forEach(file => {
         formData.append("contentImages", file);
     });
 
-    // 옵션
     const optionRows = document.querySelectorAll("#optionContainer .option-row");
     optionRows.forEach((row, idx) => {
         const gender = row.querySelector('select[name="gender"]').value;
-        const size = row.querySelector('input[name="size"]').value;
+        const size = row.querySelector('select[name="size"]').value;
         const stock = row.querySelector('input[name="stock"]').value;
         formData.append(`options[${idx}].gender`, gender);
         formData.append(`options[${idx}].size`, size);
@@ -159,7 +203,7 @@ document.getElementById("productForm").addEventListener("submit", async e => {
     });
 
     try {
-        const res = await fetch("/api/admin/products", { // AdminProductApiController 기준
+        const res = await fetch("/api/admin/products", {
             method: "POST",
             body: formData,
             credentials: "include"
