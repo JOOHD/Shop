@@ -114,13 +114,24 @@ public class Product extends BaseEntity {
     }
 
     /** 옵션(ProductManagement) 등록/업데이트 */
-    public void updateProductManagements(List<AdminProductRequestDto.ProductManagementDto> optionDto) {
-        this.productManagements.clear();
+    public void updateProductManagements(Product product, List<AdminProductRequestDto.ProductManagementDto> optionDto) {
+        if (optionDto == null || optionDto.isEmpty()) return;
+
+        // 기존 옵션 초기화
+        product.getProductManagements().clear();
+
+        // 새로운 옵션 추가
         for (AdminProductRequestDto.ProductManagementDto dto : optionDto) {
-            ProductManagement pm = new ProductManagement();
-            pm.setProduct(this);
-            pm.setSize(Size.valueOf(dto.getSize()));
-            pm.setInitialStock(dto.getStock());
+            ProductManagement pm = ProductManagement.builder()
+                    .product(this)
+                    .size(Size.valueOf(dto.getSize())) // 안전하게 변환
+                    .color(dto.getColor())                    // Color, Category 등도 dto에서 받아야 함
+                    .category(dto.getCategory())
+                    .gender(dto.getGender())
+                    .initialStock(dto.getStock())
+                    .productStock(dto.getStock())
+                    .build();
+
             this.productManagements.add(pm);
         }
     }

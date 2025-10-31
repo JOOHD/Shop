@@ -40,10 +40,22 @@ public class AdminProductService {
                                                  MultipartFile thumbnail,
                                                  List<MultipartFile> contentImages) {
         Product product = new Product(dto);
+
+        // 옵션 처리
+        if (dto.getOptions() != null && !dto.getOptions().isEmpty()) {
+            product.updateProductManagements(dto.getOptions());
+        }
+
+        // Product + ProductManagement 모두 저장
         Product saved = productRepository.save(product);
 
-        // 이미지 + 옵션 처리
-        handleImagesAndOptions(saved, thumbnail, contentImages, dto.getOptions());
+        // 이미지 처리
+        if (thumbnail != null && !thumbnail.isEmpty()) {
+            thumbnailService.uploadThumbnailImages(saved, thumbnail);
+        }
+        if (contentImages != null && !contentImages.isEmpty()) {
+            contentImgService.uploadContentImages(saved, contentImages, UploadType.PRODUCT);
+        }
 
         return toResponseDto(saved);
     }
@@ -94,16 +106,16 @@ public class AdminProductService {
 
     /** Response DTO 변환 */
     private AdminProductResponseDto toResponseDto(Product product) {
+        String thumbnailUrl = product.getProductThumbnails().isEmpty() ? null :
+                              product.getProductThumbnails().get(0).getImagePath();
+
         return new AdminProductResponseDto(
                 product.getProductId(),
                 product.getProductName(),
                 product.getProductType(),
                 product.getPrice(),
                 product.getProductInfo(),
-                product.getManufacturer(),
-                product.getIsDiscount(),
-                product.getDiscountRate(),
-                product.getIsRecommend()
+                thumbnailUrl
         );
     }
 }

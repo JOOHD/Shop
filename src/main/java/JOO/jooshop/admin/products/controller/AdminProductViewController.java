@@ -23,9 +23,8 @@ public class AdminProductViewController { // 페이지 라우팅
     /* 상품 목록 */
     @GetMapping("/list")
     public String productList(Model model) {
-        List<ProductThumbnailDto> thumbnails = thumbnailService.getAllThumbnails();
-
-        model.addAttribute("thumbnails", thumbnails);
+        List<ProductThumbnailDto> products = thumbnailService.getAllThumbnails();
+        model.addAttribute("products", products);
         return "admin/products/productList";
     }
 

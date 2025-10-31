@@ -24,7 +24,6 @@
             <option>전체</option>
             <option>판매 중</option>
             <option>품절</option>
-            <option>숨김</option>
         </select>
     </div>
 </section>
@@ -37,27 +36,23 @@
             <th>썸네일</th>
             <th>상품명</th>
             <th>가격</th>
-            <th>재고</th>
-            <th>상태</th>
+            <th>상품 정보</th>
             <th>등록일</th>
             <th>관리</th>
         </tr>
         </thead>
         <tbody>
         <tr th:each="product : ${products}">
+            <!-- thumbnailUrl 필드 사용 -->
             <td class="thumb">
-                <img th:if="${#lists.isEmpty(product.productThumbnails) == false}"
-                     th:with="thumb=${product.productThumbnails[0]}"
-                     th:src="@{/{path}(path=${thumb.imagePath.startsWith('/') ? thumb.imagePath.substring(1) : thumb.imagePath})}"
+                <img th:if="${product.thumbnailUrl != null}"
+                     th:src="@{${product.thumbnailUrl}}"
                      alt="상품 이미지" />
             </td>
+
             <td th:text="${product.productName}">상품명</td>
             <td th:text="'₩' + ${#numbers.formatInteger(product.price, 0, 'COMMA')}">₩0</td>
-            <td th:text="${product.stockQuantity}">0</td>
-            <td>
-                <span th:classappend="${product.isActive} ? 'status-active' : 'status-inactive'"
-                      th:text="${product.isActive ? '판매 중' : '숨김'}"></span>
-            </td>
+            <td th:text="${product.productInfo}">상품 정보</td>
             <td th:text="${#temporals.format(product.createdAt, 'yyyy-MM-dd')}">2025-10-13</td>
             <td class="actions">
                 <button th:onclick="|location.href='/admin/products/edit/' + ${product.productId}|"

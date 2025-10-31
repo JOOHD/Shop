@@ -11,14 +11,10 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AdminProductResponseDto  {
-
     private Long productId;
     private String productName;
     private ProductType productType;
     private BigDecimal price;
-    private String productInfo;
-    private String manufacturer;
-    private Boolean isDiscount;
-    private Integer discountRate;
-    private Boolean isRecommend;
+    private String productInfo; // description 제거
+    private String thumbnailUrl; // 목록용 thumbnail 추가
 }
