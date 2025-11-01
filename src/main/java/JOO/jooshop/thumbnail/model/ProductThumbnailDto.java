@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import java.math.BigDecimal;
+
 @Data
 @Getter
 @EqualsAndHashCode(of = "thumbnailId")

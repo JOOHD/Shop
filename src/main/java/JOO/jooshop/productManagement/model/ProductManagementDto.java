@@ -1,96 +1,81 @@
 package JOO.jooshop.productManagement.model;
 
+import JOO.jooshop.categorys.entity.Category;
+import JOO.jooshop.product.entity.Product;
+import JOO.jooshop.product.entity.ProductColor;
 import JOO.jooshop.product.entity.enums.Gender;
 import JOO.jooshop.productManagement.entity.ProductManagement;
 import JOO.jooshop.productManagement.entity.enums.Size;
-import lombok.AllArgsConstructor;
+import JOO.jooshop.product.entity.enums.ProductType;
 import lombok.Builder;
 import lombok.Data;
-import JOO.jooshop.product.entity.enums.ProductType;
-
-import java.math.BigDecimal;
 
 @Data
 @Builder
-@AllArgsConstructor
 public class ProductManagementDto {
 
-    // Product 엔티티의 필드들
+    // Product 엔티티 필드
     private ProductType productType;
     private String productName;
-    private BigDecimal price;
-    private String productInfo;
     private String manufacturer;
     private Boolean isDiscount;
     private Boolean isRecommend;
 
+    // ProductManagement 필드
     private Long inventoryId;
-    private Long productId;     // Product 테이블의 pk 참조
-    private Long colorId;       // ProductColor 테이블의 pk 참조
+    private Long productId;
+    private Long colorId;
     private String color;
-    private Long categoryId;    // ProductCategory 테이블의 pk 참조
+    private Long categoryId;
     private String category;
-    Gender gender; // enum
-    Size size; //enum
+    private Gender gender;
+    private Size size;
     private Long initialStock;
     private Long additionalStock;
     private Long productStock;
     private boolean isSoldOut;
     private boolean isRestockAvailable;
     private boolean isRestocked;
-    
-    /* 일반 생성자 */
-    public ProductManagementDto(ProductManagement productManagement) {
-        this(
-                productManagement.getProduct().getProductType(),
-                productManagement.getProduct().getProductName(),
-                productManagement.getProduct().getPrice(),
-                productManagement.getProduct().getProductInfo(),
-                productManagement.getProduct().getManufacturer(),
-                productManagement.getProduct().getIsDiscount(),
-                productManagement.getProduct().getIsRecommend(),
-                productManagement.getInventoryId(),
-                productManagement.getProduct().getProductId(),
-                productManagement.getColor().getColorId(),
-                productManagement.getColor().getColor(),
-                productManagement.getCategory().getCategoryId(),
-                productManagement.getCategory().getName(),
-                productManagement.getGender(),
-                productManagement.getSize(),
-                productManagement.getInitialStock(),
-                productManagement.getAdditionalStock(),
-                productManagement.getProductStock(),
-                productManagement.isSoldOut(),
-                productManagement.isRestockAvailable(),
-                productManagement.isRestocked()
 
-        );
+    /** Entity → DTO */
+    public static ProductManagementDto from(ProductManagement pm) {
+        return ProductManagementDto.builder()
+                .productType(pm.getProduct().getProductType())
+                .productName(pm.getProduct().getProductName())
+                .manufacturer(pm.getProduct().getManufacturer())
+                .isDiscount(pm.getProduct().getIsDiscount())
+                .isRecommend(pm.getProduct().getIsRecommend())
+                .inventoryId(pm.getInventoryId())
+                .productId(pm.getProduct().getProductId())
+                .colorId(pm.getColor().getColorId())
+                .color(pm.getColor().getColor())
+                .categoryId(pm.getCategory().getCategoryId())
+                .category(pm.getCategory().getName())
+                .gender(pm.getGender())
+                .size(pm.getSize())
+                .initialStock(pm.getInitialStock())
+                .additionalStock(pm.getAdditionalStock())
+                .productStock(pm.getProductStock())
+                .isSoldOut(pm.isSoldOut())
+                .isRestockAvailable(pm.isRestockAvailable())
+                .isRestocked(pm.isRestocked())
+                .build();
     }
 
-    /* Entity -> dto */
-    public static ProductManagementDto from(ProductManagement productManagement) {
-        return ProductManagementDto.builder()
-                .productType(productManagement.getProduct().getProductType())
-                .productName(productManagement.getProduct().getProductName())
-                .price(productManagement.getProduct().getPrice())
-                .productInfo(productManagement.getProduct().getProductInfo())
-                .manufacturer(productManagement.getProduct().getManufacturer())
-                .isDiscount(productManagement.getProduct().getIsDiscount())
-                .isRecommend(productManagement.getProduct().getIsRecommend())
-                .inventoryId(productManagement.getInventoryId())
-                .productId(productManagement.getProduct().getProductId())
-                .colorId(productManagement.getColor().getColorId())
-                .color(productManagement.getColor().getColor())
-                .categoryId(productManagement.getCategory().getCategoryId())
-                .category(productManagement.getCategory().getName())
-                .gender(productManagement.getGender())
-                .size(productManagement.getSize())
-                .initialStock(productManagement.getInitialStock())
-                .additionalStock(productManagement.getAdditionalStock())
-                .productStock(productManagement.getProductStock())
-                .isSoldOut(productManagement.isSoldOut())
-                .isRestockAvailable(productManagement.isRestockAvailable())
-                .isRestocked(productManagement.isRestocked())
+    /** DTO → Entity */
+    public ProductManagement toEntity() {
+        return ProductManagement.builder()
+                .product(Product.builder().productId(this.productId).build())
+                .color(ProductColor.ofId(this.colorId))
+                .category(Category.ofId(this.categoryId))
+                .gender(this.gender)
+                .size(this.size)
+                .initialStock(this.initialStock)
+                .additionalStock(this.additionalStock)
+                .productStock(this.productStock)
+                .isSoldOut(this.isSoldOut)
+                .isRestockAvailable(this.isRestockAvailable)
+                .isRestocked(this.isRestocked)
                 .build();
     }
 }

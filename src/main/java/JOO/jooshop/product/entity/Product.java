@@ -1,6 +1,7 @@
 package JOO.jooshop.product.entity;
 
 import JOO.jooshop.admin.products.model.AdminProductRequestDto;
+import JOO.jooshop.categorys.entity.Category;
 import JOO.jooshop.contentImgs.entity.ContentImages;
 import JOO.jooshop.global.time.BaseEntity;
 import JOO.jooshop.product.entity.enums.ProductType;
@@ -114,25 +115,39 @@ public class Product extends BaseEntity {
     }
 
     /** 옵션(ProductManagement) 등록/업데이트 */
-    public void updateProductManagements(Product product, List<AdminProductRequestDto.ProductManagementDto> optionDto) {
+    public void updateProductManagements(List<AdminProductRequestDto.ProductManagementDto> optionDto) {
         if (optionDto == null || optionDto.isEmpty()) return;
 
         // 기존 옵션 초기화
-        product.getProductManagements().clear();
+        this.getProductManagements().clear();
 
         // 새로운 옵션 추가
+
         for (AdminProductRequestDto.ProductManagementDto dto : optionDto) {
+
+            // Color 매핑 (예: 이름 기반 매핑)
+            ProductColor color = ProductColor.ofName(dto.getColor());
+            // 실제 구현에서는 ProductColorRepository.findByName(dto.getColor()) 등으로 조회 가능
+
+            // Category 매핑 (예: 이름 기반 매핑)
+            Category category = Category.ofName(dto.getCategory());
+            // 실제 구현에서는 CategoryRepository.findByName(dto.getCategory()) 등으로 조회
+
+            // Size enum 변환
+            Size size = Size.valueOf(dto.getSize());
+
+            // ProductManagement 엔티티 생성
             ProductManagement pm = ProductManagement.builder()
-                    .product(this)
-                    .size(Size.valueOf(dto.getSize())) // 안전하게 변환
-                    .color(dto.getColor())                    // Color, Category 등도 dto에서 받아야 함
-                    .category(dto.getCategory())
+                    .product(this)       // 현재 Product 엔티티
+                    .color(color)
+                    .category(category)
                     .gender(dto.getGender())
+                    .size(size)
                     .initialStock(dto.getStock())
                     .productStock(dto.getStock())
                     .build();
 
-            this.productManagements.add(pm);
+            this.getProductManagements().add(pm);
         }
     }
 }

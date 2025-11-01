@@ -1,45 +1,39 @@
 package JOO.jooshop.product.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
+@Setter
 @Entity
 @Table(name = "product_color")
+@NoArgsConstructor
 public class ProductColor {
 
     @Id
+    @Column(name ="color_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "color_id")
     private Long colorId;
 
-    @NotBlank(message = "색상 이름은 필수입니다.")
-    @Column(name = "color", unique = true)
     private String color;
-
-    public static ProductColor createProductColorById(Long colorId) {
-        return new ProductColor(colorId);
-    }
-
-    public void setColor(String color) {
-        if (color == null || color.trim().isEmpty()) {
-            throw new IllegalArgumentException("Color cannot be null or blank");
-        }
-        this.color = color;
-    }
-
-    public ProductColor() {
-    }
 
     public ProductColor(String color) {
         this.color = color;
     }
 
-    public ProductColor(Long colorId) {
-        this.colorId = colorId;
+    /** ID 기반 생성 */
+    public static ProductColor ofId(Long colorId) {
+        ProductColor color = new ProductColor();
+        color.colorId = colorId;
+        return color;
     }
 
+    /** 이름 기반 생성 */
+    public static ProductColor ofName(String colorName) {
+        ProductColor color = new ProductColor();
+        color.color = colorName;
+        return color;
+    }
 }

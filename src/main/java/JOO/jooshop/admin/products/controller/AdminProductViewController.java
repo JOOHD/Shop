@@ -1,6 +1,5 @@
 package JOO.jooshop.admin.products.controller;
 
-import JOO.jooshop.admin.products.service.AdminProductService;
 import JOO.jooshop.thumbnail.model.ProductThumbnailDto;
 import JOO.jooshop.thumbnail.service.ThumbnailService;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminProductViewController { // 페이지 라우팅
 
-    private final AdminProductService productService;
     private final ThumbnailService thumbnailService;
 
     /* 상품 목록 */

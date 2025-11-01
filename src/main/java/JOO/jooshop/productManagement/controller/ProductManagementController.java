@@ -43,7 +43,7 @@ public class ProductManagementController {
     public ResponseEntity<List<ProductManagementDto>> inventoryList() {
         List<ProductManagement> inventoryList = managementService.allInventory();
         List<ProductManagementDto> collect = inventoryList.stream()
-                .map(ProductManagementDto::new)
+                .map(ProductManagementDto::from)
                 .collect(Collectors.toList());
         return new ResponseEntity<>(collect, HttpStatus.OK);
     }
@@ -56,7 +56,7 @@ public class ProductManagementController {
     @GetMapping("/{inventoryId}")
     public ResponseEntity<ProductManagementDto> getInventoryById(@PathVariable("inventoryId") Long inventoryId) {
         ProductManagement inventoryDetail = managementService.inventoryDetail(inventoryId);
-        ProductManagementDto productManagementDto = new ProductManagementDto(inventoryDetail);
+        ProductManagementDto productManagementDto = ProductManagementDto.from(inventoryDetail);
         return new ResponseEntity<>(productManagementDto, HttpStatus.OK);
     }
 

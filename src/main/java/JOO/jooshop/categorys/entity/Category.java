@@ -3,15 +3,17 @@ package JOO.jooshop.categorys.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter
+@Setter
 @Entity
 //@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "category")
-public class Category {
+public class  Category {
     @Id
     @SequenceGenerator(
             name = "category_sequence",
@@ -98,28 +100,18 @@ public class Category {
         return null; // 해당하는 자식 카테고리가 없는 경우 null 반환 또는 다른 처리 방법 선택
     }
 
-/*
-    public void setCategoryId(Long categoryId) {
-        this.categoryId = categoryId;
+    /** ID 기반 생성 */
+    public static Category ofId(Long categoryId) {
+        Category category = new Category();
+        category.categoryId = categoryId;
+        return category;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-*/
-
-    public void setParent(Category parent) {
-        this.parent = parent;
-    }
-
-/*
-    public void setDepth(Long depth) {
-        this.depth = depth;
-    }
-*/
-
-    public void setChildren(List<Category> children) {
-        this.children = children;
+    /** 이름 기반 생성 */
+    public static Category ofName(String categoryName) {
+        Category category = new Category();
+        category.name = categoryName;
+        return category;
     }
 }
 

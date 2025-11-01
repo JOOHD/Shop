@@ -104,10 +104,13 @@ public class AdminProductService {
         productRepository.deleteById(id);
     }
 
-    /** Response DTO 변환 */
+    /** DTO 변환 (화면용) */
     private AdminProductResponseDto toResponseDto(Product product) {
-        String thumbnailUrl = product.getProductThumbnails().isEmpty() ? null :
-                              product.getProductThumbnails().get(0).getImagePath();
+        // 첫 번째 썸네일 URL 가져오기
+        String thumbnailUrl = product.getProductThumbnails().stream()
+                .findFirst()
+                .map(t -> "/uploads/" + t.getImagePath())
+                .orElse(null);
 
         return new AdminProductResponseDto(
                 product.getProductId(),
@@ -115,7 +118,8 @@ public class AdminProductService {
                 product.getProductType(),
                 product.getPrice(),
                 product.getProductInfo(),
-                thumbnailUrl
+                thumbnailUrl,
+                product.getCreatedAt()   // 새 필드
         );
     }
 }

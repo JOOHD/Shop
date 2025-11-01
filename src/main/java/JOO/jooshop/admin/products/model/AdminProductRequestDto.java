@@ -12,7 +12,7 @@ import java.util.List;
 @Setter
 public class AdminProductRequestDto {
 
-    // 기본 정보
+    // 기본 상품 정보
     private String productName;
     private ProductType productType;
     private BigDecimal price;
@@ -29,18 +29,18 @@ public class AdminProductRequestDto {
     // 옵션 리스트 (ProductManagement와 연결)
     private List<ProductManagementDto> options;
 
-    // 옵션 DTO
+    // 옵션 DTO (프론트에서 입력)
     @Getter
     @Setter
     public static class ProductManagementDto {
-        private String color;    // 필요 시
-        private String category; // 필요 시
+        private String color;
+        private String category;
         private String size;
         private Gender gender;
         private Long stock;
     }
 
-    // Entity → DTO 변환 (조회 용)
+    // Entity → DTO 변환 (조회 용, 클라이언트에게 보여주기 위한 Entity 를 바꾸는 것)
     public static AdminProductRequestDto fromEntity(JOO.jooshop.product.entity.Product product) {
         AdminProductRequestDto dto = new AdminProductRequestDto();
         dto.setProductName(product.getProductName());
