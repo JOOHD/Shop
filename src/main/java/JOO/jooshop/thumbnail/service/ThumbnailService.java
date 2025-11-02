@@ -1,6 +1,7 @@
 package JOO.jooshop.thumbnail.service;
 
 import JOO.jooshop.global.file.FileStorageService;
+import JOO.jooshop.global.image.ImageUtil;
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.thumbnail.entity.ProductThumbnail;
 import JOO.jooshop.thumbnail.model.ProductThumbnailDto;
@@ -11,9 +12,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
+/*
+ * 단순 DB 저장 + fileStorageService 호출
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -22,13 +28,15 @@ public class ThumbnailService {
     private final ProductThumbnailRepositoryV1 productThumbnailRepository;
     private final FileStorageService fileStorageService;
 
+    private static final String UPLOAD_PREFIX = "/uploads/";
+
     /** 전체 상품 + DTO 반환 (뷰용) */
     @Transactional(readOnly = true)
     public List<ProductThumbnailDto> getAllThumbnails() {
         return productThumbnailRepository.findAll()
                 .stream()
                 .map(ProductThumbnailDto::new)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     /** 상품별 썸네일 URL 반환 */
@@ -40,23 +48,29 @@ public class ThumbnailService {
                 .toList();
     }
 
+    /** HTML 출력용 URL 반환 */
+    @Transactional(readOnly = true)
+    public List<String> getThumbnailUrls(Long productId) {
+        return getProductThumbnails(productId)
+                .stream()
+                .map(path -> UPLOAD_PREFIX + path) // "/uploads/" + "thumbnails/abc.jpg"
+                .collect(Collectors.toList());
+    }
+
     /**
-     * 썸네일 이미지 업로드 및 저장 (파일 업로드 전용)
+     * 특정 상품의 클라이언트 접근용 절대 URL 반환
+     * DB에는 상대경로만 저장되어 있으므로, "/uploads/"를 붙여서 반환
      */
     @Transactional
     public void uploadThumbnailImages(Product product, MultipartFile file) {
         if (file == null || file.isEmpty()) return;
 
         try {
-            // 파일 저장 (하위 디렉토리: "thumbnails")
-            String imageUrl = fileStorageService.saveFile(file, "thumbnails");
-
-            // DB 저장
+            String imagePath = fileStorageService.saveFile(file, "thumbnails");
             ProductThumbnail thumbnail = ProductThumbnail.builder()
                     .product(product)
-                    .imagePath(imageUrl)
+                    .imagePath(imagePath) // DB에는 상대 URL 저장
                     .build();
-
             productThumbnailRepository.save(thumbnail);
         } catch (IOException e) {
             log.error("썸네일 업로드 실패: {}", file.getOriginalFilename(), e);

@@ -46,8 +46,7 @@
             <!-- DTO 기준 thumbnailUrl 사용 -->
             <td class="thumb">
                 <img th:if="${product.thumbnailUrl != null}"
-                     th:src="${product.thumbnailUrl}"
-                     alt="상품 이미지" />
+                     th:src="${product.thumbnailUrl}" alt="상품 이미지" />
             </td>
 
             <td th:text="${product.productName}">상품명</td>

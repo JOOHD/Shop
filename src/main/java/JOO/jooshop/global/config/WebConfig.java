@@ -13,13 +13,20 @@ import java.nio.charset.StandardCharsets;
 public class WebConfig implements WebMvcConfigurer {
 
     /**
-     * Adds a resource handler to the provided registry.
-     * This method maps the "/uploads/**" path pattern to the "file:src/main/resources/static/uploads/" location,
-     * allowing these resources to be served by the web server.
-     *
-     * /uploads/** 경로로 들어오는 요청을 로컬 디스크의 static/uploads/ 디렉토리에 있는 파일로 매핑하여 제공하는 역할을 합니다.
-     *
-     * @param registry the registry to which the resource handler is added
+     * 배포용 코드
+     @Value("${file.upload-dir:uploads/}")  // application.yml에서 경로 주입
+     private String uploadDir;
+
+     @Override
+     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        String uploadPath = new File(uploadDir).getAbsolutePath();
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:" + uploadPath + "/");
+     }
+
+     application.yml
+     file:
+        upload-dir: /home/ec2-user/app/uploads
      */
 
     @Override

@@ -1,7 +1,7 @@
 package JOO.jooshop.admin.products.controller;
 
-import JOO.jooshop.thumbnail.model.ProductThumbnailDto;
-import JOO.jooshop.thumbnail.service.ThumbnailService;
+import JOO.jooshop.admin.products.model.AdminProductResponseDto;
+import JOO.jooshop.admin.products.service.AdminProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,12 +16,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminProductViewController { // 페이지 라우팅
 
-    private final ThumbnailService thumbnailService;
+    private final AdminProductService productService;
 
     /* 상품 목록 */
     @GetMapping("/list")
     public String productList(Model model) {
-        List<ProductThumbnailDto> products = thumbnailService.getAllThumbnails();
+        List<AdminProductResponseDto> products = productService.findAllProduct();
         model.addAttribute("products", products);
         return "admin/products/productList";
     }

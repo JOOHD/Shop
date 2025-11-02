@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -26,16 +27,14 @@ public class ContentImgService {
 
     private static final String CONTENT_IMG_DIR = "contentImgs"; // 하위 폴더
 
-    /**
-     * MultipartFile로 업로드
-     */
+    /** MultipartFile 업로드 및 DB 저장 */
     public void uploadContentImages(Product product, List<MultipartFile> images, UploadType uploadType) {
         if (images == null || images.isEmpty()) return;
 
         for (MultipartFile image : images) {
             try {
-                String dbFileUrl = fileStorageService.saveFile(image, CONTENT_IMG_DIR);
-                ContentImages contentImage = new ContentImages(product, dbFileUrl, uploadType);
+                String dbFilePath = fileStorageService.saveFile(image, CONTENT_IMG_DIR);
+                ContentImages contentImage = new ContentImages(product, dbFilePath, uploadType);
                 contentImagesRepository.save(contentImage);
             } catch (IOException e) {
                 log.error("상세 이미지 업로드 실패: {}", image.getOriginalFilename(), e);
@@ -44,16 +43,13 @@ public class ContentImgService {
         }
     }
 
-    /**
-     * 특정 상품 이미지 조회
-     */
+    /** 특정 상품의 DB 기준 상대경로 이미지 리스트 */
+    @Transactional(readOnly = true)
     public List<ContentImages> getContentImages(Long productId) {
         return contentImagesRepository.findByProduct_ProductId(productId);
     }
 
-    /**
-     * 상세 이미지 삭제
-     */
+    /** 상세 이미지 삭제 */
     public void deleteContentImage(Long contentImgId) {
         ContentImages contentImage = contentImagesRepository.findById(contentImgId)
                 .orElseThrow(() -> new NoSuchElementException("해당 사진을 찾을 수 없습니다."));

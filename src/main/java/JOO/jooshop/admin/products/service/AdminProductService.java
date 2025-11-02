@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 @Transactional
 public class AdminProductService {
 
+    private final FileStorageService fileStorageService;
     private final ThumbnailService thumbnailService;
     private final ContentImgService contentImgService;
     private final AdminProductRepository productRepository;
@@ -106,10 +107,10 @@ public class AdminProductService {
 
     /** DTO 변환 (화면용) */
     private AdminProductResponseDto toResponseDto(Product product) {
-        // 첫 번째 썸네일 URL 가져오기
+        // 첫 번째 썸네일 경로
         String thumbnailUrl = product.getProductThumbnails().stream()
                 .findFirst()
-                .map(t -> "/uploads/" + t.getImagePath())
+                .map(t -> fileStorageService.getUrl(t.getImagePath()))
                 .orElse(null);
 
         return new AdminProductResponseDto(
@@ -119,7 +120,7 @@ public class AdminProductService {
                 product.getPrice(),
                 product.getProductInfo(),
                 thumbnailUrl,
-                product.getCreatedAt()   // 새 필드
+                product.getCreatedAt()
         );
     }
 }
