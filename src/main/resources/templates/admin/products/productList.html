@@ -43,12 +43,10 @@
         </thead>
         <tbody>
         <tr th:each="product : ${products}">
-            <!-- DTO 기준 thumbnailUrl 사용 -->
             <td class="thumb">
                 <img th:if="${product.thumbnailUrl != null}"
                      th:src="${product.thumbnailUrl}" alt="상품 이미지" />
             </td>
-
             <td th:text="${product.productName}">상품명</td>
             <td th:text="'₩' + ${#numbers.formatInteger(product.price, 0, 'COMMA')}">₩0</td>
             <td th:text="${product.productInfo}">상품 정보</td>
@@ -73,19 +71,35 @@
         document.querySelector('.overlay')?.classList.toggle('active');
     }
 
+    // JWT 쿠키 포함 DELETE 요청
     function deleteProduct(productId) {
         if (!confirm("정말 삭제하시겠습니까?")) return;
 
-        fetch(`/admin/products/${productId}`, {
-            method: 'DELETE'
+        fetch(`/api/admin/products/${productId}`, {
+            method: 'DELETE',
+            credentials: 'include', // HttpOnly JWT 쿠키 포함
+            headers: {
+                'Content-Type': 'application/json'
+            }
         })
-        .then(res => {
+        .then(async res => {
             if (res.ok) {
                 alert("삭제되었습니다.");
                 location.reload();
             } else {
-                alert("삭제 중 오류가 발생했습니다.");
+                const data = await res.json().catch(() => ({}));
+                if (res.status === 401) {
+                    alert(data.message || "로그인이 필요합니다.");
+                } else if (res.status === 403) {
+                    alert(data.message || "권한이 없습니다. 관리자 계정으로 로그인해주세요.");
+                } else {
+                    alert(data.message || "삭제 중 오류가 발생했습니다.");
+                }
             }
+        })
+        .catch(err => {
+            console.error("삭제 요청 오류:", err);
+            alert("서버 요청 중 오류가 발생했습니다.");
         });
     }
 </script>

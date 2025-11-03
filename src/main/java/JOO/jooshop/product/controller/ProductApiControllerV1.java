@@ -33,7 +33,6 @@ public class ProductApiControllerV1 {
     public final ObjectMapper objectMapper;
     private final ProductServiceV1 productService;
     private final ProductOrderService productOrderService;
-    private final ProductRankingService productRankingService;
 
     /**
      * 상품 등록

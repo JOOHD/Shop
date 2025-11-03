@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.List;
 
 @Controller
-@RequestMapping("/admin/products")
+@RequestMapping("/v1/admin/products")
 @RequiredArgsConstructor
 public class AdminProductViewController { // 페이지 라우팅
 

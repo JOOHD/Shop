@@ -28,13 +28,15 @@ public class WebConfig implements WebMvcConfigurer {
      file:
         upload-dir: /home/ec2-user/app/uploads
      */
+    // 실제 이미지 저장 위치를 절대 경로로 지정
+    String uploadAbsolutePath = "C:/Users/user/OneDrive/바탕 화면/Joo_Shop/jooshop/uploads/";
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // src/main/resources/static/uploads/thumbnails/ 에 저장하면 JAR 빌드 후, 변경사항 반영 안 됨
         // 클래스패스(static 디렉토리)는 읽기 전용이다. 이미지를 resources/static 에 저장하는 건 개발일떄, 만 가능한 트릭이다.
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:src/main/resources/static/uploads/");
+                .addResourceLocations("file:" + uploadAbsolutePath);
     }
 }
 

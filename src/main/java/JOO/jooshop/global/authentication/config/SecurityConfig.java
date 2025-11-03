@@ -64,7 +64,8 @@ public class SecurityConfig {
             "/api/email/**",
             "/api/v1/categorys/**",
             "/api/v1/thumbnail/**",
-            "/api/v1/members/**",
+            "/api/v1/members/join",
+            "/api/v1/members/check-email",
             "/api/v1/reissue/**",
             "/api/v1/inquiry/**"
     };
@@ -73,12 +74,13 @@ public class SecurityConfig {
             "/api/v1/profile/**",
             "/api/v1/cart/**",
             "/api/v1/order/**",
+            "/api/v1/product/**",
             "/api/v1/payment/**"
     };
 
     private static final String[] ROLE_ADMIN = {
-            "/api/v1/products/**",
-            "/api/admin/products/**",
+            "/api/v1/admin/products/**",
+            "/api/v1/admin/orders/**",
             "/api/v1/inventory/**",
             "/api/v1/inquiry/reply/**"
     };

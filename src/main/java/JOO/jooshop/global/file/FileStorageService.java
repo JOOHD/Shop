@@ -71,8 +71,8 @@ public class FileStorageService {
      */
     public String getUrl(String relativePath) {
         if (relativePath == null || relativePath.isBlank()) return null;
-        return "/uploads/" + relativePath.replaceAll("^/+", "");
+        // 방어 코드 추가
+        String cleaned = relativePath.replaceAll("^/+", "").replaceFirst("^upload/", "");
+        return "/uploads/" + cleaned;
     }
-
-
 }
