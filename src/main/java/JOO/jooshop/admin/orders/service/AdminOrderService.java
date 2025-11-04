@@ -20,15 +20,22 @@ public class AdminOrderService {
      * 관리자용 주문 목록 조회
      */
     public List<AdminOrderResponseDto> getOrders(String status, String keyword) {
+        // 전체 주문 조회
         List<Orders> orders = orderRepository.findAll(Sort.by(Sort.Direction.DESC, "orderDay"));
 
+        // 검색,상태 따른 조회
         return orders.stream()
-                .filter(o -> status == null || o.getPaymentStatus().name().equalsIgnoreCase(status))
-                .filter(o -> keyword == null || o.getOrdererName().contains(keyword)
-                                                    || o.getProductName().contains(keyword))
+                // status가 null이거나 빈 문자열이면 필터 무시
+                .filter(o -> (status == null || status.isBlank())
+                        || o.getPaymentStatus().name().equalsIgnoreCase(status))
+                // keyword가 null이거나 빈 문자열이면 필터 무시
+                .filter(o -> (keyword == null || keyword.isBlank())
+                        || o.getOrdererName().contains(keyword)
+                        || o.getProductName().contains(keyword))
                 .map(AdminOrderResponseDto::fromEntity)
                 .collect(Collectors.toList());
     }
+
 
     /**
      * 주문 상세 조회
