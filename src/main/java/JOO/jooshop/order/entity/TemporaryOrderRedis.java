@@ -61,6 +61,7 @@ public class TemporaryOrderRedis implements Serializable {
 
     private BigDecimal totalPrice;      // 총 결제 금액
 
+    @Builder.Default
     @TimeToLive(unit = TimeUnit.MINUTES)
     private long expiration = 30; // TTL: 30분 후 자동 삭제
 

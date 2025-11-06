@@ -15,7 +15,6 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@Builder(toBuilder = true)
 @AllArgsConstructor // 오버로딩 된 생성자 예방
 @NoArgsConstructor
 @Table(name = "product_management")
@@ -23,7 +22,7 @@ public class ProductManagement {
     /*
         inventoryId는 @GeneratedValue 에 의해 자동 생성되기 때문에,
         builder()에는 포함하지 않는 게 자연스럽고 안전.
-        
+
         빌더 패턴 사용
      */
 
@@ -61,20 +60,15 @@ public class ProductManagement {
     @Column(name = "product_stock")
     private Long productStock;
 
-    // Lombok 빌더에서 초기값 유지하려면 @Builder.Default 필수
-    @Builder.Default
+    // Lombok 빌더에서 초기값 유지하려면  필수
     private boolean isSoldOut = false;
 
-    @Builder.Default
     private boolean isRestockAvailable = false;
 
-    @Builder.Default
     private boolean isRestocked = false;
 
-    @Builder.Default
     @ManyToMany(mappedBy = "productManagements")
     private List<Orders> orders = new ArrayList<>();
-
 
     public void updateInventory(Category category, Long additionalStock, Long productStock, Boolean isRestockAvailable, Boolean isRestocked, Boolean isSoldOut) {
         this.category = category;
@@ -84,4 +78,45 @@ public class ProductManagement {
         this.isRestocked = isRestocked;
         this.isSoldOut = isSoldOut;
     }
+
+    // ProductManagement.java
+    public static ProductManagement create(
+            Product product,
+            ProductColor color,
+            Category category,
+            Gender gender,
+            Size size,
+            Long stock
+    ) {
+        ProductManagement pm = new ProductManagement();
+        pm.product = product;
+        pm.color = color;
+        pm.category = category;
+        pm.gender = gender;
+        pm.initialStock = stock;
+        pm.productStock = stock;
+        return pm;
+    }
+
+    public static ProductManagement of(Product product,
+                                       ProductColor color,
+                                       Category category,
+                                       Size size,
+                                       Long initialStock,
+                                       Boolean isRestockAvailable,
+                                       Boolean isRestocked,
+                                       Boolean isSoldOut) {
+        ProductManagement pm = new ProductManagement();
+        pm.product = product;
+        pm.color = color;
+        pm.category = category;
+        pm.size = size;
+        pm.initialStock = initialStock;
+        pm.productStock = initialStock; // 재고 = 초기 재고
+        pm.isRestockAvailable = isRestockAvailable != null ? isRestockAvailable : false;
+        pm.isRestocked = isRestocked != null ? isRestocked : false;
+        pm.isSoldOut = isSoldOut != null ? isSoldOut : false;
+        return pm;
+    }
+
 }

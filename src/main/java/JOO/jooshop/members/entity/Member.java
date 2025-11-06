@@ -9,7 +9,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -17,10 +16,9 @@ import java.util.List;
 
 @Getter
 @Setter
+@Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Builder
-@Entity
 @Table(name = "member", uniqueConstraints = {
         @UniqueConstraint(columnNames = "social_id") // 중복 소셜ID 방지
 })
@@ -77,6 +75,15 @@ public class Member {
     @Column(name = "is_admin")
     private boolean admin = false;
 
+    /**
+     * -- SETTER --
+     *  [테스트용 Setter]
+     *  - 이메일 인증 여부를 직접 설정 (일반적으로는 사용하지 않음)
+     * -- GETTER --
+     *  [이메일 인증 여부 처리]
+     *
+
+     */
     @Column(name = "is_certified_email")
     private boolean certifiedByEmail = false;
 
@@ -98,15 +105,15 @@ public class Member {
      */
     public static Member createSocialMember(String email, String username,
                                             MemberRole role, SocialType socialType, String socialId) {
-        return Member.builder()
-                .email(email)
-                .username(username)
-                .memberRole(role)
-                .socialType(socialType)
-                .socialId(socialId)
-                .certifiedByEmail(true)     // 소셜 로그인은 이메일 인증 생략
-                .active(true)
-                .build();
+        Member member = new Member();
+        member.email = email;
+        member.username = username;
+        member.memberRole = role;
+        member.socialType = socialType;
+        member.socialId = socialId;
+        member.certifiedByEmail = true;     // 소셜 로그인은 이메일 인증 생략
+        member.active = true;
+        return member;
     }
 
     /**
@@ -115,13 +122,13 @@ public class Member {
      * - 패스워드는 없는 상태이며, 인증 이후 최종 정보 업데이트 필요
      */
     public static Member createEmailMember(String email) {
-        return Member.builder()
-                .email(email)
-                .memberRole(MemberRole.USER)
-                .socialType(SocialType.GENERAL)
-                .certifiedByEmail(false)    // 인증 전 상태
-                .active(true)
-                .build();
+        Member member = new Member();
+        member.email = email;
+        member.memberRole = MemberRole.USER;
+        member.socialType = SocialType.GENERAL;
+        member.certifiedByEmail = false;    // 인증 전 상태
+        member.active = true;
+        return member;
     }
 
     /**
@@ -130,18 +137,18 @@ public class Member {
      */
     public static Member createGeneralMember(String email, String username, String nickname,
                                              String password, String phone, String socialId) {
-        return Member.builder()
-                .email(email)
-                .username(username)
-                .nickname(nickname)
-                .password(password)
-                .phoneNumber(phone)
-                .memberRole(MemberRole.USER)
-                .socialType(SocialType.GENERAL)
-                .socialId(socialId)
-                .certifiedByEmail(false)
-                .active(true)
-                .build();
+        Member member = new Member();
+        member.email = email;
+        member.username = username;
+        member.nickname = nickname;
+        member.password = password;
+        member.phoneNumber = phone;
+        member.memberRole = MemberRole.USER;
+        member.socialType = SocialType.GENERAL;
+        member.socialId = socialId;
+        member.certifiedByEmail = false;
+        member.active = true;
+        return member;
     }
 
     /**
@@ -150,19 +157,19 @@ public class Member {
      */
     public static Member createAdminMember(String email, String username, String nickname,
                                            String password, String phone, String socialId) {
-        return Member.builder()
-                .email(email)
-                .username(username)
-                .nickname(nickname)
-                .password(password)
-                .phoneNumber(phone)
-                .memberRole(MemberRole.ADMIN)
-                .socialType(SocialType.GENERAL)
-                .socialId(socialId)
-                .certifiedByEmail(true)
-                .admin(true)
-                .active(true)
-                .build();
+        Member member = new Member();
+        member.email = email;
+        member.username = username;
+        member.nickname = nickname;
+        member.password = password;
+        member.phoneNumber = phone;
+        member.memberRole = MemberRole.ADMIN;
+        member.socialType = SocialType.GENERAL;
+        member.socialId = socialId;
+        member.certifiedByEmail = true;
+        member.admin = true;
+        member.active = true;
+        return member;
     }
 
     /**
@@ -171,18 +178,18 @@ public class Member {
      * - 보통 API 응답 DTO로 변환 전 단계
      */
     public static Member createProfileMember(Member member) {
-        return Member.builder()
-                .email(member.getEmail())
-                .username(member.getUsername())
-                .nickname(member.getNickname())
-                .memberRole(member.getMemberRole())
-                .socialType(member.getSocialType())
-                .socialId(member.getSocialId())
-                .certifiedByEmail(member.isCertifiedByEmail())
-                .build();
+        Member profile = new Member();
+        profile.email = member.getEmail();
+        profile.username = member.getUsername();
+        profile.nickname = member.getNickname();
+        profile.memberRole = member.getMemberRole();
+        profile.socialType = member.getSocialType();
+        profile.socialId = member.getSocialId();
+        profile.certifiedByEmail = member.isCertifiedByEmail();
+        return profile;
     }
 
-// ========================== 도메인 메서드 ==========================
+    // ========================== 도메인 메서드 ==========================
 
     /**
      * [소셜 회원 정보 업데이트]
@@ -195,38 +202,6 @@ public class Member {
         this.socialType = newOAuth2Member.getSocialType();
         this.socialId = newOAuth2Member.getSocialId();
         this.certifiedByEmail = newOAuth2Member.isCertifiedByEmail();
-    }
-
-    /**
-     * [비밀번호 암호화]
-     * - 회원 가입 or 비밀번호 변경 시에만 호출
-     */
-    public void passwordEncode(PasswordEncoder passwordEncoder) {
-        this.password = passwordEncoder.encode(this.password);
-    }
-
-    /**
-     * [이메일 인증 여부 처리]
-     * @return
-     */
-    public boolean isCertifiedByEmail() {
-        return this.certifiedByEmail;
-    }
-
-    /**
-     * [이메일 인증 완료 처리]
-     * - 인증 URL을 통해 인증 성공 시 호출됨
-     */
-    public void certifyByEmail() {
-        this.certifiedByEmail = true;
-    }
-
-    /**
-     * [테스트용 Setter]
-     * - 이메일 인증 여부를 직접 설정 (일반적으로는 사용하지 않음)
-     */
-    public void setCertifiedByEmail(boolean certifiedByEmail) {
-        this.certifiedByEmail = certifiedByEmail;
     }
 
     /**
@@ -308,16 +283,5 @@ public class Member {
      */
     public void changeNickname(String newNickname) {
         this.nickname = newNickname;
-    }
-
-    /**
-     * [profile 생성 시, null 방지]
-     * 신규 insert 시 null 방지
-     */
-    @PrePersist
-    public void prePersist() {
-        if (this.joinedAt == null) {
-            this.joinedAt = LocalDateTime.now();
-        }
     }
 }

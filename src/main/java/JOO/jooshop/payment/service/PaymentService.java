@@ -18,6 +18,7 @@ import JOO.jooshop.payment.model.PaymentHistoryDto;
 import JOO.jooshop.payment.model.PaymentRequestDto;
 import JOO.jooshop.payment.repository.PaymentRefundRepository;
 import JOO.jooshop.payment.repository.PaymentRepository;
+import JOO.jooshop.productManagement.entity.ProductManagement;
 import com.siot.IamportRestClient.IamportClient;
 import com.siot.IamportRestClient.exception.IamportResponseException;
 import com.siot.IamportRestClient.request.CancelData;
@@ -127,12 +128,21 @@ public class PaymentService {
         // 장바구니의 각 아이템을 OrderProduct 로 변환
         return cartIds.stream()
                 .map(cartId -> {
-                    // 장바구니 항목을 조회
                     Cart cart = cartRepository.findById(cartId)
                             .orElseThrow(() -> new NoSuchElementException("장바구니가 비어 있습니다."));
 
-                    BigDecimal priceAtOrder = orderProduct.getPriceAtOrder(); // OrderProduct 내에서 처리된 가격
-                    return orderProduct.createOrderProduct(order, cart.getProductManagement(), priceAtOrder, cart.getQuantity());
+                    ProductManagement product = cart.getProductManagement();
+
+                    // OrderProduct 생성
+                    return OrderProduct.createOrderProduct(
+                            order,
+                            product,
+                            product.getColor().getColor(),   // ProductColor 이름
+                            product.getSize().name(),       // Enum → String
+                            product.getGender().name(),     // Enum → String
+                            cart.getPrice(),     // BigDecimal → String
+                            cart.getQuantity()
+                    );
                 })
                 .collect(Collectors.toList());
     }

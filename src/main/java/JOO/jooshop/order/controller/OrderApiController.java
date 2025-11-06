@@ -1,6 +1,7 @@
 package JOO.jooshop.order.controller;
 
 import JOO.jooshop.global.authentication.jwts.entity.CustomUserDetails;
+import JOO.jooshop.order.entity.Orders;
 import JOO.jooshop.order.entity.TemporaryOrderRedis;
 import JOO.jooshop.order.model.OrderDto;
 import JOO.jooshop.order.model.TempOrderResponse;
@@ -58,8 +59,8 @@ public class OrderApiController {
     @PostMapping("/create")
     public ResponseEntity<String> createOrder(@Valid @RequestBody OrderDto orderDto,
                                               @AuthenticationPrincipal CustomUserDetails userDetails) {
-        orderService.createOrder(orderDto.getCartIds(), orderDto);
-        return ResponseEntity.ok("임시 주문이 Redis에 저장되었습니다.");
+        Orders order = orderService.createOrder(orderDto.getCartIds(), orderDto);
+        return ResponseEntity.ok("임시 주문이 Redis에 저장되었습니다. 주문번호: " + order.getOrderId());
     }
 
     /**
@@ -68,8 +69,8 @@ public class OrderApiController {
     @PostMapping("/confirm")
     public ResponseEntity<Object> confirmOrder(@RequestBody OrderDto orderDto,
                                             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        orderService.confirmOrder(orderDto);
-        return ResponseEntity.ok("주문이 확정되어 DB에 저장되었습니다.");
+        Orders order = orderService.confirmOrder(orderDto);
+        return ResponseEntity.ok("주문이 확정되어 DB에 저장되었습니다. 주문번호: " + order.getOrderId());
     }
 
 }

@@ -2,24 +2,21 @@ package JOO.jooshop.order.entity;
 
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.order.entity.enums.PayMethod;
-import JOO.jooshop.order.model.OrderDto;
 import JOO.jooshop.payment.entity.PaymentHistory;
 import JOO.jooshop.payment.entity.PaymentStatus;
 import JOO.jooshop.productManagement.entity.ProductManagement;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.DynamicInsert;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-@Data
+@Setter
+@Getter
 @Entity
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "orders")
@@ -53,9 +50,11 @@ public class Orders {
             joinColumns = @JoinColumn(name = "orders_id"),  // JoinColumn : FK 를 사용하기 위해
             inverseJoinColumns = @JoinColumn(name = "product_management_id") // InverseJoinColumn : 상대 엔티티의 외래 키 설정
     )
+
     private List<ProductManagement> productManagements = new ArrayList<>();
 
     // 주문 상품들
+
     @OneToMany(mappedBy = "orders", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderProduct> orderProducts = new ArrayList<>();
 
@@ -102,5 +101,45 @@ public class Orders {
         this.paymentStatus = paymentStatus;
     }
 
+    /**
+     * [Orders 생성용 static factory]
+     * 주문 생성 시, 필요한 정보만 받아서 Orders 엔티티 생성
+     * orderProducts 는 별도로 addOrderProducts() 로 연결
+     */
+    public static Orders createOrder(Member member,
+                                     String ordererName,
+                                     String phoneNumber,
+                                     String productName,
+                                     BigDecimal totalPrice,
+                                     String postCode,
+                                     String address,
+                                     String detailAddress,
+                                     PayMethod payMethod,
+                                     String merchantUid) {
+        Orders orders = new Orders();
+        orders.setMember(member);
+        orders.setOrdererName(ordererName);
+        orders.setPhoneNumber(phoneNumber);
+        orders.setProductName(productName);
+        orders.setTotalPrice(totalPrice);
+        orders.setPostCode(postCode);
+        orders.setAddress(address);
+        orders.setDetailAddress(detailAddress);
+        orders.setPayMethod(payMethod);
+        orders.setMerchantUid(merchantUid);
+        return orders;
+    }
 
+    /**
+     * Orders 엔티티에 여러 개의 OrderProduct 를 연결할 때 사용
+     * [Orders ↔ OrderProduct 는 양방향 관계입니다.
+     *
+     * addOrderProducts를 사용하면:
+     * 1. Orders의 리스트에 OrderProduct 추가
+     * 2. 각 OrderProduct가 자신이 속한 Orders를 참조OrderProduct 연관 추가]
+     */
+    public void addOrderProducts(List<OrderProduct> orderProducts) {
+        this.orderProducts.addAll(orderProducts);
+        orderProducts.forEach(op -> op.setOrders(this));
+    }
 }

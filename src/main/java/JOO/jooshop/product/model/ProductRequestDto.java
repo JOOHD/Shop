@@ -33,8 +33,14 @@ public class ProductRequestDto {
     private BigDecimal price;
     private String productInfo;
     private String manufacturer;
+
+    @Builder.Default
     private Boolean isDiscount = false;
+
+    @Builder.Default
     @Max(value = 100, message = "할인율은 100을 초과할 수 없습니다.")
     private Integer discountRate = null;
+
+    @Builder.Default
     private Boolean isRecommend = false;
 }

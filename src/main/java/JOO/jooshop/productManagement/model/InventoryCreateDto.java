@@ -63,16 +63,16 @@ public class InventoryCreateDto {
         - 위에 코드를 서비스 클래스에 적용
     */
     public ProductManagement toEntity(Product product, ProductColor color, Category category) {
-        return ProductManagement.builder()
-                .product(product)
-                .color(color)
-                .category(category)
-                .size(this.size)
-                .initialStock(this.initialStock)
-                .productStock(this.initialStock) // 재고 = 초기 재고
-                .isRestockAvailable(this.isRestockAvailable)
-                .isRestocked(this.isRestocked)
-                .isSoldOut(this.isSoldOut)
-                .build();
+        return ProductManagement.of(
+                product,
+                color,
+                category,
+                this.size,
+                this.initialStock,
+                this.isRestockAvailable,
+                this.isRestocked,
+                this.isSoldOut
+        );
     }
+
 }

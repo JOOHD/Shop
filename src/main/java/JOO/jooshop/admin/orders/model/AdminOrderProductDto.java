@@ -20,7 +20,7 @@ public class AdminOrderProductDto {
     private int quantity;
     private BigDecimal priceAtOrder;
 
-    public static AdminOrderProductDto fromEntity(OrderProduct product) {
+    public static AdminOrderProductDto from(OrderProduct product) {
         return AdminOrderProductDto.builder()
                 .productName(product.getProductName())
                 .productSize(product.getProductSize())

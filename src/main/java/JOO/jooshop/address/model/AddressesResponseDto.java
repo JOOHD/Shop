@@ -19,7 +19,7 @@ public class AddressesResponseDto {
     private boolean defaultAddress;
     private String recipientPhone;
 
-    public static AddressesResponseDto fromEntity(Addresses addresses) {
+    public static AddressesResponseDto from(Addresses addresses) {
         return AddressesResponseDto.builder()
                 .addressId(addresses.getAddressId())
                 .addressName(addresses.getAddressName())

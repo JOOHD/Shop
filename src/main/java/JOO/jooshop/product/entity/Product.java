@@ -24,7 +24,6 @@ import java.util.List;
 
 @Entity
 @Getter
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "products_table")
@@ -42,7 +41,6 @@ public class Product extends BaseEntity {
 
     @NotNull
     private BigDecimal price;
-
     private String productInfo;
     private String manufacturer;
     private Boolean isDiscount = false;
@@ -63,13 +61,11 @@ public class Product extends BaseEntity {
 
     private Long wishListCount;
 
-    /** dummy data factory method */
-    public static Product createProductById(Long productId) {
-        return Product.builder()
-                .productId(productId)
-                .productName("Product_" + productId)
-                .price(BigDecimal.valueOf(10000))
-                .build();
+    /** DTO 기반 생성 */
+    public static Product ofId(Long productId) {
+        Product p = new Product();
+        p.productId = productId;
+        return p;
     }
 
     /** Admin DTO 기반 생성자 */
@@ -117,35 +113,16 @@ public class Product extends BaseEntity {
     /** 옵션(ProductManagement) 등록/업데이트 */
     public void updateProductManagements(List<AdminProductRequestDto.ProductManagementDto> optionDto) {
         if (optionDto == null || optionDto.isEmpty()) return;
-
-        // 기존 옵션 초기화
         this.getProductManagements().clear();
 
-        // 새로운 옵션 추가
-
         for (AdminProductRequestDto.ProductManagementDto dto : optionDto) {
-
-            // Color 매핑 (예: 이름 기반 매핑)
             ProductColor color = ProductColor.ofName(dto.getColor());
-            // 실제 구현에서는 ProductColorRepository.findByName(dto.getColor()) 등으로 조회 가능
-
-            // Category 매핑 (예: 이름 기반 매핑)
             Category category = Category.ofName(dto.getCategory());
-            // 실제 구현에서는 CategoryRepository.findByName(dto.getCategory()) 등으로 조회
-
-            // Size enum 변환
             Size size = Size.valueOf(dto.getSize());
 
-            // ProductManagement 엔티티 생성
-            ProductManagement pm = ProductManagement.builder()
-                    .product(this)       // 현재 Product 엔티티
-                    .color(color)
-                    .category(category)
-                    .gender(dto.getGender())
-                    .size(size)
-                    .initialStock(dto.getStock())
-                    .productStock(dto.getStock())
-                    .build();
+            ProductManagement pm = ProductManagement.create(
+                    this, color, category, dto.getGender(), size, dto.getStock()
+            );
 
             this.getProductManagements().add(pm);
         }

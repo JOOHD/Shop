@@ -39,6 +39,7 @@ public class PaymentHistory {
     @Column(name = "pay_method")
     private String payMethod;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_status", nullable = false)
     private PaymentStatus paymentStatus = PaymentStatus.COMPLETE; // 기본값 설정도 가능

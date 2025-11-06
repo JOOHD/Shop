@@ -67,7 +67,7 @@ public class PaymentHistoryDto {
         );
     }
 
-    public static PaymentHistoryDto fromEntity(PaymentHistory paymentHistory) {
+    public static PaymentHistoryDto from(PaymentHistory paymentHistory) {
         return new PaymentHistoryDto(
                 paymentHistory.getId(),
                 paymentHistory.getMember().getId(),

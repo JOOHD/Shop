@@ -37,7 +37,7 @@ public class ProductManagementDto {
     private boolean isRestockAvailable;
     private boolean isRestocked;
 
-    /** Entity → DTO */
+    /** Entity → DTO (Static Factory) */
     public static ProductManagementDto from(ProductManagement pm) {
         return ProductManagementDto.builder()
                 .productType(pm.getProduct().getProductType())
@@ -62,20 +62,24 @@ public class ProductManagementDto {
                 .build();
     }
 
-    /** DTO → Entity */
-    public ProductManagement toEntity() {
-        return ProductManagement.builder()
-                .product(Product.builder().productId(this.productId).build())
-                .color(ProductColor.ofId(this.colorId))
-                .category(Category.ofId(this.categoryId))
-                .gender(this.gender)
-                .size(this.size)
-                .initialStock(this.initialStock)
-                .additionalStock(this.additionalStock)
-                .productStock(this.productStock)
-                .isSoldOut(this.isSoldOut)
-                .isRestockAvailable(this.isRestockAvailable)
-                .isRestocked(this.isRestocked)
-                .build();
+    /** DTO → Entity (Static Factory) */
+    public static ProductManagement toEntity(ProductManagementDto dto) {
+        // static factory로 각각 객체 생성
+        Product product = Product.ofId(dto.getProductId());
+        ProductColor color = ProductColor.ofId(dto.getColorId());
+        Category category = Category.ofId(dto.getCategoryId());
+
+        // ProductManagement 생성
+        return ProductManagement.of(
+                product,
+                color,
+                category,
+                dto.getSize(),
+                dto.getInitialStock(),
+                dto.isRestockAvailable(),
+                dto.isRestocked(),
+                dto.isSoldOut()
+        );
     }
+
 }

@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="644ff0fc-af39-443a-9d6f-503af0ded063" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dbnavigator.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/uiDesigner.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/Inquiry/entity/QInquiry.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/Inquiry/entity/QInquiryReply.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/address/entity/QAddresses.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/cart/entity/QCart.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/categorys/entity/QCategory.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/contentImgs/entity/QContentImages.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/global/mail/entity/QCertificationEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/global/time/QBaseEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/members/entity/QCertificationEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/members/entity/QMember.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/members/entity/QRefresh.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/order/entity/QOrderProduct.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/order/entity/QOrders.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/payment/entity/QPaymentHistory.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/payment/entity/QPaymentRefund.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/product/entity/QProduct.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/product/entity/QProductColor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/productManagement/entity/QProductManagement.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/profiile/entity/QProfiles.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/review/entity/QReview.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/review/entity/QReviewReply.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/reviewImg/entity/QReviewImg.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/thumbnail/entity/QProductThumbnail.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/wishList/entity/QWishList.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/address/entity/Addresses.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/address/entity/Addresses.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/address/model/AddressesResponseDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/address/model/AddressesResponseDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/admin/orders/model/AdminOrderProductDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/admin/orders/model/AdminOrderProductDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/admin/orders/model/AdminOrderResponseDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/admin/orders/model/AdminOrderResponseDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/admin/orders/service/AdminOrderService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/admin/orders/service/AdminOrderService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/admin/products/model/AdminProductRequestDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/admin/products/model/AdminProductRequestDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/cart/entity/Cart.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/cart/entity/Cart.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/global/dummydata/util/CategoryDataUtil.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/global/dummydata/util/ProductColorDataUtil.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/global/dummydata/util/ProductDataUtil.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/global/dummydata/util/ProductManagementDataUtil.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/global/dummydata/util/ProductThumbnailDataUtil.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/members/entity/Member.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/members/entity/Member.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/order/controller/OrderApiController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/order/controller/OrderApiController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/order/entity/OrderProduct.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/order/entity/OrderProduct.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/order/entity/Orders.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/order/entity/Orders.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/order/entity/TemporaryOrderRedis.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/order/entity/TemporaryOrderRedis.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/order/service/OrderService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/order/service/OrderService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/payment/entity/PaymentHistory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/payment/entity/PaymentHistory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/payment/model/PaymentHistoryDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/payment/model/PaymentHistoryDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/payment/service/PaymentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/payment/service/PaymentService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/product/entity/Product.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/product/entity/Product.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/product/model/ProductRequestDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/product/model/ProductRequestDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/productManagement/entity/ProductManagement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/productManagement/entity/ProductManagement.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/productManagement/model/InventoryCreateDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/productManagement/model/InventoryCreateDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/productManagement/model/ProductManagementDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/productManagement/model/ProductManagementDto.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CompilerWorkspaceConfiguration">
+    <option name="MAKE_PROJECT_ON_SAVE" value="true" />
+  </component>
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <projects_view>
+          <tree_state>
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="shop" type="f1a62948:ProjectNode" />
+              </path>
+            </expand>
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="HTML File" />
+        <option value="Enum" />
+        <option value="Interface" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
+  <component name="ProjectId" id="2st58HkCm6ChXbe5ZNqMy3VyEnd" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.PasswordHashGenerator.executor": "Run",
+    "Application.ShopApplication.executor": "Run",
+    "DefaultHtmlFileTemplate": "HTML File",
+    "Gradle.jooshop [:JOO.jooshop.JooshopApplication.main()].executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "ToolWindow.Find.ShowToolbar": "false",
+    "com.codeium.enabled": "true",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/user/OneDrive/바탕 화면/Joo_Shop/jooshop",
+    "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="JOO.jooshop.admin.orders.model" />
+      <recent name="JOO.jooshop.global.Exception" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\user\OneDrive\바탕 화면\Joo_Shop\jooshop\src\main\resources\templates" />
+      <recent name="C:\Users\user\OneDrive\바탕 화면\Joo_Shop\jooshop" />
+      <recent name="C:\Users\user\OneDrive\바탕 화면\Joo_Shop\jooshop\src" />
+      <recent name="C:\Users\user\OneDrive\바탕 화면\Joo_Shop\jooshop\src\main\java\JOO\jooshop\global\dummydata" />
+      <recent name="C:\Users\user\OneDrive\바탕 화면\Joo_Shop\jooshop\src\main\java\JOO\jooshop\review\repository" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\user\OneDrive\바탕 화면\Joo_Shop\jooshop\src\main\java\JOO\jooshop\admin\orders\" />
+      <recent name="C:\Users\user\OneDrive\바탕 화면\Joo_Shop\jooshop\src\main\resources\templates\admin\" />
+      <recent name="C:\Users\user\OneDrive\바탕 화면\Joo_Shop\jooshop\src\main\resources\static\uploads\" />
+      <recent name="C:\Users\user\OneDrive\바탕 화면\Joo_Shop\jooshop\src\main\resources\static\css" />
+      <recent name="C:\Users\user\OneDrive\바탕 화면\Joo_Shop\jooshop\src\main\resources\templates\products" />
+    </key>
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="JOO.jooshop" />
+    </key>
+  </component>
+  <component name="RunAnythingCache">
+    <option name="myCommands">
+      <command value="| YAML 키                                              | 의미            | | --------------------------------------------------- | ------------- | | spring.web.resources.cache.period                   | 브라우저 캐시 시간(초) | | spring.web.resources.chain.strategy.content.enabled | 해시 기반 캐싱 끄기   | | spring.web.resources.chain.strategy.fixed.enabled   | 파일명 기반 캐싱 끄기  | | spring.web.resources.static-locations               | 정적 리소스 경로     | " />
+    </option>
+  </component>
+  <component name="RunManager" selected="Application.ShopApplication">
+    <configuration name="PasswordHashGenerator" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="PasswordHashGenerator" />
+      <module name="shop.test" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ShopApplication" type="Application" factoryName="Application">
+      <option name="ALTERNATIVE_JRE_PATH" value="$PROJECT_DIR$/../../../../../../Program Files/Java/jdk-17" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <envs>
+        <env name="frontend.url" value="http://localhost:3000" />
+      </envs>
+      <option name="MAIN_CLASS_NAME" value="JOO.jooshop.JooshopApplication" />
+      <module name="shop.main" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.PasswordHashGenerator" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="644ff0fc-af39-443a-9d6f-503af0ded063" name="Changes" comment="" />
+      <created>1739261870096</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1739261870096</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="CUSTOM_BOOLEAN_PROPERTIES">
+                <map>
+                  <entry key="Show.Git.Branches" value="false" />
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <breakpoint type="java-exception">
+          <properties class="java.lang.NoSuchFieldError" package="java.lang" />
+          <option name="timeStamp" value="2" />
+        </breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>

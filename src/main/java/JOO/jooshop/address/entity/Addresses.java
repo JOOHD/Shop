@@ -35,6 +35,7 @@ public class Addresses {
     @Column(name = "detail_address")
     private String detailAddress;
 
+    @Builder.Default
     @Column(name = "is_default_address")
     private boolean isDefaultAddress = false;
 

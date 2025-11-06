@@ -29,9 +29,9 @@ public class AdminOrderResponseDto {
     private LocalDateTime orderDate;
     private List<AdminOrderProductDto> products;
 
-    public static AdminOrderResponseDto fromEntity(Orders order) {
+    public static AdminOrderResponseDto from(Orders order) {
         List<AdminOrderProductDto> productDtos = order.getOrderProducts().stream()
-                .map(AdminOrderProductDto::fromEntity)
+                .map(AdminOrderProductDto::from)
                 .collect(Collectors.toList());
 
         return AdminOrderResponseDto.builder()
