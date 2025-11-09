@@ -14,10 +14,10 @@ import lombok.*;
 public class InventoryCreateDto {
 
     /*
-        dto -> entity : toEntity 변환 메서드 사용 (저장 요청)
-        - 컨트롤러에서 dto 받음 -> toEntity() 호출, entity 생성 -> 저장
+        dto -> entity : from 변환 메서드 사용 (저장 요청)
+        - 컨트롤러에서 dto 받음 -> from() 호출, entity 생성 -> 저장
         
-        entity -> dto :  InventoryCreateDto 변환 생성자 사용 (조회 요청)
+        entity -> dto : InventoryCreateDto 변환 생성자 사용 (조회 요청)
         - 서비스에서 entity 가져옴 -> new InventoryCreateDto(entity) 호출 -> DTO 변환 응답
      */
     @NotNull(message = "상품은 필수로 지정해야 합니다.")

@@ -26,8 +26,8 @@ public class CartDto {
     private double totalPrice;           // (할인 적용 단가 * 수량)
     private String productThumbnailUrl;  // 썸네일
 
-    /** Cart 엔티티에서 DTO 변환 + 계산 수행 */
-    public static CartDto fromCart(Cart cart) {
+    /** Entity -> DTO 변환 + 계산 수행 */
+    public static CartDto toDto(Cart cart) {
 
         int quantity = cart.getQuantity();
 

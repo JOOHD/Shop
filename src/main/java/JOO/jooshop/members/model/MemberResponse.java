@@ -11,7 +11,7 @@ public class MemberResponse {
     private String ordererName;
     private String phoneNumber;
 
-    public static MemberResponse fromMember(Member member) {
+    public static MemberResponse toEntity(Member member) {
         return new MemberResponse(
                 member.getId(),
                 member.getUsername(),    // 화면에 표시할 이름

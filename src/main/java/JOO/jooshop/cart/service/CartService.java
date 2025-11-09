@@ -37,7 +37,7 @@ public class CartService {
 
         // DB에서 회원의 모든 Cart 엔티티 조회 후 DTO 변환
         return cartRepository.findByMemberId(memberId).stream()
-                .map(CartDto::fromCart)
+                .map(CartDto::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -85,7 +85,7 @@ public class CartService {
         Cart updatedCart = cartRepository.save(cart);
 
         // DTO 변환 후 반환
-        return CartDto.fromCart(updatedCart); // 또는 convertToDto(updatedCart)
+        return CartDto.toDto(updatedCart); // 또는 convertToDto(updatedCart)
     }
 
     /** =================== 장바구니 삭제 =================== */

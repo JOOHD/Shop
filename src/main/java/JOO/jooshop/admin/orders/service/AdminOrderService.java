@@ -32,7 +32,7 @@ public class AdminOrderService {
                 .filter(o -> (keyword == null || keyword.isBlank())
                         || o.getOrdererName().contains(keyword)
                         || o.getProductName().contains(keyword))
-                .map(AdminOrderResponseDto::from)
+                .map(AdminOrderResponseDto::toEntity) // DTO -> Entity
                 .collect(Collectors.toList());
     }
 
@@ -44,6 +44,6 @@ public class AdminOrderService {
         Orders order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다."));
 
-        return AdminOrderResponseDto.from(order);
+        return AdminOrderResponseDto.toEntity(order); // DTO -> Entity
     }
 }

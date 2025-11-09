@@ -32,7 +32,7 @@ public class CustomMemberDto {
     /**
      * Member 엔티티 → CustomMemberDto 변환
      */
-    public static CustomMemberDto from(Member member) {
+    public static CustomMemberDto toDto(Member member) {
         return CustomMemberDto.builder()
                 .memberId(member.getId())
                 .email(member.getEmail())

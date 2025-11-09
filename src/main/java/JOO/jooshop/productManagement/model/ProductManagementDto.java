@@ -38,7 +38,7 @@ public class ProductManagementDto {
     private boolean isRestocked;
 
     /** Entity → DTO (Static Factory) */
-    public static ProductManagementDto from(ProductManagement pm) {
+    public static ProductManagementDto toDto(ProductManagement pm) {
         return ProductManagementDto.builder()
                 .productType(pm.getProduct().getProductType())
                 .productName(pm.getProduct().getProductName())

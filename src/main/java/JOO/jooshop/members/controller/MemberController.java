@@ -37,7 +37,7 @@ public class MemberController {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new RuntimeException("회원 없음"));
 
-        return ResponseEntity.ok(MemberResponse.fromMember(member));
+        return ResponseEntity.ok(MemberResponse.toEntity(member));
     }
 
     /* 회원 리스트 */

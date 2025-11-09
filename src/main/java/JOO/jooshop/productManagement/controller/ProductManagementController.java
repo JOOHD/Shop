@@ -43,7 +43,7 @@ public class ProductManagementController {
     public ResponseEntity<List<ProductManagementDto>> inventoryList() {
         List<ProductManagement> inventoryList = managementService.allInventory();
         List<ProductManagementDto> collect = inventoryList.stream()
-                .map(ProductManagementDto::from)
+                .map(ProductManagementDto::toDto)
                 .collect(Collectors.toList());
         return new ResponseEntity<>(collect, HttpStatus.OK);
     }
@@ -56,7 +56,7 @@ public class ProductManagementController {
     @GetMapping("/{inventoryId}")
     public ResponseEntity<ProductManagementDto> getInventoryById(@PathVariable("inventoryId") Long inventoryId) {
         ProductManagement inventoryDetail = managementService.inventoryDetail(inventoryId);
-        ProductManagementDto productManagementDto = ProductManagementDto.from(inventoryDetail);
+        ProductManagementDto productManagementDto = ProductManagementDto.toDto(inventoryDetail);
         return new ResponseEntity<>(productManagementDto, HttpStatus.OK);
     }
 
@@ -68,7 +68,7 @@ public class ProductManagementController {
     @PostMapping("/new")
     public ResponseEntity<ProductManagementDto> createInventory(@Valid @RequestBody InventoryCreateDto requestDto) {
         ProductManagement saved = managementService.createInventory(requestDto);
-        return ResponseEntity.ok(ProductManagementDto.from(saved));
+        return ResponseEntity.ok(ProductManagementDto.toDto(saved));
     }
 
     /**

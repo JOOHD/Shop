@@ -2,6 +2,7 @@ package JOO.jooshop.admin.products.model;
 
 import JOO.jooshop.product.entity.enums.Gender;
 import JOO.jooshop.product.entity.enums.ProductType;
+import JOO.jooshop.product.entity.Product;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -41,7 +42,7 @@ public class AdminProductRequestDto {
     }
 
     // Entity → DTO 변환 (조회 용, 클라이언트에게 보여주기 위한 Entity 를 바꾸는 것)
-    public static AdminProductRequestDto from(JOO.jooshop.product.entity.Product product) {
+    public static AdminProductRequestDto toDto(Product product) {
         AdminProductRequestDto dto = new AdminProductRequestDto();
         dto.setProductName(product.getProductName());
         dto.setProductType(product.getProductType());
