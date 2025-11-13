@@ -13,7 +13,7 @@ import java.util.List;
 @Entity
 //@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "category")
-public class  Category {
+public class Category {
     @Id
     @SequenceGenerator(
             name = "category_sequence",
@@ -35,13 +35,13 @@ public class  Category {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent")
-    private Category parent;
+    public Category parent;
 
     @Column(name = "depth", nullable = false)
     private Long depth;
 
     @OneToMany(mappedBy = "parent")
-    private List<Category> children = new ArrayList<>();
+    public List<Category> children = new ArrayList<>();
 
     // ===================== 생성자 시작 =======================
 
