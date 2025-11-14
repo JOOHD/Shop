@@ -5,16 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="644ff0fc-af39-443a-9d6f-503af0ded063" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/members/model/ResetPasswordRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/templates/admin/members/memberList.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/categorys/entity/Category.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/categorys/entity/Category.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/global/authentication/jwts/filters/CustomJsonEmailPasswordAuthenticationFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/global/authentication/jwts/filters/CustomJsonEmailPasswordAuthenticationFilter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/product/controller/ProductApiControllerV1.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/product/controller/ProductApiControllerV1.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/product/service/ProductServiceV1.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/product/service/ProductServiceV1.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/review/service/ReviewService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/review/service/ReviewService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/members/controller/MemberController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/members/controller/MemberController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/members/service/MemberService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/members/service/MemberService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -87,6 +82,7 @@
     "Application.ShopApplication.executor": "Run",
     "DefaultHtmlFileTemplate": "HTML File",
     "Gradle.Build jooshop.executor": "Run",
+    "Gradle.Download Sources.executor": "Run",
     "Gradle.jooshop [:JOO.jooshop.JooshopApplication.main()].executor": "Run",
     "Gradle.jooshop [clean].executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
