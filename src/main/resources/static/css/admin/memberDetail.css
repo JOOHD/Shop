@@ -1,0 +1,53 @@
+/* 전체 레이아웃 */
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f9f9f9;
+}
+
+/* 제목 */
+h1 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* 회원 정보 박스 */
+div {
+    background-color: #fff;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* 정보 항목 */
+p {
+    margin: 8px 0;
+    font-size: 16px;
+}
+
+/* 버튼 컨테이너 */
+div:last-child {
+    text-align: left;
+}
+
+/* 버튼 스타일 */
+button {
+    margin-right: 10px;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #fff;
+    font-weight: bold;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+/* 상태 변경 버튼 색상 */
+button:nth-child(1) { background-color: #28a745; } /* 활성화 */
+button:nth-child(2) { background-color: #6c757d; } /* 비활성화 */
+button:nth-child(3) { background-color: #dc3545; } /* 정지 */
+button:nth-child(4) { background-color: #ffc107; color: #000; } /* 정지 해제 */

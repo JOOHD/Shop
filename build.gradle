@@ -77,11 +77,8 @@ dependencies {
     annotationProcessor "jakarta.annotation:jakarta.annotation-api:2.1.1"
     annotationProcessor "jakarta.persistence:jakarta.persistence-api:3.1.0"
 
-    // === Nullable 문제 해결 ===
-    implementation 'org.springframework:spring-core:6.1.5' // spring.lang.Nullable 사용 가능
-
-    // === JWT 예외 클래스 ===
-    implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
+    // === Spring Core Nullable ===
+    implementation 'org.springframework:spring-core:6.1.5'
 
     // === Test ===
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -94,49 +91,23 @@ dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 }
 
+
 // =====================
-// QueryDSL 설정
+// QueryDSL 설정 (정석)
 // =====================
 def querydslDir = "$buildDir/generated/querydsl"
 
-sourceSets {
-    main.java.srcDirs += [ querydslDir ]
+tasks.withType(JavaCompile) {
+    options.annotationProcessorGeneratedSourcesDirectory = file(querydslDir)
 }
 
-// Q파일 생성 태스크
-tasks.register('generateQueryDSL', JavaCompile) {
-    description = 'Generate QueryDSL Q-types'
-    group = 'build'
-
-    source = sourceSets.main.allJava
-    classpath = sourceSets.main.compileClasspath + configurations.annotationProcessor
-    options.annotationProcessorPath = configurations.annotationProcessor
-    destinationDir = file(querydslDir)
-    options.compilerArgs = [
-            '-proc:only',
-            '-processor', 'com.querydsl.apt.jpa.JPAAnnotationProcessor'
-    ]
-}
-
-// compileJava 전에 Q파일 생성
-compileJava.dependsOn(tasks.named('generateQueryDSL'))
-
-// =====================
-// IDEA 설정
-// =====================
+// IntelliJ IDEA generated 소스 자동 등록
 idea {
     module {
-        sourceDirs += file(querydslDir)
         generatedSourceDirs += file(querydslDir)
     }
 }
 
-// =====================
-// Clean 시 Q파일 삭제
-// =====================
-clean {
-    delete fileTree(dir: 'build/generated', include: '**/*')
-}
 
 // =====================
 // Compile 옵션
