@@ -21,7 +21,6 @@ import java.util.function.Consumer;
 @Slf4j
 public class JoinController {
 
-    private final JWTUtil jwtUtil;
     private final MemberService memberService;
     private final EmailMemberService emailMemberService;
 
@@ -34,12 +33,6 @@ public class JoinController {
     @ResponseBody
     public ResponseEntity<?> join(@RequestBody @Valid JoinMemberRequest request) {
         return handleJoin(request, memberService::registerMember, "회원가입 성공");
-    }
-
-    @PostMapping("/api/admin/join")
-    @ResponseBody
-    public ResponseEntity<?> joinAdmin(@RequestBody @Valid JoinMemberRequest request) {
-        return handleJoin(request, memberService::registerAdmin, "관리자 등록 성공");
     }
 
     private ResponseEntity<?> handleJoin(

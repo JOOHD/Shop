@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>회원 목록</title>
+    <title>회원 목록 - 맨체스터 유나이티드 굿즈샵</title>
     <link rel="stylesheet" th:href="@{/css/admin/memberList.css}">
 </head>
 <body>
@@ -12,8 +12,8 @@
     <thead>
     <tr>
         <th>ID</th>
-        <th>이메일</th>
         <th>닉네임</th>
+        <th>이메일</th>
         <th>상태</th>
         <th>가입일</th>
         <th>액션</th>
@@ -21,17 +21,25 @@
     </thead>
     <tbody>
     <tr th:each="member : ${members}">
-        <td th:text="${member.id}"></td>
+        <!-- ID, 닉네임 클릭 시 상세 페이지로 이동 -->
+        <td>
+            <a th:href="@{'/admin/members/detail/' + ${member.id}}" th:text="${member.id}"></a>
+        </td>
+        <td>
+            <a th:href="@{'/admin/members/detail/' + ${member.id}}" th:text="${member.nickname}"></a>
+        </td>
         <td th:text="${member.email}"></td>
-        <td th:text="${member.nickname}"></td>
-        <td th:text="${member.memberStatus}"></td>
+        <!-- 상태 표시: 클래스에 따라 색상 적용 -->
+        <td>
+            <span th:class="'status-' + ${member.memberStatus.toLowerCase()}"
+                  th:text="${member.memberStatus}">상태</span>
+        </td>
         <td th:text="${#dates.format(member.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
         <td>
-            <button th:onclick="'location.href=\'/admin/members/detail/' + ${member.id} + '\'"'>상세</button>
-            <button th:onclick="'changeMemberStatus(' + ${member.id} + ', \'activate\')'">활성화</button>
-            <button th:onclick="'changeMemberStatus(' + ${member.id} + ', \'deactivate\')'">비활성화</button>
-            <button th:onclick="'changeMemberStatus(' + ${member.id} + ', \'ban\')'">정지</button>
-            <button th:onclick="'changeMemberStatus(' + ${member.id} + ', \'unban\')'">정지 해제</button>
+            <button class="activate" th:onclick="'changeMemberStatus(' + ${member.id} + ', \'activate\')'">활성화</button>
+            <button class="deactivate" th:onclick="'changeMemberStatus(' + ${member.id} + ', \'deactivate\')'">비활성화</button>
+            <button class="ban" th:onclick="'changeMemberStatus(' + ${member.id} + ', \'ban\')'">정지</button>
+            <button class="unban" th:onclick="'changeMemberStatus(' + ${member.id} + ', \'unban\')'">정지 해제</button>
         </td>
     </tr>
     </tbody>
@@ -40,9 +48,7 @@
 <script>
     async function changeMemberStatus(memberId, action) {
         try {
-            const res = await fetch(`/api/v1/admin/members/${action}/${memberId}`, {
-                method: 'POST'
-            });
+            const res = await fetch(`/api/v1/admin/members/${action}/${memberId}`, { method: 'POST' });
             if (!res.ok) {
                 const msg = await res.text();
                 alert('오류: ' + msg);

@@ -1,18 +1,22 @@
-/* 전체 레이아웃 */
+/* ===================== 전체 레이아웃 ===================== */
 body {
     font-family: Arial, sans-serif;
     margin: 20px;
     background-color: #f9f9f9;
-}
-
-/* 제목 */
-h1 {
     color: #333;
-    margin-bottom: 20px;
 }
 
-/* 회원 정보 박스 */
-div {
+/* 페이지 제목 */
+h1 {
+    color: #c8102e; /* 맨유 레드 포인트 */
+    margin-bottom: 20px;
+    font-size: 28px;
+    border-bottom: 2px solid #c8102e;
+    padding-bottom: 10px;
+}
+
+/* ===================== 회원 정보 박스 ===================== */
+.member-card, .member-info {
     background-color: #fff;
     padding: 20px;
     margin-bottom: 20px;
@@ -21,33 +25,91 @@ div {
 }
 
 /* 정보 항목 */
-p {
+.member-row, p {
     margin: 8px 0;
     font-size: 16px;
+    display: flex;
+    justify-content: space-between;
 }
 
-/* 버튼 컨테이너 */
-div:last-child {
+.member-row .label {
+    font-weight: bold;
+}
+
+.member-row .value.status {
+    font-weight: bold;
+    color: #c8102e; /* 레드 포인트 */
+}
+
+/* ===================== 버튼 컨테이너 ===================== */
+.actions {
     text-align: left;
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
 }
 
-/* 버튼 스타일 */
-button {
-    margin-right: 10px;
+/* 버튼 기본 스타일 */
+button, .btn {
     padding: 8px 15px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    color: #fff;
     font-weight: bold;
+    color: #fff;
+    transition: 0.2s;
 }
 
-button:hover {
+button:hover, .btn:hover {
     opacity: 0.9;
 }
 
-/* 상태 변경 버튼 색상 */
-button:nth-child(1) { background-color: #28a745; } /* 활성화 */
-button:nth-child(2) { background-color: #6c757d; } /* 비활성화 */
-button:nth-child(3) { background-color: #dc3545; } /* 정지 */
-button:nth-child(4) { background-color: #ffc107; color: #000; } /* 정지 해제 */
+/* ===================== 상태 변경 버튼 색상 ===================== */
+button.activate, .btn.activate { background-color: #28a745; } /* 활성화 - 초록 */
+button.deactivate, .btn.deactivate { background-color: #6c757d; } /* 비활성화 - 회색 */
+button.ban, .btn.ban { background-color: #dc3545; } /* 정지 - 빨강 */
+button.unban, .btn.unban { background-color: #ffc107; color: #000; } /* 정지 해제 - 노랑/검정 */
+
+/* ===================== 링크 스타일 ===================== */
+a.member-link {
+    color: #c8102e;
+    text-decoration: none;
+}
+
+a.member-link:hover {
+    text-decoration: underline;
+}
+
+/* ===================== 테이블 (회원 리스트용) ===================== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+thead {
+    background-color: #c8102e;
+    color: #fff;
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f9f0f0; /* 연한 레드 포인트 */
+}
+
+tbody tr:hover {
+    background-color: #fde2e2;
+}
+
+/* 액션 버튼 테이블용 */
+table button, table .btn {
+    font-size: 14px;
+    padding: 6px 12px;
+}

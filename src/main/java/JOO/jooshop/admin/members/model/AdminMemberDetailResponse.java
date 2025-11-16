@@ -32,7 +32,7 @@ public class AdminMemberDetailResponse {
                 member.getPhoneNumber(),
                 member.getMemberRole().name(),
                 member.isCertifiedByEmail(),
-                member.isActive(),
-        );
+                member.isActive()
+         );
     }
 }

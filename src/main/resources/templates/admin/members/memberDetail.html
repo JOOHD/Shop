@@ -6,30 +6,48 @@
     <link rel="stylesheet" th:href="@{/css/admin/memberDetail.css}">
 </head>
 <body>
-<h1>회원 상세</h1>
+<div class="container">
+    <h1 class="page-title">회원 상세 정보</h1>
 
-<div>
-    <p>ID: <span th:text="${member.id}"></span></p>
-    <p>이메일: <span th:text="${member.email}"></span></p>
-    <p>닉네임: <span th:text="${member.nickname}"></span></p>
-    <p>전화번호: <span th:text="${member.phoneNumber}"></span></p>
-    <p>상태: <span th:text="${member.memberStatus}"></span></p>
-    <p>가입일: <span th:text="${#dates.format(member.createdAt, 'yyyy-MM-dd HH:mm')}"></span></p>
-</div>
+    <div class="member-card">
+        <div class="member-row">
+            <span class="label">ID:</span>
+            <span class="value" th:text="${member.id}"></span>
+        </div>
+        <div class="member-row">
+            <span class="label">이메일:</span>
+            <span class="value" th:text="${member.email}"></span>
+        </div>
+        <div class="member-row">
+            <span class="label">닉네임:</span>
+            <span class="value" th:text="${member.nickname}"></span>
+        </div>
+        <div class="member-row">
+            <span class="label">전화번호:</span>
+            <span class="value" th:text="${member.phoneNumber}"></span>
+        </div>
+        <div class="member-row">
+            <span class="label">상태:</span>
+            <span class="value status" th:text="${member.memberStatus}"></span>
+        </div>
+        <div class="member-row">
+            <span class="label">가입일:</span>
+            <span class="value" th:text="${#dates.format(member.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
+        </div>
+    </div>
 
-<div>
-    <button onclick="changeMemberStatus([[${member.id}]], 'activate')">활성화</button>
-    <button onclick="changeMemberStatus([[${member.id}]], 'deactivate')">비활성화</button>
-    <button onclick="changeMemberStatus([[${member.id}]], 'ban')">정지</button>
-    <button onclick="changeMemberStatus([[${member.id}]], 'unban')">정지 해제</button>
+    <div class="actions">
+        <button class="btn activate" onclick="changeMemberStatus([[${member.id}]], 'activate')">활성화</button>
+        <button class="btn deactivate" onclick="changeMemberStatus([[${member.id}]], 'deactivate')">비활성화</button>
+        <button class="btn ban" onclick="changeMemberStatus([[${member.id}]], 'ban')">정지</button>
+        <button class="btn unban" onclick="changeMemberStatus([[${member.id}]], 'unban')">정지 해제</button>
+    </div>
 </div>
 
 <script>
     async function changeMemberStatus(memberId, action) {
         try {
-            const res = await fetch(`/api/v1/admin/members/${action}/${memberId}`, {
-                method: 'POST'
-            });
+            const res = await fetch(`/api/v1/admin/members/${action}/${memberId}`, { method: 'POST' });
             if (!res.ok) {
                 const msg = await res.text();
                 alert('오류: ' + msg);
@@ -43,6 +61,5 @@
         }
     }
 </script>
-
 </body>
 </html>

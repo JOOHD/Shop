@@ -17,17 +17,19 @@ table {
     border-collapse: collapse;
     background-color: #fff;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 thead th {
-    background-color: #007bff;
+    background-color: #DA291C; /* 맨유 레드 */
     color: white;
     text-align: left;
-    padding: 10px;
+    padding: 12px;
 }
 
 tbody td {
-    padding: 10px;
+    padding: 12px;
     border-bottom: 1px solid #ddd;
 }
 
@@ -35,23 +37,29 @@ tbody tr:hover {
     background-color: #f1f1f1;
 }
 
+/* 회원 상태 색상 */
+.status-active { color: #28a745; font-weight: bold; }
+.status-inactive { color: #6c757d; font-weight: bold; }
+.status-banned { color: #b71c1c; font-weight: bold; }
+
 /* 버튼 스타일 */
 button {
     margin-right: 5px;
-    padding: 5px 10px;
+    padding: 6px 12px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     color: #fff;
+    font-weight: bold;
+    font-size: 14px;
 }
 
 button:hover {
-    opacity: 0.9;
+    opacity: 0.85;
 }
 
 /* 액션 버튼 색상 */
-button:nth-child(1) { background-color: #28a745; } /* 상세 */
-button:nth-child(2) { background-color: #007bff; } /* 활성화 */
-button:nth-child(3) { background-color: #6c757d; } /* 비활성화 */
-button:nth-child(4) { background-color: #dc3545; } /* 정지 */
-button:nth-child(5) { background-color: #ffc107; color: #000; } /* 정지 해제 */
+button.activate { background-color: #DA291C; }   /* 맨유 레드 */
+button.deactivate { background-color: #6c757d; } /* 회색 */
+button.ban { background-color: #b71c1c; }        /* 진한 빨강 */
+button.unban { background-color: #ffc107; color: #000; } /* 노랑 */

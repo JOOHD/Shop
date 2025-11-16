@@ -1,5 +1,7 @@
 package JOO.jooshop.admin.members.service;
 
+import JOO.jooshop.global.exception.customException.EmailAlreadyExistsException;
+import JOO.jooshop.global.exception.customException.InvalidNicknameException;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.model.JoinMemberRequest;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
@@ -43,6 +45,16 @@ public class AdminMemberService {
      */
     @Transactional
     public Member registerAdmin(JoinMemberRequest req) {
+
+        // 이메일 중복 체크
+        if (memberRepository.existsByEmail(req.getEmail())) {
+            throw new EmailAlreadyExistsException("이미 등록된 이메일입니다.");
+        }
+
+        // 닉네임 중복 또는 올바르지 않은 경우
+        if (req.getNickname() == null || req.getNickname().trim().isEmpty()) {
+            throw new InvalidNicknameException("닉네임이 올바르지 않습니다.");
+        }
 
         String socialId = generateSocialId();
 

@@ -3,13 +3,22 @@ package JOO.jooshop.admin.members.controller;
 import JOO.jooshop.admin.members.model.AdminMemberDetailResponse;
 import JOO.jooshop.admin.members.model.AdminMemberResponse;
 import JOO.jooshop.admin.members.service.AdminMemberService;
+import JOO.jooshop.global.exception.customException.ExistingMemberException;
+import JOO.jooshop.global.exception.customException.InvalidCredentialsException;
+import JOO.jooshop.global.exception.customException.UnverifiedEmailException;
+import JOO.jooshop.global.mail.service.EmailMemberService;
+import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.model.JoinMemberRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -23,6 +32,7 @@ import java.util.stream.Collectors;
 @PreAuthorize("hasRole('ADMIN')") // ADMIN 권한 필요
 public class AdminMemberApiController {
 
+    private final EmailMemberService emailMemberService;
     private final AdminMemberService adminMemberService;
 
     /**
@@ -49,14 +59,20 @@ public class AdminMemberApiController {
         );
     }
 
-    /**
-     * 관리자 계정 생성
-     * - DTO는 JoinMemberRequest 사용
-     */
-    @PostMapping("/create-admin")
-    public ResponseEntity<String> createAdmin(@RequestBody JoinMemberRequest req) {
-        adminMemberService.registerAdmin(req);
-        return ResponseEntity.ok("관리자 계정이 생성되었습니다.");
+    @PostMapping("/join")
+    @ResponseBody
+    public ResponseEntity<?> registerAdmin(@RequestBody @Valid JoinMemberRequest request) {
+
+        // 이메일 인증 체크
+        if (!emailMemberService.isEmailVerified(request.getEmail())) {
+            throw new UnverifiedEmailException("이메일 인증이 필요합니다.");
+        }
+
+        // 서비스 실행 (예외는 그대로 던짐 -> GlobalExcetptionHandler 가 처리)
+        adminMemberService.registerAdmin(request);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body("관리자 등록 성공");
     }
 
     /** 회원 활성화 */

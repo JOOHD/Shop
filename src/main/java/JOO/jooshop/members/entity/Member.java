@@ -75,15 +75,6 @@ public class Member {
     @Column(name = "is_admin")
     private boolean admin = false;
 
-    /**
-     * -- SETTER --
-     *  [테스트용 Setter]
-     *  - 이메일 인증 여부를 직접 설정 (일반적으로는 사용하지 않음)
-     * -- GETTER --
-     *  [이메일 인증 여부 처리]
-     *
-
-     */
     @Column(name = "is_certified_email")
     private boolean certifiedByEmail = false;
 
@@ -95,6 +86,25 @@ public class Member {
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     private List<Addresses> addresses = new ArrayList<>();
+
+    // ========================== Transient Getter ==========================
+
+    /**
+     * 회원 상태 텍스트 반환
+     * - DB 컬럼과 매핑되지 않음 (@Transient)
+     * - active, banned, accountExpired, passwordExpired, admin 상태를 종합하여
+     *   화면에 표시할 간단한 문자열 상태 생성용
+     * - 예: "활성", "비활성화", "정지", "관리자", "계정 만료", "비밀번호 만료"
+     */
+    @Transient
+    public String getStatusText() {
+        if (banned) return "정지";
+        if (!active) return "비활성화";
+        if (accountExpired) return "계정 만료";
+        if (passwordExpired) return "비밀번호 만료";
+        if (admin) return "관리자";
+        return "활성";
+    }
 
     // ========================== 정적 생성 메서드 ==========================
 

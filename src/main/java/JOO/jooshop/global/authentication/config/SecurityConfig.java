@@ -81,6 +81,8 @@ public class SecurityConfig {
     private static final String[] ROLE_ADMIN = {
             "/api/v1/admin/products/**",
             "/api/v1/admin/orders/**",
+            "/api/v1/admin/members/**",
+            "admin/members/**",
             "/api/v1/inventory/**",
             "/api/v1/inquiry/reply/**"
     };
