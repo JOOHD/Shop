@@ -5,18 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="644ff0fc-af39-443a-9d6f-503af0ded063" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/global/exception/customException/CartItemNotFoundException.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/global/exception/customException/InvalidProductOptionException.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/global/exception/customException/OrderNotFoundException.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/global/exception/customException/ProductNotFoundException.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/admin/members/controller/AdminMemberApiController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/admin/members/controller/AdminMemberApiController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/admin/members/model/AdminMemberDetailResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/admin/members/model/AdminMemberDetailResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/admin/members/service/AdminMemberService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/admin/members/service/AdminMemberService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/global/authentication/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/global/authentication/config/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/members/controller/JoinController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/members/controller/JoinController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/members/entity/Member.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/members/entity/Member.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/css/admin/memberDetail.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/css/admin/memberDetail.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/static/css/admin/memberList.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/css/admin/memberList.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/templates/admin/members/memberDetail.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/admin/members/memberDetail.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/templates/admin/members/memberList.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/admin/members/memberList.html" afterDir="false" />

@@ -37,10 +37,38 @@ tbody tr:hover {
     background-color: #f1f1f1;
 }
 
-/* 회원 상태 색상 */
-.status-active { color: #28a745; font-weight: bold; }
-.status-inactive { color: #6c757d; font-weight: bold; }
-.status-banned { color: #b71c1c; font-weight: bold; }
+/* -----------------------------------------
+   회원 상태 색상 (statusText 기반)
+   ----------------------------------------- */
+.status-활성 {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.status-비활성화 {
+    color: #6c757d;
+    font-weight: bold;
+}
+
+.status-정지 {
+    color: #b71c1c;
+    font-weight: bold;
+}
+
+.status-관리자 {
+    color: #0056b3;
+    font-weight: bold;
+}
+
+.status-계정만료 {
+    color: #ff9800;
+    font-weight: bold;
+}
+
+.status-비밀번호만료 {
+    color: #ff5722;
+    font-weight: bold;
+}
 
 /* 버튼 스타일 */
 button {
@@ -58,8 +86,56 @@ button:hover {
     opacity: 0.85;
 }
 
-/* 액션 버튼 색상 */
-button.activate { background-color: #DA291C; }   /* 맨유 레드 */
-button.deactivate { background-color: #6c757d; } /* 회색 */
-button.ban { background-color: #b71c1c; }        /* 진한 빨강 */
+button.activate { background-color: #DA291C; }    /* 맨유 레드 */
+button.deactivate { background-color: #6c757d; }  /* 회색 */
+button.ban { background-color: #b71c1c; }         /* 진한 빨강 */
 button.unban { background-color: #ffc107; color: #000; } /* 노랑 */
+
+/* -----------------------------------------
+   토글 스위치 스타일
+   ----------------------------------------- */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 26px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px; width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #DA291C; /* 활성 상태 색상 */
+}
+
+input:checked + .slider:before {
+  transform: translateX(24px);
+}
+
+.status-text {
+    margin-left: 8px;
+    font-weight: bold;
+}

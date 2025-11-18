@@ -19,46 +19,70 @@
         <th>액션</th>
     </tr>
     </thead>
+
     <tbody>
     <tr th:each="member : ${members}">
-        <!-- ID, 닉네임 클릭 시 상세 페이지로 이동 -->
+        <!-- ID / 닉네임 클릭 시 상세 페이지 -->
         <td>
-            <a th:href="@{'/admin/members/detail/' + ${member.id}}" th:text="${member.id}"></a>
+            <a th:href="@{'/admin/members/detail/' + ${member.id}}"
+               th:text="${member.id}"></a>
         </td>
+
         <td>
-            <a th:href="@{'/admin/members/detail/' + ${member.id}}" th:text="${member.nickname}"></a>
+            <a th:href="@{'/admin/members/detail/' + ${member.id}}"
+               th:text="${member.nickname}"></a>
         </td>
+
         <td th:text="${member.email}"></td>
-        <!-- 상태 표시: 클래스에 따라 색상 적용 -->
+
+        <!-- 상태 표시: statusText / 색상 스위치 적용 -->
         <td>
-            <span th:class="'status-' + ${member.memberStatus.toLowerCase()}"
-                  th:text="${member.memberStatus}">상태</span>
+            <lable class="switch">
+                <input type="checkbox"
+                       th:checked="${member.active}"
+                       th:data-id="${member.id}"
+                       onchange="toggleStatus(this)">
+                <span class="slider round"></span>
+            </lable>
+            <span class="status-text" th:text="${member.statusText}"></span>
         </td>
-        <td th:text="${#dates.format(member.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+
+        <td th:text="${#temporals.format(member.joinedAt, 'yyyy-MM-dd HH:mm')}"></td>
+
         <td>
-            <button class="activate" th:onclick="'changeMemberStatus(' + ${member.id} + ', \'activate\')'">활성화</button>
-            <button class="deactivate" th:onclick="'changeMemberStatus(' + ${member.id} + ', \'deactivate\')'">비활성화</button>
-            <button class="ban" th:onclick="'changeMemberStatus(' + ${member.id} + ', \'ban\')'">정지</button>
-            <button class="unban" th:onclick="'changeMemberStatus(' + ${member.id} + ', \'unban\')'">정지 해제</button>
+            <button class="activate"
+                    th:onclick="'changeMemberStatus(' + ${member.id} + ', \'activate\')'">활성화</button>
+            <button class="deactivate"
+                    th:onclick="'changeMemberStatus(' + ${member.id} + ', \'deactivate\')'">비활성화</button>
+            <button class="ban"
+                    th:onclick="'changeMemberStatus(' + ${member.id} + ', \'ban\')'">정지</button>
+            <button class="unban"
+                    th:onclick="'changeMemberStatus(' + ${member.id} + ', \'unban\')'">정지 해제</button>
         </td>
     </tr>
     </tbody>
+
 </table>
 
 <script>
-    async function changeMemberStatus(memberId, action) {
+    async function toggleStatus(checkbox) {
+        const memberId = checkbox.dataset.id;
+        const action = checkbox.checked ? 'activate' : 'deactivate';
+
         try {
             const res = await fetch(`/api/v1/admin/members/${action}/${memberId}`, { method: 'POST' });
             if (!res.ok) {
-                const msg = await res.text();
-                alert('오류: ' + msg);
+                alert('오류: ' + await res.text());
+                // 오류 시 상태 원복
+                checkbox.checked = !checkbox.checked;
                 return;
             }
-            alert('회원 상태가 변경되었습니다.');
-            location.reload();
+            // 상태 텍스트 업데이트
+            const statusText = checkbox.checked ? '활성' : '비활성';
+            checkbox.nextElementSibling.textContent = statusText;
         } catch (err) {
-            console.error(err);
-            alert('서버 요청 중 오류가 발생했습니다.');
+            alert('서버 오류 발생');
+            checkbox.checked = !checkbox.checked;
         }
     }
 </script>

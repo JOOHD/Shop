@@ -3,11 +3,8 @@ package JOO.jooshop.admin.members.controller;
 import JOO.jooshop.admin.members.model.AdminMemberDetailResponse;
 import JOO.jooshop.admin.members.model.AdminMemberResponse;
 import JOO.jooshop.admin.members.service.AdminMemberService;
-import JOO.jooshop.global.exception.customException.ExistingMemberException;
-import JOO.jooshop.global.exception.customException.InvalidCredentialsException;
 import JOO.jooshop.global.exception.customException.UnverifiedEmailException;
 import JOO.jooshop.global.mail.service.EmailMemberService;
-import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.model.JoinMemberRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +14,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
