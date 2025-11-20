@@ -6,9 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="644ff0fc-af39-443a-9d6f-503af0ded063" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/admin/members/controller/AdminMemberApiController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/admin/members/controller/AdminMemberApiController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/admin/members/service/AdminMemberService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/admin/members/service/AdminMemberService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/static/css/admin/memberList.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/css/admin/memberList.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/admin/members/memberDetail.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/admin/members/memberDetail.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/templates/admin/members/memberList.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/admin/members/memberList.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

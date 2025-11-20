@@ -81,25 +81,33 @@ public class AdminMemberService {
     @Transactional
     public void activate(Long memberId) {
         Member member = findMemberById(memberId);
-        member.activate();
+        if (member != null) {
+            member.setActive(true); // 오직 active만 수정
+        }
     }
 
     @Transactional
     public void deactivate(Long memberId) {
         Member member = findMemberById(memberId);
-        member.deactivate();
+        if (member != null) {
+            member.setActive(false); // 다른 필드 건드리지 않음
+        }
     }
 
     @Transactional
     public void ban(Long memberId) {
         Member member = findMemberById(memberId);
-        member.ban();
+        if (member != null) {
+            member.setBanned(true);
+        }
     }
 
     @Transactional
     public void unban(Long memberId) {
         Member member = findMemberById(memberId);
-        member.unban();
+        if (member != null) {
+            member.setBanned(false);
+        }
     }
 
     @Transactional

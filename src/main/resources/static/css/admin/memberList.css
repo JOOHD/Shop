@@ -1,4 +1,6 @@
-/* 전체 레이아웃 */
+/* ==========================
+   전체 레이아웃
+========================== */
 body {
     font-family: Arial, sans-serif;
     margin: 20px;
@@ -37,9 +39,9 @@ tbody tr:hover {
     background-color: #f1f1f1;
 }
 
-/* -----------------------------------------
+/* ==========================
    회원 상태 색상 (statusText 기반)
-   ----------------------------------------- */
+========================== */
 .status-활성 {
     color: #28a745;
     font-weight: bold;
@@ -70,7 +72,9 @@ tbody tr:hover {
     font-weight: bold;
 }
 
-/* 버튼 스타일 */
+/* ==========================
+   버튼 스타일 (참고용)
+========================== */
 button {
     margin-right: 5px;
     padding: 6px 12px;
@@ -86,14 +90,14 @@ button:hover {
     opacity: 0.85;
 }
 
-button.activate { background-color: #DA291C; }    /* 맨유 레드 */
-button.deactivate { background-color: #6c757d; }  /* 회색 */
-button.ban { background-color: #b71c1c; }         /* 진한 빨강 */
-button.unban { background-color: #ffc107; color: #000; } /* 노랑 */
+button.activate { background-color: #DA291C; }
+button.deactivate { background-color: #6c757d; }
+button.ban { background-color: #b71c1c; }
+button.unban { background-color: #ffc107; color: #000; }
 
-/* -----------------------------------------
+/* ==========================
    토글 스위치 스타일
-   ----------------------------------------- */
+========================== */
 .switch {
   position: relative;
   display: inline-block;
@@ -128,14 +132,29 @@ button.unban { background-color: #ffc107; color: #000; } /* 노랑 */
 }
 
 input:checked + .slider {
-  background-color: #DA291C; /* 활성 상태 색상 */
+  background-color: #DA291C;
 }
 
 input:checked + .slider:before {
   transform: translateX(24px);
 }
 
+/* 상태 텍스트 */
 .status-text {
     margin-left: 8px;
+    font-weight: bold;
+}
+
+/* ==========================
+   스위치 2개 배치용
+========================== */
+.action-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px; /* 두 스위치 사이 공간 */
+}
+
+.action-item label {
+    margin-right: 8px;
     font-weight: bold;
 }

@@ -14,7 +14,7 @@
         <th>ID</th>
         <th>닉네임</th>
         <th>이메일</th>
-        <th>상태</th>
+        <th>역할</th> <!-- 변경된 부분 -->
         <th>가입일</th>
         <th>액션</th>
     </tr>
@@ -22,7 +22,8 @@
 
     <tbody>
     <tr th:each="member : ${members}">
-        <!-- ID / 닉네임 클릭 시 상세 페이지 -->
+
+        <!-- ID / 닉네임 -->
         <td>
             <a th:href="@{'/admin/members/detail/' + ${member.id}}"
                th:text="${member.id}"></a>
@@ -33,58 +34,82 @@
                th:text="${member.nickname}"></a>
         </td>
 
+        <!-- 이메일 -->
         <td th:text="${member.email}"></td>
 
-        <!-- 상태 표시: statusText / 색상 스위치 적용 -->
-        <td>
-            <lable class="switch">
-                <input type="checkbox"
-                       th:checked="${member.active}"
-                       th:data-id="${member.id}"
-                       onchange="toggleStatus(this)">
-                <span class="slider round"></span>
-            </lable>
-            <span class="status-text" th:text="${member.statusText}"></span>
-        </td>
+        <!-- 역할 표시 -->
+        <td th:text="${member.memberRole.name() == 'ADMIN' ? '관리자' : '일반 회원'}"></td>
 
+        <!-- 가입일 -->
         <td th:text="${#temporals.format(member.joinedAt, 'yyyy-MM-dd HH:mm')}"></td>
 
+        <!-- 액션: 활성/비활성 스위치 + 정지 스위치 -->
         <td>
-            <button class="activate"
-                    th:onclick="'changeMemberStatus(' + ${member.id} + ', \'activate\')'">활성화</button>
-            <button class="deactivate"
-                    th:onclick="'changeMemberStatus(' + ${member.id} + ', \'deactivate\')'">비활성화</button>
-            <button class="ban"
-                    th:onclick="'changeMemberStatus(' + ${member.id} + ', \'ban\')'">정지</button>
-            <button class="unban"
-                    th:onclick="'changeMemberStatus(' + ${member.id} + ', \'unban\')'">정지 해제</button>
+            <!-- 활성/비활성 토글 -->
+            <div class="action-item">
+                <label>활성</label>
+                <label class="switch">
+                    <input type="checkbox"
+                           th:checked="${member.active}"
+                           th:data-id="${member.id}"
+                           onchange="toggleActive(this)">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <!-- 정지/정지 해제 토글 -->
+            <div class="action-item">
+                <label>정지</label>
+                <label class="switch">
+                    <input type="checkbox"
+                           th:checked="${member.banned}"
+                           th:data-id="${member.id}"
+                           onchange="toggleBan(this)">
+                    <span class="slider round"></span>
+                </label>
+            </div>
         </td>
+
     </tr>
     </tbody>
 
 </table>
 
 <script>
-    async function toggleStatus(checkbox) {
+    /** 활성/비활성 토글 **/
+    async function toggleActive(checkbox) {
         const memberId = checkbox.dataset.id;
         const action = checkbox.checked ? 'activate' : 'deactivate';
 
         try {
             const res = await fetch(`/api/v1/admin/members/${action}/${memberId}`, { method: 'POST' });
             if (!res.ok) {
-                alert('오류: ' + await res.text());
-                // 오류 시 상태 원복
-                checkbox.checked = !checkbox.checked;
-                return;
+                alert("오류 발생: " + await res.text());
+                checkbox.checked = !checkbox.checked; // 실패 시 원상 복구
             }
-            // 상태 텍스트 업데이트
-            const statusText = checkbox.checked ? '활성' : '비활성';
-            checkbox.nextElementSibling.textContent = statusText;
-        } catch (err) {
-            alert('서버 오류 발생');
+        } catch (e) {
+            alert("서버 오류");
+            checkbox.checked = !checkbox.checked;
+        }
+    }
+
+    /** 정지/정지 해제 토글 **/
+    async function toggleBan(checkbox) {
+        const memberId = checkbox.dataset.id;
+        const action = checkbox.checked ? 'ban' : 'unban';
+
+        try {
+            const res = await fetch(`/api/v1/admin/members/${action}/${memberId}`, { method: 'POST' });
+            if (!res.ok) {
+                alert("오류 발생: " + await res.text());
+                checkbox.checked = !checkbox.checked; // 실패 시 원상 복구
+            }
+        } catch (e) {
+            alert("서버 오류");
             checkbox.checked = !checkbox.checked;
         }
     }
 </script>
+
 </body>
 </html>
