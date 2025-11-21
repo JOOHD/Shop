@@ -99,7 +99,7 @@ public class AdminMemberApiController {
     }
 
     /** 계정 만료 처리 */
-    @PostMapping("/expire-account/{id}")
+    @PostMapping("/expire-a ccount/{id}")
     public ResponseEntity<String> expireAccount(@PathVariable Long id) {
         adminMemberService.expireAccount(id);
         return ResponseEntity.ok("회원 계정이 만료 처리되었습니다.");

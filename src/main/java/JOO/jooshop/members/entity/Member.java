@@ -51,7 +51,7 @@ public class Member {
     @JsonProperty("social_type")
     private SocialType socialType;
 
-    @NotBlank
+    // OAuth2 로그인은 Optional 필드가 맞다. @NotBlank 제거
     @Column(name = "social_id", unique = true)
     @JsonProperty("social_id")
     private String socialId;
@@ -97,7 +97,7 @@ public class Member {
      * - 예: "활성", "비활성화", "정지", "관리자", "계정 만료", "비밀번호 만료"
      */
     @Transient
-    public String getStatusText() {
+    public String   getStatusText() {
         if (banned) return "정지";
         if (!active) return "비활성화";
         if (accountExpired) return "계정 만료";
