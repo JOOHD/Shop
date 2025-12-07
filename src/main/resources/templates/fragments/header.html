@@ -37,7 +37,18 @@
             <a href="/orders" title="주문 내역"><i class="fas fa-box"></i><span>주문 내역</span></a>
             <a href="/wishlist" title="위시리스트"><i class="fas fa-heart"></i><span>위시리스트</span></a>
             <a href="/cart" title="장바구니"><i class="fas fa-shopping-cart"></i><span>장바구니</span></a>
-            <a href="/logout" title="로그아웃"><i class="fas fa-sign-out-alt"></i><span>로그아웃</span></a>
+
+            <!-- Spring Security 로그아웃
+                - <input type="hidden" name="_csrf" value="토큰값"> 자동 생성, security config 서버 검증
+                - CSRF: Thymeleaf가 자동으로 <input> 생성해서 포함
+                - 쿠키: 브라우저가 form POST 시 자동으로 포함
+                - 서버 처리: CustomLogoutFilter가 블랙리스트 등록/Refresh 삭제 수행
+            -->
+            <form th:action="@{/logout}" method="post" style="display:inline;">
+                <button type="submit" class="logout-btn" title="로그아웃">
+                    <i class="fas fa-sign-out-alt"></i><span>로그아웃</span>
+                </button>
+            </form>
         </div>
 
         <!-- 로그인 (ADMIN) -->
@@ -53,36 +64,38 @@
             </div>
             <a href="/admin/orders/list" title="주문 관리"><i class="fas fa-truck"></i></a>
             <a href="/admin/members/list" title="회원 관리"><i class="fas fa-users"></i></a>
-            <a href="/logout" title="로그아웃"><i class="fas fa-sign-out-alt"></i></a>
+
+            <!-- Spring Security 로그아웃 -->
+            <form th:action="@{/logout}" method="post" style="display:inline;">
+                <button type="submit" class="logout-btn" title="로그아웃">
+                    <i class="fas fa-sign-out-alt"></i><span>로그아웃</span>
+                </button>
+            </form>
         </div>
 
     </div>
 </header>
 
-<!-- 공통 스크립트 -->
 <script>
-    // 사이드바 토글
     function toggleSidebar() {
-      const sidebar = document.querySelector(".sidebar");
-      const overlay = document.querySelector(".overlay");
-      if (sidebar && overlay) {
-        sidebar.classList.toggle("active");
-        overlay.classList.toggle("active");
-      } else {
-        console.log("sidebar 또는 overlay 요소가 없습니다.");
-      }
+        const sidebar = document.querySelector(".sidebar");
+        const overlay = document.querySelector(".overlay");
+        if (sidebar && overlay) {
+            sidebar.classList.toggle("active");
+            overlay.classList.toggle("active");
+        } else {
+            console.log("sidebar 또는 overlay 요소가 없습니다.");
+        }
     }
 
-    // 검색창 토글
     function toggleSearchSidebar() {
-      const search = document.querySelector(".search-sidebar");
-      if (search) {
-        search.classList.toggle("active");
-      } else {
-        console.log("검색 사이드바 요소가 없습니다.");
-      }
+        const search = document.querySelector(".search-sidebar");
+        if (search) {
+            search.classList.toggle("active");
+        } else {
+            console.log("검색 사이드바 요소가 없습니다.");
+        }
     }
-
 </script>
 
 </body>
