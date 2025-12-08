@@ -23,7 +23,7 @@ import java.util.Date;
 public class CustomLogoutFilter extends GenericFilterBean {
 
     private final JWTUtil jwtUtil;
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
     private final RefreshRepository refreshRepository;
 
     @Override
@@ -33,10 +33,11 @@ public class CustomLogoutFilter extends GenericFilterBean {
 
     private void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
 
-        // 1.  /logout 요청을 받아, 쿠키에서 Refresh Token 제거
-        // 2.  DB의 Refresh Token 레코드를 삭제
-        // 3.  응답 헤더에서 Authorization 제거
-        // 4.  Access Token을 블랙리스트에 등록
+        /*
+            JWT Access Token 블랙리스트 등록
+            Refresh Token 삭제 (쿠키 + DB/Redis)
+            Authorization 헤더 제거, HTTP 상태 반환
+        */
 
         //path and method verify
         String requestUri = request.getRequestURI();
