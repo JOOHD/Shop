@@ -1,6 +1,7 @@
 package JOO.jooshop.members.entity;
 
 import JOO.jooshop.address.entity.Addresses;
+import JOO.jooshop.global.time.BaseEntity;
 import JOO.jooshop.members.entity.enums.MemberRole;
 import JOO.jooshop.members.entity.enums.SocialType;
 import JOO.jooshop.payment.entity.PaymentHistory;
@@ -22,7 +23,7 @@ import java.util.List;
 @Table(name = "member", uniqueConstraints = {
         @UniqueConstraint(columnNames = "social_id") // 중복 소셜ID 방지
 })
-public class Member {
+public class Member extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

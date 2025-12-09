@@ -20,6 +20,8 @@ public class QMember extends EntityPathBase<Member> {
 
     public static final QMember member = new QMember("member1");
 
+    public final JOO.jooshop.global.time.QBaseEntity _super = new JOO.jooshop.global.time.QBaseEntity(this);
+
     public final BooleanPath accountExpired = createBoolean("accountExpired");
 
     public final BooleanPath active = createBoolean("active");
@@ -31,6 +33,9 @@ public class QMember extends EntityPathBase<Member> {
     public final BooleanPath banned = createBoolean("banned");
 
     public final BooleanPath certifiedByEmail = createBoolean("certifiedByEmail");
+
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 
     public final StringPath email = createString("email");
 
@@ -53,6 +58,9 @@ public class QMember extends EntityPathBase<Member> {
     public final StringPath socialId = createString("socialId");
 
     public final EnumPath<JOO.jooshop.members.entity.enums.SocialType> socialType = createEnum("socialType", JOO.jooshop.members.entity.enums.SocialType.class);
+
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
 
     public final StringPath username = createString("username");
 

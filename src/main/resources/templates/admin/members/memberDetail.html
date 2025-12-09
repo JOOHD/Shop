@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>회원 상세</title>
+    <link rel="stylesheet" href="/css/fragments/header.css">
     <link rel="stylesheet" th:href="@{/css/admin/memberDetail.css}">
 </head>
 <body>
+
+<!-- 관리자 헤더 -->
+<div th:replace="~{fragments/header :: header}"></div>
 
 <div class="container">
     <h1 class="page-title">회원 상세 정보</h1>
@@ -36,7 +40,7 @@
             <span class="label">상태:</span>
             <span class="value status"
                   th:text="${member.statusText}"
-                  th:classappend="' status-' + ${#strings.replace(member.statusText,' ','')}">
+                  th:classappend="| status-${#strings.replace(member.statusText, ' ', '')}|">
             </span>
         </div>
 
@@ -48,15 +52,29 @@
     </div>
 
     <div class="actions">
-        <button class="btn activate"
-                onclick="changeMemberStatus([[${member.id}]], 'activate')">활성화</button>
-        <button class="btn deactivate"
-                onclick="changeMemberStatus([[${member.id}]], 'deactivate')">비활성화</button>
-        <button class="btn ban"
-                onclick="changeMemberStatus([[${member.id}]], 'ban')">정지</button>
-        <button class="btn unban"
-                onclick="changeMemberStatus([[${member.id}]], 'unban')">정지 해제</button>
+        <!-- 활성화/비활성화 토글 -->
+        <div class="toggle-container">
+            <label class="switch">
+                <input type="checkbox"
+                       th:checked="${member.active}"
+                       th:onclick="|changeMemberStatus(${member.id}, ${member.active} ? 'deactivate' : 'activate')|">
+                <span class="slider"></span>
+            </label>
+            <span th:text="${member.active} ? '활성화' : '비활성화'"></span>
+        </div>
+
+        <!-- 정지/정지 해제 토글 -->
+        <div class="toggle-container">
+            <label class="switch">
+                <input type="checkbox"
+                       th:checked="${member.banned}"
+                       th:onclick="|changeMemberStatus(${member.id}, ${member.banned} ? 'unban' : 'ban')|">
+                <span class="slider"></span>
+            </label>
+            <span th:text="${member.banned} ? '정지' : '정지 해제'"></span>
+        </div>
     </div>
+
 </div>
 
 <script>

@@ -20,7 +20,7 @@ spring:
       hibernate:
         format_sql: true
     hibernate:
-      ddl-auto: validate # ddl-auto: update는 딱 그 한 줄이어야 하며, 뒤에 다른 코드를 붙이면 안 됩니다.
+      ddl-auto: update # ddl-auto: update는 딱 그 한 줄이어야 하며, 뒤에 다른 코드를 붙이면 안 됩니다.
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
         default_batch_fetch_size: 1000

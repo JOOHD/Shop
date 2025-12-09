@@ -26,7 +26,7 @@ public class AdminMemberViewController {
         return "admin/members/memberList";
     }
 
-    /** 단일 회원 상세 페이지 */
+    /** 회원 상세 페이지 */
     @GetMapping("/detail/{memberId}")
     public String memberDetailPage(@PathVariable Long memberId, Model model) {
         Member memberDetail = adminMemberService.findMemberById(memberId);
