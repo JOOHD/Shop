@@ -1,17 +1,23 @@
 package JOO.jooshop.global.file;
 
-import JOO.jooshop.global.image.ImageUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Scanner;
 import java.util.UUID;
 
 /**
  * 파일 저장 및 삭제 전담 서비스
+ * MultipartFile 저장
+ * 외부 URL -> 파일 저장
+ * 삭제 및 URL 반환
  */
 @Service
 public class FileStorageService {
@@ -46,6 +52,25 @@ public class FileStorageService {
 
         // DB  URL 저장
         return (subDir + "/" + fileName).replaceAll("//+", "/"); // ex: "thumbnails/abc.jpg"
+    }
+
+    /**
+     * 외부 URL 이미지 다운로드 후 저장
+     */
+    public String saveFileFromUrl(URL url, String subDir) throws IOException {
+        String ext = url.getPath().contains(".") ? url.getPath().substring(url.getPath().lastIndexOf(".")) : "";
+        String fileName = UUID.randomUUID().toString().replace("-", "") + ext;
+
+        Path dirPath = BASE_UPLOAD_PATH.resolve(subDir);
+        Files.createDirectories(dirPath);
+
+        Path filePath = dirPath.resolve(fileName);
+
+        try (Scanner sacnner = new Scanner(url.openStream())) {
+            Files.copy(url.openStream(), filePath);
+        }
+
+        return (subDir + "/" + fileName).replace("//+", "/");
     }
 
     /**

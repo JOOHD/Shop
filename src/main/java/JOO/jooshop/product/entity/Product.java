@@ -13,10 +13,7 @@ import JOO.jooshop.wishList.entity.WishList;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -24,6 +21,7 @@ import java.util.List;
 
 @Entity
 @Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "products_table")
@@ -67,6 +65,23 @@ public class Product extends BaseEntity {
         p.productId = productId;
         return p;
     }
+
+    /** 정적 메서드 */
+    public static Product createDummy(String productName, ProductType type, BigDecimal price,
+                                      String productInfo, String manufacturer,
+                                      Boolean isDiscount, Integer discountRate, Boolean isRecommend) {
+        Product p = new Product();
+        p.productName = productName;
+        p.productType = type;
+        p.price = price;
+        p.productInfo = productInfo;
+        p.manufacturer = manufacturer;
+        p.isDiscount = isDiscount != null ? isDiscount : false;
+        p.discountRate = isDiscount ? discountRate : null;
+        p.isRecommend = isRecommend != null ? isRecommend : false;
+        return p;
+    }
+
 
     /** Admin DTO 기반 생성자 */
     public Product(AdminProductRequestDto dto) {
