@@ -71,14 +71,14 @@ public class Product extends BaseEntity {
                                       String productInfo, String manufacturer,
                                       Boolean isDiscount, Integer discountRate, Boolean isRecommend) {
         Product p = new Product();
-        p.productName = productName;
-        p.productType = type;
-        p.price = price;
-        p.productInfo = productInfo;
-        p.manufacturer = manufacturer;
-        p.isDiscount = isDiscount != null ? isDiscount : false;
-        p.discountRate = isDiscount ? discountRate : null;
-        p.isRecommend = isRecommend != null ? isRecommend : false;
+                p.productName = productName;
+                p.productType = type;
+                p.price = price;
+                p.productInfo = productInfo;
+                p.manufacturer = manufacturer;
+                p.isDiscount = isDiscount != null ? isDiscount : false;
+                p.discountRate = isDiscount ? discountRate : null;
+                p.isRecommend = isRecommend != null ? isRecommend : false;
         return p;
     }
 
