@@ -59,6 +59,14 @@ public class Product extends BaseEntity {
 
     private Long wishListCount;
 
+    /** ProductThumbnail 추가 헬퍼 */
+    public void addThumbnail(ProductThumbnail thumbnail) {
+        if (thumbnail != null) {
+            productThumbnails.add(thumbnail);
+            thumbnail.setProduct(this); // 양방향 연관관계 유지
+        }
+    }
+
     /** DTO 기반 생성 */
     public static Product ofId(Long productId) {
         Product p = new Product();

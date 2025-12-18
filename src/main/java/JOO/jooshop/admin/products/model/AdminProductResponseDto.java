@@ -19,6 +19,7 @@ public class AdminProductResponseDto {
     private String productName;       // 화면용도 그대로
     private ProductType productType;
     private BigDecimal price;
+    private Integer discountRate;
     private String productInfo;
     private String thumbnailUrl;      // 목록용 썸네일 추가
     private LocalDateTime createdAt;  // 목록용 등록일 추가

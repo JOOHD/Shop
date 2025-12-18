@@ -35,26 +35,28 @@
     </button>
 </section>
 
-<!-- 상품 리스트 -->
 <main class="product-list">
+    <!-- DTO 기반 상품 반복 -->
     <article class="product-item" th:each="product : ${products}">
+        <!-- 상세 페이지 링크 -->
         <a th:href="@{'/products/' + ${product.productId}}">
             <div class="thumbnail">
-                <!-- 썸네일 이미지 여러 개 출력 -->
-                <img th:each="thumb : ${product.productThumbnails}"
-                     th:with="cleanPath=${thumb.imagePath.startsWith('/') ? thumb.imagePath.substring(1) : thumb.imagePath}"
-                     th:src="@{/{path}(path=${cleanPath})}"
+                <!-- 단일 썸네일 출력 -->
+                <img th:src="@{${product.thumbnailUrl}}"
                      alt="상품 이미지"
                      class="thumbnail-image" />
+
                 <!-- 할인 태그 -->
                 <span class="tag" th:if="${product.isDiscount}">할인</span>
             </div>
+
             <div class="info">
                 <!-- 가격 표시 -->
                 <p class="price" th:if="${product.isDiscount}">
                     <span class="original-price" th:text="'₩' + ${#numbers.formatInteger(product.price, 0, 'COMMA')}">₩0</span>
                     <span class="discount-rate" th:text="${product.discountRate + '% 할인'}">10% 할인</span>
-                    <span class="discounted-price" th:text="'₩' + ${#numbers.formatInteger(product.price * (1 - product.discountRate / 100.0), 0, 'COMMA')}">₩0</span>
+                    <span class="discounted-price"
+                          th:text="'₩' + ${#numbers.formatInteger(product.price * (1 - product.discountRate / 100.0), 0, 'COMMA')}">₩0</span>
                 </p>
                 <p class="price" th:unless="${product.isDiscount}">
                     <span class="discount-price" th:text="'₩' + ${#numbers.formatInteger(product.price, 0, 'COMMA')}">₩0</span>
@@ -62,10 +64,14 @@
 
                 <!-- 상품명 -->
                 <p class="name" th:text="${product.productName}">상품명</p>
+
+                <!-- 등록일 표시 -->
+                <p class="created-at" th:text="${#dates.format(product.createdAt, 'yyyy-MM-dd')}">등록일</p>
             </div>
         </a>
     </article>
 </main>
+
 
 <script>
     function toggleSidebar() {

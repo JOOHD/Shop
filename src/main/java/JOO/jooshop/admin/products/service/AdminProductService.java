@@ -7,6 +7,7 @@ import JOO.jooshop.contentImgs.entity.enums.UploadType;
 import JOO.jooshop.contentImgs.service.ContentImgService;
 import JOO.jooshop.global.file.FileStorageService;
 import JOO.jooshop.product.entity.Product;
+import JOO.jooshop.thumbnail.entity.ProductThumbnail;
 import JOO.jooshop.thumbnail.service.ThumbnailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +24,6 @@ import java.util.stream.Collectors;
 @Transactional
 public class AdminProductService {
 
-    private final FileStorageService fileStorageService;
     private final ThumbnailService thumbnailService;
     private final ContentImgService contentImgService;
     private final AdminProductRepository productRepository;
@@ -32,8 +32,28 @@ public class AdminProductService {
     public List<AdminProductResponseDto> findAllProduct() {
         return productRepository.findAll()
                 .stream()
-                .map(this::toResponseDto)
+                .map(this::toResponseDto) // DB Product -> 화면용 DTO 변환
                 .collect(Collectors.toList());
+    }
+
+    /** DTO 변환 */
+    private AdminProductResponseDto toResponseDto(Product product) {
+        // Dummy URL 매핑
+        String thumbnailUrl = product.getProductThumbnails().stream()
+                .findFirst()
+                .map(ProductThumbnail::getImagePath) // 외부 URL
+                .orElse(null);
+
+        return new AdminProductResponseDto(
+                product.getProductId(),
+                product.getProductName(),
+                product.getProductType(),
+                product.getPrice(),
+                product.getDiscountRate(),
+                product.getProductInfo(),
+                thumbnailUrl,
+                product.getCreatedAt()
+        );
     }
 
     /** 상품 등록 */
@@ -98,30 +118,11 @@ public class AdminProductService {
             product.updateProductManagements(options);
         }
     }
-
-
+    
     /** 상품 삭제 */
     public void deleteProduct(Long id) {
         productRepository.deleteById(id);
     }
 
-    /** DTO 변환 (화면용) */
-    private AdminProductResponseDto toResponseDto(Product product) {
-        // 첫 번째 썸네일 경로
-        String thumbnailUrl = product.getProductThumbnails().stream()
-                .findFirst()
-                .map(t -> fileStorageService.getUrl(t.getImagePath()))
-                .orElse(null);
-
-        return new AdminProductResponseDto(
-                product.getProductId(),
-                product.getProductName(),
-                product.getProductType(),
-                product.getPrice(),
-                product.getProductInfo(),
-                thumbnailUrl,
-                product.getCreatedAt()
-        );
-    }
 }
 
