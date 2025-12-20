@@ -28,14 +28,13 @@ public class DummyProductInitializer implements CommandLineRunner {
 
     /**
      * 클래스 목적
-     * 데이터 초기화, 로컬 환경에 빠른 테스트용 상품 데이터 -> DB 저장
+     * 로컬 환경에서 테스트용으로 더미 상품 데이터를 DB에 넣고, Admin 화면에서 CRUD 및 상품 리스트 확인
      * 
-     * 1. CommandLineRunner + @Profile("local") → 로컬 실행 시 자동 실행
-     * 2. 10개 더미 상품 생성 (Product.createDummy(...))
-     * 3. ProductRepository에 저장 (productRepository.save(product))
-     * 4. 옵션(ProductManagement) 자동 생성 → Gender x Size 조합
-     * 5. 외부 URL 그대로 DTO에서 사용 가능 → 썸네일 URL을 DB에 저장하지 않고 로그로 확인
-     * 6. FileStorageService 제거 → 로컬 이미지 저장 없이 외부 URL 사용
+     * 핵심 포인트
+     * - 외부 이미지 URL 사용: 로컬에 이미지 저장 없이 URL로 바로 렌더링
+     * - Controller에 더미 데이터 넣지 않음: DB 초기화용, DummyProductInitializer 로 분리
+     * - DTO 사용: 화면용 데이터 (AdminProductResponseDto) 로 변환
+     * - Thymeleaf 와 연동: productList.html 에서 DTO 기반 반복 렌더링
      */
 
     private final ProductRepositoryV1 productRepository;
@@ -107,8 +106,11 @@ public class DummyProductInitializer implements CommandLineRunner {
                         pm.setGender(gender);
                         productManagementRepository.save(pm);
 
-                        // dummyThumbnail 생성 (외부 URL만)
-                        ProductThumbnail thumbnail = new ProductThumbnail(product, imageUrls.get(i));
+                        // (기존) uploadFile -> server save -> 경로 생성 -> DB 저장
+                        // (리팩토링) 외부 이미지 URL 확보 -> 문자열로 DB 저장
+                        // externalUrl = 이미지의 '위치 정보'
+                        String externalUrl = imageUrls.get(i);
+                        ProductThumbnail thumbnail = new ProductThumbnail(product, externalUrl);
                         product.addThumbnail(thumbnail);
                     }
                 }

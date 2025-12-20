@@ -59,7 +59,11 @@ public class Product extends BaseEntity {
 
     private Long wishListCount;
 
-    /** ProductThumbnail 추가 헬퍼 */
+    /** ProductThumbnail 추가 헬퍼
+     *  이슈: Product 에 thumbnailUrl 이 없어서 DTO에 URL 매핑 불가
+     *  해결: addThumbnail(...) 헬퍼 메서드 추가
+     *       ProductThumbnail <-> Product 양방향 연관관계
+     */
     public void addThumbnail(ProductThumbnail thumbnail) {
         if (thumbnail != null) {
             productThumbnails.add(thumbnail);

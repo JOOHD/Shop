@@ -5,7 +5,6 @@ import JOO.jooshop.admin.products.model.AdminProductResponseDto ;
 import JOO.jooshop.admin.products.repository.AdminProductRepository;
 import JOO.jooshop.contentImgs.entity.enums.UploadType;
 import JOO.jooshop.contentImgs.service.ContentImgService;
-import JOO.jooshop.global.file.FileStorageService;
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.thumbnail.entity.ProductThumbnail;
 import JOO.jooshop.thumbnail.service.ThumbnailService;
@@ -38,11 +37,11 @@ public class AdminProductService {
 
     /** DTO 변환 */
     private AdminProductResponseDto toResponseDto(Product product) {
-        // Dummy URL 매핑
-        String thumbnailUrl = product.getProductThumbnails().stream()
-                .findFirst()
-                .map(ProductThumbnail::getImagePath) // 외부 URL
-                .orElse(null);
+        // 기존 stream().findFirst().map(...) -> isEmpty().get(0) 변경
+        // 상품 목록 이미지는 썸네일 첫 번째 이미지만 사용할거, stream 은 데이터 변환에 사용
+        String thumbnailUrl = product.getProductThumbnails().isEmpty()
+                ? null // true
+                : product.getProductThumbnails().get(0).getImagePath(); // false
 
         return new AdminProductResponseDto(
                 product.getProductId(),

@@ -15,8 +15,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Table(name = "product_thumbnails")
 public class ProductThumbnail {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "thumbnail_id")
     private Long thumbnailId;   // PK
 
