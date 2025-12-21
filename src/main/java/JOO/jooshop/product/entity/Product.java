@@ -35,10 +35,13 @@ public class Product extends BaseEntity {
     private ProductType productType;
 
     @NotBlank
+    @Column(nullable = false)
     private String productName;
 
     @NotNull
+    @Column(nullable = false)
     private BigDecimal price;
+
     private String productInfo;
     private String manufacturer;
     private Boolean isDiscount = false;
@@ -78,7 +81,7 @@ public class Product extends BaseEntity {
         return p;
     }
 
-    /** 정적 메서드 */
+    /** 엔티티 생성 규칙 */
     public static Product createDummy(String productName, ProductType type, BigDecimal price,
                                       String productInfo, String manufacturer,
                                       Boolean isDiscount, Integer discountRate, Boolean isRecommend) {
