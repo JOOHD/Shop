@@ -89,6 +89,7 @@ logging:
     org.springframework.security : DEBUG
     org.springframework.security.web: DEBUG
     org.springframework.security.oauth2: DEBUG
+    org.springframework.web.client.RestTemplate: DEBUG
     org.springframework.security.web.csrf.CsrfFilter: DEBUG
 
 app:

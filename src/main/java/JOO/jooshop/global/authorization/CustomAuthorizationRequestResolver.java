@@ -21,30 +21,6 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
 
         // 커스터마이저 등록
         this.defaultResolver.setAuthorizationRequestCustomizer(builder -> {
-            // PKCE 파라미터 제거
-            builder
-                    .additionalParameters(params -> {
-                        params.remove(PkceParameterNames.CODE_CHALLENGE);
-                        params.remove(PkceParameterNames.CODE_CHALLENGE_METHOD);
-                    });
-            // attributes 도 제거해도 무방
-            builder
-                    .attributes(attrs -> {
-                        attrs.remove(PkceParameterNames.CODE_CHALLENGE);
-                        attrs.remove(PkceParameterNames.CODE_CHALLENGE_METHOD);
-            });
-
-            // 2) kakao용 scope 형식 교정 (공백 -> 콤마)
-            builder
-                    .additionalParameters(params -> {
-                        Object raw = params.get("scope");
-                        // ↑ Spring 6에서는 기본 key가 "scope". 다른 버전이면 "scope" 그대로 사용
-                        if (raw instanceof String scope) {
-                            if (scope.contains(" ")) {
-                                params.put("scope", scope.replace(" ", ",")); // 공백 -> 쉼표
-                            }
-                        }
-                    });
         });
     }
 

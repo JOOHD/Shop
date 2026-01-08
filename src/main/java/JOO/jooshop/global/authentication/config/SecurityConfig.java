@@ -67,7 +67,10 @@ public class SecurityConfig {
             "/api/v1/members/join",
             "/api/v1/members/check-email",
             "/api/v1/reissue/**",
-            "/api/v1/inquiry/**"
+            "/api/v1/inquiry/**",
+
+            // ✅ 소셜 로그인 시작/콜백 엔드포인트는 인증 없이 접근 가능해야 함
+            "/api/socialLogin/**"
     };
 
     private static final String[] ROLE_USER_OR_SELLER = {
@@ -204,7 +207,13 @@ public class SecurityConfig {
                 }))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/formLogin", "/logout", "/", "/auth/**", "/products/**").permitAll()
+                        .requestMatchers(
+                                "/",
+                                "/login", "/formLogin", "/logout",
+                                "/oauth2/**",                // ✅ 인가 시작
+                                "/login/oauth2/**",          // ✅ 콜백(여기서 401 나던 곳)
+                                "/auth/**", "/products/**"
+                        ).permitAll()
                         .requestMatchers("/profile").authenticated()
                         .requestMatchers("/admin").hasRole("ADMIN")
                         .anyRequest().permitAll()
@@ -222,11 +231,11 @@ public class SecurityConfig {
                 // OAuth2 로그인 활성화
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/login")
-                        .authorizationEndpoint(authz -> authz
-                                .authorizationRequestResolver(
-                                        new CustomAuthorizationRequestResolver(clientRegistrationRepository, "/oauth2/authorization")
-                                )
-                        )
+//                        .authorizationEndpoint(authz -> authz
+//                                .authorizationRequestResolver(
+//                                        new CustomAuthorizationRequestResolver(clientRegistrationRepository, "/oauth2/authorization")
+//                                )
+//                        )
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                         .successHandler(oauth2LoginSuccessHandler)
                         .failureHandler(oauth2LoginFailureHandler)
