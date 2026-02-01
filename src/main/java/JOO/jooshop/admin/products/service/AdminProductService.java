@@ -35,13 +35,27 @@ public class AdminProductService {
                 .collect(Collectors.toList());
     }
 
-    /** DTO 변환 */
+    /** DTO 변환
+     *
+     * 리팩토링 히스토리
+     * - 기존 구현은 productThumbnails.get(0)을 대표 썸네일로 사용
+     * - @OneToMany List는 순서가 보장되지 않기 때문에(정렬 규칙 미정),
+     *   썸네일 데이터가 혼재(예: 로컬 상대경로 + 외부 URL)되면 대표 이미지가 의도와 다르게 선택될 수 있음
+     *
+     * 개선 내용
+     * - 관리자 목록에서는 "외부 URL 기반 대표 썸네일"을 우선 렌더링하도록 정책을 명시
+     * - path.startsWith("http")인 데이터만 후보로 선택해 화면 안정성 확보
+     *
+     * 참고
+     * - 운영 썸네일(로컬 업로드)은 상대경로로 저장되므로,
+     *   필요 시 ThumbnailService.toClientUrl() 같은 변환 정책으로 확장 가능
+     */
     private AdminProductResponseDto toResponseDto(Product product) {
-        // 기존 stream().findFirst().map(...) -> isEmpty().get(0) 변경
-        // 상품 목록 이미지는 썸네일 첫 번째 이미지만 사용할거, stream 은 데이터 변환에 사용
-        String thumbnailUrl = product.getProductThumbnails().isEmpty()
-                ? null // true
-                : product.getProductThumbnails().get(0).getImagePath(); // false
+        String thumbnailUrl = product.getProductThumbnails().stream()
+                .map(ProductThumbnail::getImagePath)
+                .filter(path -> path != null && path.startsWith("http")) // 외부 URL 만 대표 썸네일로 사용
+                .findFirst()
+                .orElse(null);
 
         return new AdminProductResponseDto(
                 product.getProductId(),
@@ -77,6 +91,8 @@ public class AdminProductService {
             contentImgService.uploadContentImages(saved, contentImages, UploadType.PRODUCT);
         }
 
+        // 저장 직후 returned DTO는 "외부 URL 대표 썸네일" 정책에 의해 null일 수 있음
+        // (운영 로컬 상대경로를 대표로 쓰려면 thumbnailUrl 계산 정책을 확장해야 함)
         return toResponseDto(saved);
     }
 
@@ -102,7 +118,7 @@ public class AdminProductService {
                                         List<MultipartFile> contentImages,
                                         List<AdminProductRequestDto.ProductManagementDto> options) {
 
-        // 1. 썸네일 업로드
+        // 1. 썸네일 업로드 (로컬 업로드)
         if (thumbnail != null && !thumbnail.isEmpty()) {
             thumbnailService.uploadThumbnailImages(product, thumbnail);
         }

@@ -28,6 +28,26 @@ public class DummyProductInitializer implements CommandLineRunner {
      * 클래스 목적
      * 로컬 환경에서 테스트용으로 더미 상품 데이터를 DB에 넣고, Admin 화면에서 CRUD 및 상품 리스트 확인
      * -> 검증 목적이 아닌, 화면 테스트 및 초기 데이터 제공 목적 (entity + repository)
+     *
+
+     [DummyProductInitializer]
+            `↓ (앱 시작 시 자동 실행)
+     Product + ProductThumbnail(imagePath = "https://...") 저장
+            ↓
+     DB에는 그냥 문자열(URL)만 있음
+            ↓
+     [관리자 상품 목록 요청]
+            ↓
+     Controller → Service → Repository
+            ↓
+     Product + ProductThumbnail 조회
+            ↓
+     DTO or 엔티티가 model에 담김
+            ↓
+     Thymeleaf가 imagePath를 <img src="..."> 로 렌더링
+            ↓
+     브라우저가 "https://store.manutd.com/..." 로 직접 이미지 요청
+
      * 
      * 핵심 포인트 12/20
      * - 외부 이미지 URL 사용: 로컬에 이미지 저장 없이 URL로 바로 렌더링

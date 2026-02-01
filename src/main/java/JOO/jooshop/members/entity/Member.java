@@ -53,7 +53,8 @@ public class Member extends BaseEntity {
     private SocialType socialType;
 
     // OAuth2 로그인은 Optional 필드가 맞다. @NotBlank 제거
-    @Column(name = "social_id", unique = true)
+    // unique = true 제거, ddl-auto 설정으로 기존 unique 와 꼬임 방지
+    @Column(name = "social_id")
     @JsonProperty("social_id")
     private String socialId;
 
