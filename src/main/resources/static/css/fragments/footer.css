@@ -1,12 +1,27 @@
-footer {
-  padding: 16px 24px;
+/* ==============================
+   Footer (Refactored)
+============================== */
+
+.site-footer {
+  background: #111;                 /* 맨유 스토어 느낌: 다크 */
+  color: #bbb;
+  padding: 24px 20px;
   text-align: center;
-  background-color: #f7f7f7;
-  border-top: 1px solid #ddd;
+  border-top: 1px solid #222;
 }
 
-.footer-content p {
-  font-size: 14px;
-  color: #666;
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-copy {
+  font-size: 13px;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
   margin: 0;
+}
+
+.footer-copy strong {
+  color: #fff;                      /* 브랜드 강조 */
 }

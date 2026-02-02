@@ -1,102 +1,125 @@
-<!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
-<head>
-    <meta charset="UTF-8" />
-    <title>Header</title>
-    <link rel="stylesheet" href="/css/fragments/header.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-</head>
-<body>
+<!-- fragments/header.html -->
+<div th:fragment="headerWithBanner"
+     xmlns:th="http://www.thymeleaf.org"
+     xmlns:sec="http://www.w3.org/1999/xhtml">
 
-<header class="header-bar" th:fragment="header">
+    <!-- ==============================
+         TOP BANNER (Stone Roses)
+         + HEADER OVERLAY
+         ============================== -->
+    <div class="top-banner" aria-hidden="true">
 
-    <!-- 좌측 아이콘 -->
-    <div class="left-icons">
-        <i class="fas fa-bars" title="메뉴" onclick="toggleSidebar()"></i>
-        <i class="fas fa-search" title="검색" onclick="toggleSearchSidebar()"></i>
-    </div>
-
-    <!-- 중앙 로고 -->
-    <div class="header-center">
-        <a href="/" class="header-logo-link">
-            <img class="logo" src="/logo/icons/mufc_icon.png" alt="MUFC 로고"/>
-        </a>
-    </div>
-
-    <!-- 우측 아이콘 -->
-    <div class="right-icons">
-
-        <!-- 비로그인 -->
-        <div sec:authorize="isAnonymous()">
-            <a href="/login" title="로그인"><i class="fas fa-user"></i></a>
+        <!-- ✅ 배경 이미지 -->
+        <div class="banner-bg-layer">
+            <img class="banner-bg"
+                 th:src="@{/logo/banner/stone_roses_header.jpg}"
+                 alt="">
         </div>
 
-        <!-- 로그인 (USER) -->
-        <div class="user-icons" sec:authorize="hasRole('USER')">
-            <a href="/profile" title="내 정보"><i class="fas fa-user-circle"></i><span>내 정보</span></a>
-            <a href="/orders" title="주문 내역"><i class="fas fa-box"></i><span>주문 내역</span></a>
-            <a href="/wishlist" title="위시리스트"><i class="fas fa-heart"></i><span>위시리스트</span></a>
-            <a href="/cart" title="장바구니"><i class="fas fa-shopping-cart"></i><span>장바구니</span></a>
+        <!-- ✅ 꽃잎 영상 오버레이 -->
+        <div class="banner-petal-video-layer">
+            <div class="banner-petal-video-row">
+                <video class="banner-petal-video flip-x"
+                       th:src="@{/logo/banner/petal_overlay.mp4}"
+                       autoplay loop muted playsinline></video>
 
-            <!-- Spring Security 로그아웃
-                - <input type="hidden" name="_csrf" value="토큰값"> 자동 생성, security config 서버 검증
-                - CSRF: Thymeleaf가 자동으로 <input> 생성해서 포함
-                - 쿠키: 브라우저가 form POST 시 자동으로 포함
-                - 서버 처리: CustomLogoutFilter가 블랙리스트 등록/Refresh 삭제 수행
-            -->
-            <form th:action="@{/logout}" method="post" style="display:inline;">
-                <button type="submit" class="logout-btn" title="로그아웃">
-                    <i class="fas fa-sign-out-alt"></i><span>로그아웃</span>
-                </button>
-            </form>
-        </div>
+                <video class="banner-petal-video"
+                       th:src="@{/logo/banner/petal_overlay.mp4}"
+                       autoplay loop muted playsinline></video>
 
-        <!-- 로그인 (ADMIN) -->
-        <div class="admin-icons" sec:authorize="hasRole('ADMIN')">
-            <div class="admin-dropdown">
-                <a href="/admin/products/list" title="상품 관리" class="admin-dropdown-toggle">
-                    <i class="fas fa-cubes"></i>
-                </a>
-                <div class="admin-dropdown-menu">
-                    <a href="/admin/products/list">상품 목록</a>
-                    <a href="/admin/products/register">상품 등록</a>
-                </div>
+                <video class="banner-petal-video flip-x"
+                       th:src="@{/logo/banner/petal_overlay.mp4}"
+                       autoplay loop muted playsinline></video>
             </div>
-            <a href="/admin/orders/list" title="주문 관리"><i class="fas fa-truck"></i></a>
-            <a href="/admin/members/list" title="회원 관리"><i class="fas fa-users"></i></a>
-
-            <!-- Spring Security 로그아웃 -->
-            <form th:action="@{/logout}" method="post" style="display:inline;">
-                <button type="submit" class="logout-btn" title="로그아웃">
-                    <i class="fas fa-sign-out-alt"></i><span>로그아웃</span>
-                </button>
-            </form>
         </div>
 
+        <!-- ==============================
+             HEADER BAR (배너 안에 겹침)
+             ============================== -->
+        <header class="header-bar header-overlay">
+
+            <!-- 좌측 아이콘 -->
+            <div class="left-icons">
+                <button type="button"
+                        class="icon-btn"
+                        aria-label="메뉴"
+                        onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <button type="button"
+                        class="icon-btn"
+                        aria-label="검색"
+                        onclick="toggleSearchSidebar()">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+
+            <!-- 중앙 로고 -->
+            <div class="header-center">
+                <a href="/" class="header-logo-link" aria-label="홈">
+                    <img class="logo"
+                         th:src="@{/logo/icons/white_icon.svg}"
+                         alt="MUFC 로고">
+                </a>
+            </div>
+
+            <!-- 우측 아이콘 -->
+            <div class="right-icons">
+
+                <!-- 비로그인 -->
+                <div sec:authorize="isAnonymous()">
+                    <a href="/login" class="icon-link" aria-label="로그인">
+                        <i class="fas fa-user"></i>
+                    </a>
+                </div>
+
+                <!-- USER -->
+                <div class="user-icons" sec:authorize="hasRole('USER')">
+                    <a href="/profile"><i class="fas fa-user-circle"></i><span>내 정보</span></a>
+                    <a href="/orders"><i class="fas fa-box"></i><span>주문 내역</span></a>
+                    <a href="/wishlist"><i class="fas fa-heart"></i><span>위시리스트</span></a>
+                    <a href="/cart"><i class="fas fa-shopping-cart"></i><span>장바구니</span></a>
+
+                    <form th:action="@{/logout}" method="post" class="logout-form">
+                        <button type="submit" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i><span>로그아웃</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- ADMIN -->
+                <div class="admin-icons" sec:authorize="hasRole('ADMIN')">
+
+                    <div class="admin-dropdown">
+                        <a href="/admin/products/list"
+                           class="admin-dropdown-toggle"
+                           aria-label="상품 관리">
+                            <i class="fas fa-cubes"></i>
+                        </a>
+
+                        <div class="admin-dropdown-menu">
+                            <a href="/admin/products/list">상품 목록</a>
+                            <a href="/admin/products/register">상품 등록</a>
+                        </div>
+                    </div>
+
+                    <a href="/admin/orders/list" aria-label="주문 관리">
+                        <i class="fas fa-truck"></i>
+                    </a>
+
+                    <a href="/admin/members/list" aria-label="회원 관리">
+                        <i class="fas fa-users"></i>
+                    </a>
+
+                    <form th:action="@{/logout}" method="post" class="logout-form">
+                        <button type="submit" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i><span>로그아웃</span>
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </header>
     </div>
-</header>
-
-<script>
-    function toggleSidebar() {
-        const sidebar = document.querySelector(".sidebar");
-        const overlay = document.querySelector(".overlay");
-        if (sidebar && overlay) {
-            sidebar.classList.toggle("active");
-            overlay.classList.toggle("active");
-        } else {
-            console.log("sidebar 또는 overlay 요소가 없습니다.");
-        }
-    }
-
-    function toggleSearchSidebar() {
-        const search = document.querySelector(".search-sidebar");
-        if (search) {
-            search.classList.toggle("active");
-        } else {
-            console.log("검색 사이드바 요소가 없습니다.");
-        }
-    }
-</script>
-
-</body>
-</html>
+</div>

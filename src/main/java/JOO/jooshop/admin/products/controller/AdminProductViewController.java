@@ -3,6 +3,7 @@ package JOO.jooshop.admin.products.controller;
 import JOO.jooshop.admin.products.model.AdminProductResponseDto;
 import JOO.jooshop.admin.products.service.AdminProductService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 
+@Slf4j
 @Controller
 @RequestMapping("/admin/products")
 @RequiredArgsConstructor
@@ -22,6 +24,17 @@ public class AdminProductViewController { // 페이지 라우팅
     @GetMapping("/list")
     public String productList(Model model) {
         List<AdminProductResponseDto> products = productService.findAllProduct();
+
+        log.info("[ADMIN_LIST] products.size={}", products.size());
+        if (!products.isEmpty()) {
+            AdminProductResponseDto p0 = products.get(0);
+            log.info(
+                "[ADMIN_LIST] first id={}, name={}, thumbnail={}",
+                p0.getProductId(),
+                p0.getProductName(),
+                p0.getThumbnailUrl()
+            );
+        }
         model.addAttribute("products", products);
         return "admin/products/productList";
     }

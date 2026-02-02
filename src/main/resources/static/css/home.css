@@ -1,363 +1,259 @@
-/* --- 전역 스타일 및 기본 세팅 --- */
-* {
-    box-sizing: border-box;
+/* =========================================
+   Home CSS (Final)
+   - hero(메인 배너) 고정 비율
+   - overlay / sidebar / search-sidebar 포함
+   - header/top-banner 스타일은 여기서 제거(충돌 방지)
+========================================= */
+
+/* ---------- Base ---------- */
+:root{
+  --accent: #DA291C;
+  --text: #111;
+  --bg: #ffffff;
+
+  --overlay: rgba(0,0,0,0.35);
+
+  --sidebar-w: 280px;
+  --shadow: 0 12px 30px rgba(0,0,0,0.18);
 }
 
-body {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background-color: #f8f9fa;
+*{ box-sizing: border-box; }
+
+body{
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-/* --- HEADER (상단 헤더 바) --- */
-.header-bar {
-    height: 70px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-    background-color: #ffffff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
+/* =========================================
+   Overlay
+========================================= */
+.overlay{
+  position: fixed;
+  inset: 0;
+  background: var(--overlay);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .2s ease, visibility .2s ease;
+  z-index: 1090;
 }
 
-/* 헤더 좌측/우측 아이콘 컨테이너 */
-.left-icons,
-.right-icons {
-    display: flex;
-    align-items: center;
-    gap: 20px;
+.overlay.active{
+  opacity: 1;
+  visibility: visible;
 }
 
-/* 헤더 아이콘 스타일 */
-.left-icons i,
-.right-icons i {
-    font-size: 20px;
-    cursor: pointer;
-    color: #111;
+/* =========================================
+   Sidebar (카테고리)
+========================================= */
+.sidebar{
+  position: fixed;
+  top: 0;
+  left: calc(-1 * var(--sidebar-w));
+  width: var(--sidebar-w);
+  height: 100%;
+  background: #fff;
+  z-index: 1100;
+
+  box-shadow: var(--shadow);
+  transition: left .25s ease;
+  padding: 20px 18px;
 }
 
-/* 아이콘 마우스 오버 시 빨간색으로 변경 */
-.left-icons i:hover,
-.right-icons i:hover,
-.login-container i:hover {
-    color: #DA291C;
-    cursor: pointer;
+.sidebar.active{
+  left: 0;
 }
 
-/* 로고 이미지 크기 */
-.logo {
-    height: 40px;
+.sidebar h3{
+  margin: 0 0 14px;
+  font-size: 16px;
+  font-weight: 800;
 }
 
-/* 헤더 중앙 영역: 로고 위치 조정용 */
-.header-center {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex: 1;
+.sidebar ul{
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
-.header-logo-link {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.sidebar a{
+  display: block;
+  padding: 10px 8px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #222;
+  font-size: 14px;
 }
 
-/* --- HERO BANNER (메인 배너 영역) --- */
-.hero {
-    position: relative;
-    background-image: url('/logo/banner/mufc_background.jpg'); /* ← 배경 이미지 경로 */
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    text-align: center;
+.sidebar a:hover{
+  background: #f5f5f5;
+  color: var(--accent);
 }
 
-/* 배너 내 텍스트 컨테이너 */
-.hero-content {
-    background: rgba(0, 0, 0, 0.4); /* 반투명 검정 배경 */
-    padding: 20px 40px;
-    border-radius: 10px;
+/* =========================================
+   Search Sidebar
+========================================= */
+.search-sidebar{
+  position: fixed;
+  top: 0;
+  left: -520px;
+  width: min(520px, 92vw);
+  height: 100%;
+  background: #fff;
+  z-index: 1200;
+
+  box-shadow: var(--shadow);
+  transition: left .25s ease;
+  padding: 18px;
 }
 
-/* 배너 타이틀 */
-.hero-content h1 {
-    font-size: 2.5rem;
-    margin: 0;
+.search-sidebar.active{
+  left: 0;
 }
 
-/* 배너 부제목 */
-.hero-content p {
-    font-size: 1.1rem;
-    margin: 10px 0 20px 0;
+.search-header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-/* 배너 내 쇼핑 버튼 */
-.hero-content .btn-shop {
-    padding: 10px 30px;
-    font-size: 1rem;
-    background-color: #DA291C;
-    border: none;
-    border-radius: 25px;
-    color: white;
-    cursor: pointer;
-    font-weight: bold;
+.search-header .icon-btn{
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  font-size: 22px;
+  color: #111;
 }
 
-/* 쇼핑 버튼 호버 시 배경색 진하게 */
-.hero-content .btn-shop:hover {
-    background-color: #b52018;
+.logo-small{
+  height: 34px;
+  display: block;
 }
 
-/* --- 사이드바 (카테고리 메뉴) --- */
-.sidebar {
-    position: fixed;
-    top: 0;
-    left: -250px; /* 기본은 화면 밖으로 숨김 */
-    width: 250px;
-    height: 100%;
-    background-color: #fff;
-    border-right: 1px solid #ddd;
-    padding: 20px;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-    transition: left 0.3s ease-in-out;
-    z-index: 1100;
+.search-box{
+  margin-top: 22px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  border-bottom: 1px solid #ddd;
+  padding: 10px 2px;
 }
 
-/* 사이드바 활성화 시 화면에 보임 */
-.sidebar.active {
-    left: 0;
+.search-box i{
+  color: #666;
+  font-size: 18px;
 }
 
-/* 사이드바 제목 */
-.sidebar h3 {
-    font-size: 1.2rem;
-    margin-bottom: 20px;
-    color: #212529;
+.search-box input{
+  border: 0;
+  outline: none;
+  width: 100%;
+  font-size: 15px;
 }
 
-/* 카테고리 리스트 기본 스타일 제거 */
-.sidebar ul {
-    list-style: none;
-    padding: 0;
+/* =========================================
+   HERO (메인 배너 - 비율 통일)
+========================================= */
+/* ✅ 핵심 포인트
+   - 고정 height 배너 (1번 이미지 기준)
+   - background-position 조정으로 2번 과확대 해결
+   - 좌측 그라데이션 유지
+*/
+.hero{
+  position: relative;
+  width: 100%;
+  height: 680px;                 /* ✅ 메인 배너 기준 높이 */
+  background: #000;
+
+  background-image: url('/logo/banner/hero.jpg');
+  background-size: cover;
+  background-position: center 35%; /* ✅ 핵심 포인트 */
+  background-repeat: no-repeat;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  padding: 0 clamp(18px, 5vw, 72px);
 }
 
-/* 각 카테고리 항목 간격 */
-.sidebar ul li {
-    margin: 15px 0;
+/* 좌측 그라데이션 */
+.hero::before{
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(0,0,0,0.78) 0%,
+    rgba(0,0,0,0.52) 38%,
+    rgba(0,0,0,0.18) 70%,
+    rgba(0,0,0,0.00) 100%
+  );
+  pointer-events: none;
 }
 
-/* 카테고리 링크 스타일 */
-.sidebar ul li a {
-    color: #495057;
-    text-decoration: none;
-    font-size: 1rem;
+/* 텍스트 블록 */
+.hero-content{
+  position: relative;
+  z-index: 1;
+  max-width: 680px;
+  color: #fff;
 }
 
-/* 링크 마우스 오버 시 밑줄 */
-.sidebar ul li a:hover {
-    text-decoration: underline;
+.hero-content h1{
+  margin: 0 0 12px;
+  font-size: clamp(34px, 5vw, 72px);
+  line-height: 1.02;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
-/* --- 오버레이 (사이드바 열릴 때 배경 어둡게) --- */
-.overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.3);
-    display: none;
-    z-index: 1099;
+.hero-content p{
+  margin: 0 0 26px;
+  font-size: clamp(14px, 1.2vw, 18px);
+  opacity: .92;
 }
 
-/* 오버레이 활성화 시 화면에 표시 */
-.overlay.active {
-    display: block;
+/* pill 버튼 */
+.btn-shop{
+  border: 0;
+  border-radius: 999px;
+  padding: 14px 30px;
+
+  background: #fff;
+  color: #111;
+
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  font-size: 12px;
+
+  cursor: pointer;
+  transition: transform .12s ease, background .12s ease, color .12s ease;
 }
 
-/* --- 검색 사이드바 (모바일/사이드 검색창) --- */
-.search-sidebar {
-    position: fixed;
-    top: 0;
-    left: -100%; /* 기본 화면 밖으로 숨김 */
-    width: 100%;
-    max-width: 500px;
-    height: 100%;
-    background-color: #fff;
-    box-shadow: 2px 0 8px rgba(0,0,0,0.1);
-    z-index: 1200;
-    transition: left 0.3s ease-in-out;
-    padding: 20px;
+.btn-shop:hover{
+  transform: translateY(-1px);
+  background: #111;
+  color: #fff;
 }
 
-/* 검색 사이드바 활성화 시 왼쪽에서 슬라이드로 나타남 */
-.search-sidebar.active {
-    left: 0;
+/* =========================================
+   Main content placeholder
+========================================= */
+.main-content{
+  padding: 36px clamp(18px, 5vw, 72px);
 }
 
-/* 검색창 헤더 - 닫기 아이콘 및 로고 배치 */
-.search-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-/* 검색창 닫기 아이콘 스타일 */
-.search-header i {
-    font-size: 24px;
-    cursor: pointer;
-    color: #DA291C;
-}
-
-/* 검색창 로고 크기 */
-.logo-small {
-    height: 36px;
-}
-
-/* 검색 입력창 영역 */
-.search-box {
-    margin-top: 30px;
-    display: flex;
-    align-items: center;
-    border-bottom: 1px solid #ccc;
-    padding: 10px 0;
-}
-
-/* 검색 아이콘 */
-.search-box i {
-    font-size: 18px;
-    margin-right: 10px;
-    color: #555;
-}
-
-/* 검색 입력창 */
-.search-box input {
-    flex-grow: 1;
-    border: none;
-    outline: none;
-    font-size: 16px;
-    color: #222;
-}
-
-/* --- 본문 콘텐츠 영역 --- */
-.main-content {
-    padding: 30px;
-}
-
-/* 썸네일 그리드 레이아웃 */
-.thumbnail-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-
-/* 썸네일 카드 스타일 */
-.thumbnail {
-    width: 240px;
-    background-color: white;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    overflow: hidden;
-    transition: transform 0.2s;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-}
-
-/* 썸네일 이미지 */
-.thumbnail img {
-    width: 100%;
-    height: auto;
-}
-
-/* 썸네일 호버 시 약간 확대 */
-.thumbnail:hover {
-    transform: scale(1.03);
-}
-
-/* 썸네일 제목 텍스트 */
-.thumb-title {
-    padding: 10px;
-    font-weight: bold;
-    text-align: center;
-}
-
-/* --- 로그인 아이콘 --- */
-.login-container i {
-    color: #111; /* 기본 검정색 */
-    font-size: 20px;
-    cursor: pointer;
-    transition: color 0.2s ease-in-out;
-}
-
-/* 로그인 아이콘 마우스 오버 시 빨간색 */
-.login-container i:hover {
-    color: #DA291C;
-}
-
-/* --- 로그인 모달 --- */
-.login-modal {
-    position: absolute;
-    top: 40px;
-    right: 0;
-    background-color: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    padding: 20px;
-    z-index: 1300;
-    width: 200px;
-    display: none; /* 기본 숨김 */
-    text-align: center;
-    animation: fadeIn 0.3s ease-in-out;
-}
-
-/* 로그인 버튼 스타일 */
-.btn-login {
-    background-color: #DA291C;
-    color: white;
-    padding: 10px 0;
-    width: 100%;
-    border: none;
-    border-radius: 20px;
-    font-size: 15px;
-    cursor: pointer;
-    margin-bottom: 12px;
-    font-weight: bold;
-}
-
-/* 로그인 버튼 호버 시 배경색 진하게 */
-.btn-login:hover {
-    background-color: #b52018;
-}
-
-/* 회원가입 안내 문구 */
-.no-account {
-    font-size: 14px;
-    color: #555;
-    margin: 0;
-}
-
-/* 회원가입 링크 스타일 */
-.signup-link {
-    color: #DA291C;
-    text-decoration: none;
-    font-weight: bold;
-}
-
-/* 회원가입 링크 호버 시 밑줄 */
-.signup-link:hover {
-    text-decoration: underline;
-}
-
-/* --- 모달 페이드인 애니메이션 --- */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-5px); }
-    to { opacity: 1; transform: translateY(0); }
+/* =========================================
+   Mobile 대응
+========================================= */
+@media (max-width: 768px){
+  .hero{
+    height: 520px;
+    background-position: center 25%;
+  }
 }
