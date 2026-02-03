@@ -49,13 +49,26 @@ public class AdminProductService {
      * 참고
      * - 운영 썸네일(로컬 업로드)은 상대경로로 저장되므로,
      *   필요 시 ThumbnailService.toClientUrl() 같은 변환 정책으로 확장 가능
+     *
+     * 2차 리팩토링 25.02.03
+     *  여기서 막은 문제들
+     *  DB에 남은 "", " " 완전 차단
+     *  http 아닌 값 차단
+     *  썸네일 여러 개여도 대표 1개만
      */
     private AdminProductResponseDto toResponseDto(Product product) {
+
         String thumbnailUrl = product.getProductThumbnails().stream()
                 .map(ProductThumbnail::getImagePath)
-                .filter(path -> path != null && path.startsWith("http")) // 외부 URL 만 대표 썸네일로 사용
+                .filter(path -> path != null)
+                .map(String::trim)
+                .filter(path -> !path.isBlank())
+                .filter(path -> path.startsWith("http"))
                 .findFirst()
                 .orElse(null);
+
+        log.debug("[AdminProduct] productId={}, thumbnailUrl={}",
+                product.getProductId(), thumbnailUrl);
 
         return new AdminProductResponseDto(
                 product.getProductId(),

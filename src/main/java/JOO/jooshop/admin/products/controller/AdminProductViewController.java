@@ -24,17 +24,6 @@ public class AdminProductViewController { // 페이지 라우팅
     @GetMapping("/list")
     public String productList(Model model) {
         List<AdminProductResponseDto> products = productService.findAllProduct();
-
-        log.info("[ADMIN_LIST] products.size={}", products.size());
-        if (!products.isEmpty()) {
-            AdminProductResponseDto p0 = products.get(0);
-            log.info(
-                "[ADMIN_LIST] first id={}, name={}, thumbnail={}",
-                p0.getProductId(),
-                p0.getProductName(),
-                p0.getThumbnailUrl()
-            );
-        }
         model.addAttribute("products", products);
         return "admin/products/productList";
     }

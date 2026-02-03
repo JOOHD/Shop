@@ -21,6 +21,13 @@ public class AdminProductResponseDto {
     private BigDecimal price;
     private Integer discountRate;
     private String productInfo;
+
+    /**
+     * 썸네일 URL
+     * - 외부 이미지 URL
+     * - null 가능 (썸네일 없는 상품 허용)
+     * - "" 금지 (Service / HTML 에서 방어)
+     */
     private String thumbnailUrl;      // 목록용 썸네일 추가
     private LocalDateTime createdAt;  // 목록용 등록일 추가
 }

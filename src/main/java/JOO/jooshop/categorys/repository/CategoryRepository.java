@@ -16,4 +16,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     // 부모 카테고리가 없는 최상위 카테고리 조회
     List<Category> findByParentIsNull();
 
+    Optional<Category> findByName(String name);
+
 }

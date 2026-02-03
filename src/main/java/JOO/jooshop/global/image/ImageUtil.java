@@ -60,7 +60,7 @@ public class ImageUtil {
     private static boolean isCompressible(String format) {
         return format.equalsIgnoreCase("jpeg") || format.equalsIgnoreCase("jpg")
                 || format.equalsIgnoreCase("png") || format.equalsIgnoreCase("svg")
-                || format.equalsIgnoreCase("mp4");
+                || format.equalsIgnoreCase("mp4") || format.equalsIgnoreCase("webp");
     }
 
     private static void compressImage(File file, BufferedImage image, String formatName) throws IOException {

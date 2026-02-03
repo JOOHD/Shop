@@ -5,7 +5,7 @@ spring:
       max-request-size: 5MB
 
   profiles:
-    active: none  # <develop, production, staging, none> 옵션
+    active: local  # <develop, production, staging, none> 옵션
     include: oauth2
 
   datasource:

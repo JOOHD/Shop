@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.w3.org/1999/xhtml"
+      lang="ko">
 <head>
     <meta charset="UTF-8" />
     <title>상품 등록 - 관리자</title>
@@ -9,7 +11,8 @@
 </head>
 <body>
 
-<div th:replace="~{fragments/header :: header}"></div>
+<!-- ✅ 헤더 배너 포함 (치환) -->
+  <div th:replace="~{fragments/header :: headerWithBanner}"></div>
 
 <main class="admin-register-container">
     <h1 class="page-title"><i class="fa-solid fa-shirt"></i> 상품 등록</h1>
