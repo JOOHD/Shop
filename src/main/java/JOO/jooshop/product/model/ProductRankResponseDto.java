@@ -31,9 +31,9 @@ public class ProductRankResponseDto {
                 product.getProductName(),
                 product.getPrice(),
                 product.getWishListCount(),
-                product.getIsDiscount(),
+                product.isDiscount(),
                 product.getDiscountRate(),
-                product.getIsRecommend(),
+                product.isRecommend(),
                 product.getProductThumbnails().get(0).getImagePath()// 경로만 가져오기
 
         );

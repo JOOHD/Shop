@@ -43,9 +43,9 @@ public class ProductListResponseDto {
                 product.getPrice(),
                 product.getCreatedAt(),
                 product.getWishListCount(),
-                product.getIsDiscount(),
+                product.isDiscount(),
                 product.getDiscountRate(),
-                product.getIsRecommend(),
+                product.isRecommend(),
                 product.getProductThumbnails().stream()
                         .map(ProductThumbnail::getImagePath)
                         .collect(Collectors.toList())// 경로만 가져오기

@@ -29,6 +29,8 @@ public class QProduct extends EntityPathBase<Product> {
 
     public final NumberPath<Integer> discountRate = createNumber("discountRate", Integer.class);
 
+    public final BooleanPath dummy = createBoolean("dummy");
+
     public final BooleanPath isDiscount = createBoolean("isDiscount");
 
     public final BooleanPath isRecommend = createBoolean("isRecommend");

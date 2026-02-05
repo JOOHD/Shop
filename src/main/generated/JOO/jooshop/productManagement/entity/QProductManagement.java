@@ -34,19 +34,19 @@ public class QProductManagement extends EntityPathBase<ProductManagement> {
 
     public final NumberPath<Long> inventoryId = createNumber("inventoryId", Long.class);
 
-    public final BooleanPath isRestockAvailable = createBoolean("isRestockAvailable");
-
-    public final BooleanPath isRestocked = createBoolean("isRestocked");
-
-    public final BooleanPath isSoldOut = createBoolean("isSoldOut");
-
     public final ListPath<JOO.jooshop.order.entity.Orders, JOO.jooshop.order.entity.QOrders> orders = this.<JOO.jooshop.order.entity.Orders, JOO.jooshop.order.entity.QOrders>createList("orders", JOO.jooshop.order.entity.Orders.class, JOO.jooshop.order.entity.QOrders.class, PathInits.DIRECT2);
 
     public final JOO.jooshop.product.entity.QProduct product;
 
     public final NumberPath<Long> productStock = createNumber("productStock", Long.class);
 
+    public final BooleanPath restockAvailable = createBoolean("restockAvailable");
+
+    public final BooleanPath restocked = createBoolean("restocked");
+
     public final EnumPath<JOO.jooshop.productManagement.entity.enums.Size> size = createEnum("size", JOO.jooshop.productManagement.entity.enums.Size.class);
+
+    public final BooleanPath soldOut = createBoolean("soldOut");
 
     public QProductManagement(String variable) {
         this(ProductManagement.class, forVariable(variable), INITS);

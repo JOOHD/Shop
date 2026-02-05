@@ -94,7 +94,20 @@ public class ProductManagementService {
         Long productStock = existingInventory.getProductStock() + request.getAdditionalStock();
         Category category = categoryRepository.findByCategoryId(request.getCategoryId()).orElseThrow(() -> new NoSuchElementException("카테고리를 찾을 수 없습니다."));
 
-        existingInventory.updateInventory(category, request.getAdditionalStock(), productStock, request.getIsRestockAvailable(), request.getIsRestocked(),request.getIsSoldOut());
+        // 카테고리 변경
+        existingInventory.changeCategory(category);
+
+        // 추가 입고
+        Long add = request.getAdditionalStock();
+        if (add != null && add > 0) {
+            existingInventory.restock(add);
+        }
+
+        // restock 가능 여부
+        if (request.getIsRestockAvailable() != null) {
+            existingInventory.setRestockAvailable(request.getIsRestockAvailable());
+        }
+
 
 //        InventoryUpdateDto.updateInventoryForm(existingInventory, request);
 

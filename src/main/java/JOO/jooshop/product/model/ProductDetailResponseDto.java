@@ -53,9 +53,9 @@ public class ProductDetailResponseDto {
         this.price = product.getPrice();
         this.productInfo = product.getProductInfo();
         this.manufacturer = product.getManufacturer();
-        this.isDiscount = product.getIsDiscount();
+        this.isDiscount = product.isDiscount();
         this.discountRate = product.getDiscountRate();
-        this.isRecommend = product.getIsRecommend();
+        this.isRecommend = product.isRecommend();
         this.createdAt = product.getCreatedAt();
         this.updatedAt = product.getUpdatedAt();
         this.wishLists = product.getWishLists() != null

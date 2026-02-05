@@ -40,9 +40,9 @@ public class ProductSummaryResponseDto  {
         this.price = product.getPrice();
         this.productInfo = product.getProductInfo();
         this.manufacturer = product.getManufacturer();
-        this.isDiscount = product.getIsDiscount();
+        this.isDiscount = product.isDiscount();
         this.discountRate = product.getDiscountRate();
-        this.isRecommend = product.getIsRecommend();
+        this.isRecommend = product.isRecommend();
         this.createdAt = product.getCreatedAt();
         this.updatedAt = product.getUpdatedAt();
         this.thumbnails = product.getProductThumbnails()

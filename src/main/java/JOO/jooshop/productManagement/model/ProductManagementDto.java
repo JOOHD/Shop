@@ -43,8 +43,8 @@ public class ProductManagementDto {
                 .productType(pm.getProduct().getProductType())
                 .productName(pm.getProduct().getProductName())
                 .manufacturer(pm.getProduct().getManufacturer())
-                .isDiscount(pm.getProduct().getIsDiscount())
-                .isRecommend(pm.getProduct().getIsRecommend())
+                .isDiscount(pm.getProduct().isDiscount())
+                .isRecommend(pm.getProduct().isRecommend())
                 .inventoryId(pm.getInventoryId())
                 .productId(pm.getProduct().getProductId())
                 .colorId(pm.getColor().getColorId())
@@ -74,6 +74,7 @@ public class ProductManagementDto {
                 product,
                 color,
                 category,
+                dto.getGender(),
                 dto.getSize(),
                 dto.getInitialStock(),
                 dto.isRestockAvailable(),

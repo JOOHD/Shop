@@ -1,122 +1,224 @@
 package JOO.jooshop.productManagement.entity;
 
+import JOO.jooshop.categorys.entity.Category;
 import JOO.jooshop.order.entity.Orders;
 import JOO.jooshop.product.entity.Product;
-import JOO.jooshop.categorys.entity.Category;
 import JOO.jooshop.product.entity.ProductColor;
 import JOO.jooshop.product.entity.enums.Gender;
 import JOO.jooshop.productManagement.entity.enums.Size;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-@Setter
 @Entity
-@AllArgsConstructor // 오버로딩 된 생성자 예방
-@NoArgsConstructor
-@Table(name = "product_management")
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // ✅ JPA 기본 생성자만 보호 수준으로
+@Table(
+        name = "product_management",
+        indexes = {
+                @Index(name = "idx_pm_product", columnList = "product_id"),
+                @Index(name = "idx_pm_category", columnList = "category_id")
+        },
+        uniqueConstraints = {
+                // ✅ "옵션 중복" 원천 차단: 같은 상품에 같은 옵션(성별/사이즈/색/카테고리)이 2개 이상 못 생김
+                @UniqueConstraint(
+                        name = "uk_pm_option",
+                        columnNames = {"product_id", "gender", "size", "color_id", "category_id"}
+                )
+        }
+)
 public class ProductManagement {
-    /*
-        inventoryId는 @GeneratedValue 에 의해 자동 생성되기 때문에,
-        builder()에는 포함하지 않는 게 자연스럽고 안전.
-
-        빌더 패턴 사용
-     */
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "inventory_id" )
-    private Long inventoryId; // ProductManagement 테이블의 pk
+    @Column(name = "inventory_id")
+    private Long inventoryId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    @ManyToOne
-    @JoinColumn(name = "color_id", unique = false, nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "color_id", nullable = false)
     private ProductColor color;
 
-    @ManyToOne
-    @JoinColumn(name = "category_id", unique = false, nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "gender", nullable = false)
+    @Column(name = "gender", nullable = false, length = 20)
     private Gender gender;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "size", nullable = false)
+    @Column(name = "size", nullable = false, length = 20)
     private Size size;
 
-    @Column(name = "initial_stock")
-    private Long initialStock;
+    /**
+     * 재고 정책
+     * - initialStock: 최초 등록 시 수량(감사용/이력성 의미)
+     * - additionalStock: 추가 입고 누적(선택)
+     * - productStock: 현재 판매 가능한 재고 (정합성의 기준)
+     */
+    @Column(name = "initial_stock", nullable = false)
+    private long initialStock;
 
-    @Column(name = "additional_stock")
-    private Long additionalStock;
+    @Column(name = "additional_stock", nullable = false)
+    private long additionalStock;
 
-    @Column(name = "product_stock")
-    private Long productStock;
+    @Column(name = "product_stock", nullable = false)
+    private long productStock;
 
-    // Lombok 빌더에서 초기값 유지하려면  필수
-    private boolean isSoldOut = false;
+    @Column(name = "is_sold_out", nullable = false)
+    private boolean soldOut;
 
-    private boolean isRestockAvailable = false;
+    @Column(name = "is_restock_available", nullable = false)
+    private boolean restockAvailable;
 
-    private boolean isRestocked = false;
+    @Column(name = "is_restocked", nullable = false)
+    private boolean restocked;
 
     @ManyToMany(mappedBy = "productManagements")
     private List<Orders> orders = new ArrayList<>();
 
-    public void updateInventory(Category category, Long additionalStock, Long productStock, Boolean isRestockAvailable, Boolean isRestocked, Boolean isSoldOut) {
-        this.category = category;
-        this.additionalStock = additionalStock;
-        this.productStock = productStock;
-        this.isRestockAvailable = isRestockAvailable;
-        this.isRestocked = isRestocked;
-        this.isSoldOut = isSoldOut;
-    }
+    /* =========================================================
+       Factory (필수값 강제)
+    ========================================================= */
 
-    // ProductManagement.java
     public static ProductManagement create(
             Product product,
             ProductColor color,
             Category category,
             Gender gender,
             Size size,
-            Long stock
+            long stock
     ) {
+        validateRequired(product, color, category, gender, size);
+        validateStock(stock);
+
         ProductManagement pm = new ProductManagement();
         pm.product = product;
         pm.color = color;
         pm.category = category;
         pm.gender = gender;
+        pm.size = size;
+
         pm.initialStock = stock;
+        pm.additionalStock = 0L;
         pm.productStock = stock;
+
+        pm.restockAvailable = false;
+        pm.restocked = false;
+        pm.soldOut = (stock == 0);
+
         return pm;
     }
 
-    public static ProductManagement of(Product product,
-                                       ProductColor color,
-                                       Category category,
-                                       Size size,
-                                       Long initialStock,
-                                       Boolean isRestockAvailable,
-                                       Boolean isRestocked,
-                                       Boolean isSoldOut) {
+    /**
+     * Dummy 초기화 등에서 사용하던 of(...)는
+     * 필수 필드(특히 gender)가 빠져 불완전 객체가 만들어질 수 있어 제거 권장.
+     * 그래도 유지하고 싶으면 아래처럼 "필수값 포함" 형태로 변경해야 안전함.
+     */
+    public static ProductManagement of(
+            Product product,
+            ProductColor color,
+            Category category,
+            Gender gender,
+            Size size,
+            long initialStock,
+            Boolean restockAvailable,
+            Boolean restocked,
+            Boolean soldOut
+    ) {
+        validateRequired(product, color, category, gender, size);
+        validateStock(initialStock);
+
         ProductManagement pm = new ProductManagement();
         pm.product = product;
         pm.color = color;
         pm.category = category;
+        pm.gender = gender;
         pm.size = size;
+
         pm.initialStock = initialStock;
-        pm.productStock = initialStock; // 재고 = 초기 재고
-        pm.isRestockAvailable = isRestockAvailable != null ? isRestockAvailable : false;
-        pm.isRestocked = isRestocked != null ? isRestocked : false;
-        pm.isSoldOut = isSoldOut != null ? isSoldOut : false;
+        pm.additionalStock = 0L;
+        pm.productStock = initialStock;
+
+        pm.restockAvailable = Boolean.TRUE.equals(restockAvailable);
+        pm.restocked = Boolean.TRUE.equals(restocked);
+        pm.soldOut = Boolean.TRUE.equals(soldOut) || (initialStock == 0);
+
         return pm;
     }
 
+    /* =========================================================
+       Business methods (setter 대신 도메인 메서드)
+    ========================================================= */
+
+    /**
+     * 옵션 메타 변경(카테고리 변경 등)
+     * - 옵션 교체는 서비스에서 delete/insert가 최선
+     * - 다만 재고 운영 중 카테고리만 바뀌는 케이스가 있다면 허용 가능
+     */
+    public void changeCategory(Category category) {
+        if (category == null) throw new IllegalArgumentException("category must not be null");
+        this.category = category;
+    }
+
+    /** 입고: 현재 재고 증가 + 추가입고 누적 + 상태 갱신 */
+    public void restock(long amount) {
+        if (amount <= 0) throw new IllegalArgumentException("restock amount must be positive");
+
+        this.additionalStock += amount;
+        this.productStock += amount;
+
+        this.restocked = true;
+        this.soldOut = (this.productStock == 0);
+    }
+
+    /** 판매/차감: 재고 음수 방지 */
+    public void decreaseStock(long amount) {
+        if (amount <= 0) throw new IllegalArgumentException("decrease amount must be positive");
+        if (this.productStock < amount) throw new IllegalStateException("insufficient stock");
+
+        this.productStock -= amount;
+        this.soldOut = (this.productStock == 0);
+    }
+
+    /** 재고 수동 보정(관리자용) */
+    public void adjustStock(long newStock) {
+        if (newStock < 0) throw new IllegalArgumentException("stock must be >= 0");
+        this.productStock = newStock;
+        this.soldOut = (this.productStock == 0);
+    }
+
+    public void setRestockAvailable(boolean available) {
+        this.restockAvailable = available;
+    }
+
+    /* =========================================================
+       Validation
+    ========================================================= */
+
+    private static void validateRequired(
+            Product product,
+            ProductColor color,
+            Category category,
+            Gender gender,
+            Size size
+    ) {
+        if (product == null) throw new IllegalArgumentException("product must not be null");
+        if (color == null) throw new IllegalArgumentException("color must not be null");
+        if (category == null) throw new IllegalArgumentException("category must not be null");
+        if (gender == null) throw new IllegalArgumentException("gender must not be null");
+        if (size == null) throw new IllegalArgumentException("size must not be null");
+    }
+
+    private static void validateStock(long stock) {
+        if (stock < 0) throw new IllegalArgumentException("stock must be >= 0");
+    }
 }
