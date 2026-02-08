@@ -6,8 +6,8 @@ import JOO.jooshop.global.queries.ProductQueryHelper;
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.entity.QProduct;
 import JOO.jooshop.product.model.ProductListResponseDto;
-import JOO.jooshop.product.repository.ProductColorRepositoryV1;
-import JOO.jooshop.product.repository.ProductRepositoryV1;
+import JOO.jooshop.product.repository.ProductColorRepository;
+import JOO.jooshop.product.repository.ProductRepository;
 import JOO.jooshop.thumbnail.entity.ProductThumbnail;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
@@ -31,8 +31,8 @@ import static JOO.jooshop.product.entity.QProduct.product;
 @Slf4j
 public class ProductOrderService {
 
-    public final ProductRepositoryV1 productRepository;
-    public final ProductColorRepositoryV1 productColorRepository;
+    public final ProductRepository productRepository;
+    public final ProductColorRepository productColorRepository;
     public final ModelMapper modelMapper;
     private final JPAQueryFactory queryFactory;
 

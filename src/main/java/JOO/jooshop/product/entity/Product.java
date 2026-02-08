@@ -19,6 +19,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Entity
@@ -55,21 +56,26 @@ public class Product extends BaseEntity {
     @Column(nullable = false)
     private boolean isRecommend = false;
 
+    /** ✅ 썸네일 (생명주기 완전 일치) */
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductThumbnail> productThumbnails = new ArrayList<>();
+    private final List<ProductThumbnail> productThumbnails = new ArrayList<>();
 
+    /** ✅ 상세 이미지 (생명주기 완전 일치) */
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ContentImages> contentImages = new ArrayList<>();
+    private final List<ContentImages> contentImages = new ArrayList<>();
 
+    /** ✅ 옵션/재고 (생명주기 완전 일치) */
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private final List<ProductManagement> productManagements = new ArrayList<>();
+
+    /** ✅ 위시리스트는 사용자 활동 데이터라 cascade/orphanRemoval 없이 조회용만 */
     @OneToMany(mappedBy = "product")
-    private List<ProductManagement> productManagements = new ArrayList<>();
+    private final List<WishList> wishLists = new ArrayList<>();
 
-    @OneToMany(mappedBy = "product")
-    private List<WishList> wishLists = new ArrayList<>();
-
-    // ⚠️ 파생값이면 제거 권장. 유지한다면 도메인 메서드로만 변경되게 통제 필요
+    /** 파생값이면 제거 권장(유지한다면 서비스 레벨에서만 변경) */
     private Long wishListCount;
 
+    /** 더미 플래그 */
     @Column(nullable = false)
     private boolean dummy = false;
 
@@ -94,29 +100,42 @@ public class Product extends BaseEntity {
             Boolean isRecommend
     ) {
         Product p = new Product();
-        p.productName = productName;
+        p.productName = requireText(productName, "productName");
         p.productType = type;
-        p.price = price;
+        p.price = requireNotNull(price, "price");
         p.productInfo = productInfo;
         p.manufacturer = manufacturer;
 
-        boolean discount = Boolean.TRUE.equals(isDiscount);
-        p.isDiscount = discount;
-        p.discountRate = discount ? discountRate : null;
-
+        p.applyDiscount(Boolean.TRUE.equals(isDiscount), discountRate);
         p.isRecommend = Boolean.TRUE.equals(isRecommend);
-        p.dummy = true;
 
+        p.dummy = true;
         return p;
     }
 
     /* =========================
-       Convenience methods
+       Read-only views (외부 노출용)
     ========================= */
 
-    /** ✅ 썸네일 추가는 Path 기반으로만 허용(생성 규칙 고정) */
+    public List<ProductThumbnail> thumbnailsView() {
+        return Collections.unmodifiableList(productThumbnails);
+    }
+
+    public List<ContentImages> contentImagesView() {
+        return Collections.unmodifiableList(contentImages);
+    }
+
+    public List<ProductManagement> optionsView() {
+        return Collections.unmodifiableList(productManagements);
+    }
+
+    /* =========================
+       Convenience methods (양방향 정합성 보장)
+    ========================= */
+
     public void addThumbnailPath(String imagePath) {
-        ProductThumbnail thumbnail = ProductThumbnail.create(this, imagePath);
+        String path = requireText(imagePath, "imagePath");
+        ProductThumbnail thumbnail = ProductThumbnail.create(this, path);
         this.productThumbnails.add(thumbnail);
     }
 
@@ -126,7 +145,10 @@ public class Product extends BaseEntity {
     }
 
     public void addContentImagePath(String imagePath, UploadType uploadType) {
-        ContentImages image = ContentImages.create(this, imagePath, uploadType);
+        String path = requireText(imagePath, "imagePath");
+        if (uploadType == null) throw new IllegalArgumentException("uploadType must not be null");
+
+        ContentImages image = ContentImages.create(this, path, uploadType);
         this.contentImages.add(image);
     }
 
@@ -135,8 +157,25 @@ public class Product extends BaseEntity {
         this.contentImages.remove(image);
     }
 
+    /**
+     * ✅ 옵션(재고) 추가
+     * - 리스트에만 넣지 말고 "pm.product"가 반드시 this를 가리키게 보장해야 FK가 안정적이다.
+     * - pm을 외부에서 만들어 올 수도 있으니 안전 장치로 attach 수행.
+     */
+    public void addProductManagement(ProductManagement pm) {
+        if (pm == null) return;
+        pm.attachTo(this); // ✅ 아래 ProductManagement에 attachTo() 추가 필요
+        this.productManagements.add(pm);
+    }
+
+    public void removeProductManagement(ProductManagement pm) {
+        if (pm == null) return;
+        this.productManagements.remove(pm); // orphanRemoval=true → flush 시 DELETE
+        pm.detach(); // 안전(선택)
+    }
+
     /* =========================
-       Constructors / Update
+       Update
     ========================= */
 
     public Product(AdminProductRequestDto dto) {
@@ -157,42 +196,39 @@ public class Product extends BaseEntity {
 
     private void applyRequestDto(ProductRequestDto dto) {
         if (dto == null) throw new IllegalArgumentException("dto must not be null");
-        if (dto.getProductName() == null || dto.getProductName().isBlank())
-            throw new IllegalArgumentException("productName is required");
-        if (dto.getPrice() == null)
-            throw new IllegalArgumentException("price is required");
 
-        this.productName = dto.getProductName();
+        this.productName = requireText(dto.getProductName(), "productName");
         this.productType = dto.getProductType();
-        this.price = dto.getPrice();
+        this.price = requireNotNull(dto.getPrice(), "price");
         this.productInfo = dto.getProductInfo();
         this.manufacturer = dto.getManufacturer();
 
-        boolean discount = Boolean.TRUE.equals(dto.getIsDiscount());
-        this.isDiscount = discount;
-        this.discountRate = discount ? dto.getDiscountRate() : null;
-
+        applyDiscount(Boolean.TRUE.equals(dto.getIsDiscount()), dto.getDiscountRate());
         this.isRecommend = Boolean.TRUE.equals(dto.getIsRecommend());
     }
 
     private void applyAdminDto(AdminProductRequestDto dto) {
         if (dto == null) throw new IllegalArgumentException("dto must not be null");
-        if (dto.getProductName() == null || dto.getProductName().isBlank())
-            throw new IllegalArgumentException("productName is required");
-        if (dto.getPrice() == null)
-            throw new IllegalArgumentException("price is required");
 
-        this.productName = dto.getProductName();
+        this.productName = requireText(dto.getProductName(), "productName");
         this.productType = dto.getProductType();
-        this.price = dto.getPrice();
+        this.price = requireNotNull(dto.getPrice(), "price");
         this.productInfo = dto.getProductInfo();
         this.manufacturer = dto.getManufacturer();
 
-        boolean discount = Boolean.TRUE.equals(dto.getIsDiscount());
-        this.isDiscount = discount;
-        this.discountRate = discount ? dto.getDiscountRate() : null;
-
+        applyDiscount(Boolean.TRUE.equals(dto.getIsDiscount()), dto.getDiscountRate());
         this.isRecommend = Boolean.TRUE.equals(dto.getIsRecommend());
+    }
+
+    private void applyDiscount(boolean discount, Integer rate) {
+        this.isDiscount = discount;
+        if (!discount) {
+            this.discountRate = null;
+            return;
+        }
+        // 할인인데 rate가 null이면 정책상 0으로 둘지, 예외로 막을지 선택.
+        // 운영에서 안정적으로 가려면 "null이면 0" 추천.
+        this.discountRate = (rate == null ? 0 : rate);
     }
 
     /* =========================
@@ -205,5 +241,15 @@ public class Product extends BaseEntity {
 
     public void markAsReal() {
         this.dummy = false;
+    }
+
+    private static String requireText(String value, String field) {
+        if (value == null || value.isBlank()) throw new IllegalArgumentException(field + " is required");
+        return value;
+    }
+
+    private static <T> T requireNotNull(T value, String field) {
+        if (value == null) throw new IllegalArgumentException(field + " is required");
+        return value;
     }
 }

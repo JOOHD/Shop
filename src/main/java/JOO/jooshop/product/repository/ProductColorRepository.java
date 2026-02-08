@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface ProductColorRepositoryV1 extends JpaRepository<ProductColor, Long> {
+public interface ProductColorRepository extends JpaRepository<ProductColor, Long> {
     Optional<ProductColor> findByColor(String color);
 }

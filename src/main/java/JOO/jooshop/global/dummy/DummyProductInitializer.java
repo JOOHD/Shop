@@ -3,13 +3,14 @@ package JOO.jooshop.global.dummy;
 import JOO.jooshop.categorys.entity.Category;
 import JOO.jooshop.categorys.repository.CategoryRepository;
 import JOO.jooshop.product.entity.Product;
+import JOO.jooshop.product.entity.ProductColor;
 import JOO.jooshop.product.entity.enums.Gender;
 import JOO.jooshop.product.entity.enums.ProductType;
-import JOO.jooshop.product.repository.ProductRepositoryV1;
+import JOO.jooshop.product.repository.ProductColorRepository;
+import JOO.jooshop.product.repository.ProductRepository;
 import JOO.jooshop.productManagement.entity.ProductManagement;
 import JOO.jooshop.productManagement.entity.enums.Size;
 import JOO.jooshop.productManagement.repository.ProductManagementRepository;
-import JOO.jooshop.thumbnail.entity.ProductThumbnail;
 import JOO.jooshop.thumbnail.repository.ProductThumbnailRepositoryV1;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,8 +29,14 @@ import java.util.Random;
 @RequiredArgsConstructor
 public class DummyProductInitializer implements CommandLineRunner {
 
+    private static final String DUMMY_CATEGORY_NAME = "DUMMY";
+    private static final String DUMMY_COLOR_NAME = "DUMMY_COLOR";
+    private static final long DEFAULT_STOCK = 20L;
+
     private final CategoryRepository categoryRepository;
-    private final ProductRepositoryV1 productRepository;
+    private final ProductRepository productRepository;
+    private final ProductColorRepository productColorRepository;
+
     private final ProductThumbnailRepositoryV1 productThumbnailRepository;
     private final ProductManagementRepository productManagementRepository;
 
@@ -43,25 +50,33 @@ public class DummyProductInitializer implements CommandLineRunner {
         resetDummyData();
 
         Category dummyCategory = getOrCreateDefaultCategory();
-        createDummyProducts(dummyCategory);
+        ProductColor dummyColor = getOrCreateDefaultColor();
+
+        createDummyProducts(dummyCategory, dummyColor);
 
         log.info("[DummyProductInitializer] END");
     }
 
     private Category getOrCreateDefaultCategory() {
-        return categoryRepository.findByName("DUMMY")
-                .orElseGet(() -> categoryRepository.save(Category.ofName("DUMMY")));
+        return categoryRepository.findByName(DUMMY_CATEGORY_NAME)
+                .orElseGet(() -> categoryRepository.save(Category.ofName(DUMMY_CATEGORY_NAME)));
+    }
+
+    private ProductColor getOrCreateDefaultColor() {
+        return productColorRepository.findByColor(DUMMY_COLOR_NAME)
+                .orElseGet(() -> productColorRepository.save(ProductColor.ofName(DUMMY_COLOR_NAME)));
     }
 
     /**
-     * ✅ 더미 데이터만 삭제
-     * - Product.dummy=true 대상만 골라서
-     * - FK 테이블 → Product 순으로 삭제
+     * reset = 기존 더미 데이터만 삭제
      *
-     * 주의:
-     * - ProductThumbnailRepositoryV1은 deleteByProductId(List<Long>)가 "이미 존재"
-     * - ProductManagementRepository는 현재 시그니처가 불명확(네가 에러로 언급),
-     *   그래서 "가장 안전한" 단건 루프 방식으로 처리
+     * 전제:
+     * - productRepository.findDummyIds() : 더미로 판단되는 product id 리스트 반환
+     * - 썸네일/옵션은 FK 때문에 먼저 삭제 후 product 삭제
+     *
+     * 삭제 전략:
+     * 1) bulk delete 메서드 있으면 bulk로
+     * 2) 없으면 (레포가 단수만 있으면) 반복 삭제로 fallback
      */
     protected void resetDummyData() {
         log.info("[DummyProductInitializer] delete dummy data only");
@@ -72,31 +87,54 @@ public class DummyProductInitializer implements CommandLineRunner {
             return;
         }
 
-        // 1) 옵션 삭제 (리포지토리 시그니처가 List를 못 받는 상태라면 단건 루프)
-        // - 만약 deleteByProductId(@Param("ids") List<Long> ids) 형태가 이미 있다면
-        //   아래 루프를 "한 번 호출"로 바꿀 수 있음.
-        for (Long id : dummyIds) {
-            try {
-                productManagementRepository.deleteByProductId(id);
-            } catch (Exception e) {
-                log.warn("[DummyProductInitializer] delete options failed. productId={}", id, e);
-            }
-        }
+        // 1) 옵션(ProductManagement) 먼저 삭제
+        safeDeleteOptionsByProductIds(dummyIds);
 
-        // 2) 썸네일 삭제 (너가 보여준 메서드는 List<Long> 받는 JPQL delete)
-        try {
-            productThumbnailRepository.deleteByProductIds(dummyIds);
-        } catch (Exception e) {
-            log.warn("[DummyProductInitializer] delete thumbnails failed. ids={}", dummyIds.size(), e);
-        }
+        // 2) 썸네일 먼저 삭제
+        safeDeleteThumbnailsByProductIds(dummyIds);
 
-        // 3) Product 삭제
-        productRepository.deleteAllById(dummyIds);
+        // 3) Product 삭제 (batch)
+        productRepository.deleteAllByIdInBatch(dummyIds);
 
         log.info("[DummyProductInitializer] deleted dummy products: {}", dummyIds.size());
     }
 
-    private void createDummyProducts(Category dummyCategory) {
+    private void safeDeleteOptionsByProductIds(List<Long> productIds) {
+        try {
+            // ✅ bulk 메서드가 있으면 이걸 쓰는 게 최적
+            productManagementRepository.deleteByProductIds(productIds);
+            log.info("[DummyProductInitializer] deleted options (bulk): {}", productIds.size());
+        } catch (Exception bulkNotFoundOrFail) {
+            // ✅ bulk 메서드가 없거나 실패하면 단수 delete로 fallback
+            log.warn("[DummyProductInitializer] bulk delete options failed -> fallback to single delete. size={}",
+                    productIds.size(), bulkNotFoundOrFail);
+
+            for (Long productId : productIds) {
+                try {
+                    productManagementRepository.deleteByProductId(productId);
+                } catch (Exception e) {
+                    log.warn("[DummyProductInitializer] delete options failed. productId={}", productId, e);
+                }
+            }
+        }
+    }
+
+    private void safeDeleteThumbnailsByProductIds(List<Long> productIds) {
+        try {
+            // ✅ 썸네일 repo는 보통 bulk가 있음 (네가 try-catch로 이미 쓰고 있음)
+            productThumbnailRepository.deleteByProductIds(productIds);
+            log.info("[DummyProductInitializer] deleted thumbnails (bulk): {}", productIds.size());
+        } catch (Exception e) {
+            log.warn("[DummyProductInitializer] delete thumbnails failed. size={}", productIds.size(), e);
+        }
+    }
+
+    /**
+     * ✅ 더미 상품 생성
+     * - Product 엔티티 그래프(썸네일/옵션)를 먼저 구성
+     * - save 1번으로 저장되게 유지 (cascade + orphanRemoval 전제)
+     */
+    private void createDummyProducts(Category dummyCategory, ProductColor dummyColor) {
         List<String> productNames = List.of(
                 "2025 맨유 홈 저지",
                 "2025 맨유 어웨이 저지",
@@ -134,19 +172,17 @@ public class DummyProductInitializer implements CommandLineRunner {
             String url = imageUrls.get(i);
 
             try {
-                // ✅ Product.createDummy 시그니처는 8개 인자 (네가 제공한 코드 기준)
                 Product product = createProduct(name);
 
-                // ✅ product 저장 먼저 (FK 안정화)
+                // 썸네일 1개 추가
+                addThumbnailToProduct(product, url);
+
+                // 옵션(성별 x 사이즈) 생성
+                addOptions(product, dummyCategory, dummyColor);
+
                 Product saved = productRepository.save(product);
+                log.info("[Dummy] created product: {} (id={})", saved.getProductName(), saved.getProductId());
 
-                // ✅ 썸네일 저장: ProductThumbnail 기본 생성자 protected → (product, url) 생성자 사용
-                addThumbnail(saved, url);
-
-                // ✅ 옵션 저장: ProductManagement.of(...)는 "9개 + 순서 고정" (아래에서 맞춤)
-                createOptions(saved, dummyCategory);
-
-                log.info("[Dummy] created product: {}", saved.getProductName());
             } catch (Exception e) {
                 log.error("[Dummy] failed product: {}", name, e);
             }
@@ -166,49 +202,36 @@ public class DummyProductInitializer implements CommandLineRunner {
         );
     }
 
-    private void addThumbnail(Product product, String imageUrl) {
+    private void addThumbnailToProduct(Product product, String imageUrl) {
         String normalized = normalizeUrl(imageUrl);
-
         if (normalized == null) {
             log.warn("[Dummy] skip invalid thumbnail url. product={}", product.getProductName());
             return;
         }
+        product.addThumbnailPath(normalized);
+    }
 
-        ProductThumbnail thumbnail = ProductThumbnail.create(product, normalized);
-        productThumbnailRepository.save(thumbnail);
+    private void addOptions(Product product, Category category, ProductColor color) {
+        for (Gender gender : Gender.values()) {
+            for (Size size : Size.values()) {
+                ProductManagement pm = ProductManagement.create(
+                        product,
+                        color,
+                        category,
+                        gender,
+                        size,
+                        DEFAULT_STOCK
+                );
+                product.addProductManagement(pm); // ✅ Product 편의 메서드로 연결
+            }
+        }
     }
 
     private String normalizeUrl(String url) {
         if (url == null) return null;
-
         String trimmed = url.trim();
         if (trimmed.isBlank()) return null;
-
         if (!(trimmed.startsWith("http://") || trimmed.startsWith("https://"))) return null;
-
         return trimmed;
-    }
-
-    private void createOptions(Product product, Category dummyCategory) {
-        for (Gender gender : Gender.values()) {
-            for (Size size : Size.values()) {
-
-                // ✅ 너가 준 ProductManagement.of 시그니처 그대로 맞춤
-                // (product, color, category, gender, size, initialStock, restockAvailable, restocked, soldOut)
-                ProductManagement pm = ProductManagement.of(
-                        product,
-                        null,          // ⚠️ 여기 null이면 validateRequired에서 터짐!
-                        dummyCategory,
-                        gender,
-                        size,
-                        20L,
-                        true,
-                        false,
-                        false
-                );
-
-                productManagementRepository.save(pm);
-            }
-        }
     }
 }

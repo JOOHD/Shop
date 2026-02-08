@@ -1,7 +1,7 @@
 package JOO.jooshop.thumbnail.controller;
 
 import JOO.jooshop.product.entity.Product;
-import JOO.jooshop.product.repository.ProductRepositoryV1;
+import JOO.jooshop.product.repository.ProductRepository;
 import JOO.jooshop.thumbnail.service.ThumbnailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,7 @@ import static JOO.jooshop.global.exception.ResponseMessageConstants.PRODUCT_NOT_
 public class ThumbnailApiControllerV1 {
 
     private final ThumbnailService thumbnailService;
-    private final ProductRepositoryV1 productRepository;
+    private final ProductRepository productRepository;
 
     /**  썸네일 이미지 업로드 (MultipartFile 버전) */
     @PostMapping("/upload")

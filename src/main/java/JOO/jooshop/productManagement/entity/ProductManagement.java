@@ -159,6 +159,15 @@ public class ProductManagement {
        Business methods (setter 대신 도메인 메서드)
     ========================================================= */
 
+    public void attachTo(Product product) {
+        if (product == null) throw new IllegalArgumentException("product must not be null");
+        this.product = product;
+    }
+
+    public void detach() {
+        this.product = null;
+    }
+
     /**
      * 옵션 메타 변경(카테고리 변경 등)
      * - 옵션 교체는 서비스에서 delete/insert가 최선

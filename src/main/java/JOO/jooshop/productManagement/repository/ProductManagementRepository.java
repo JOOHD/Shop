@@ -25,5 +25,7 @@ public interface ProductManagementRepository extends JpaRepository<ProductManage
     @Query("delete from ProductManagement pm where pm.product.productId = :productId")
     void deleteByProductId(@Param("productId") Long productId);
 
-    List<ProductManagement> findByProduct_ProductId(Long productId);
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("delete from ProductManagement pm where pm.product.productId in :productIds")
+    void deleteByProductIds(@Param("productIds") List<Long> productIds);
 }

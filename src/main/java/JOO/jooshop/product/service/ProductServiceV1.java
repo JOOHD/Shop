@@ -10,8 +10,8 @@ import JOO.jooshop.product.model.ProductColorDto;
 import JOO.jooshop.product.model.ProductDetailResponseDto;
 import JOO.jooshop.product.model.ProductListResponseDto;
 import JOO.jooshop.product.model.ProductRequestDto;
-import JOO.jooshop.product.repository.ProductColorRepositoryV1;
-import JOO.jooshop.product.repository.ProductRepositoryV1;
+import JOO.jooshop.product.repository.ProductColorRepository;
+import JOO.jooshop.product.repository.ProductRepository;
 import JOO.jooshop.productManagement.entity.ProductManagement;
 import JOO.jooshop.thumbnail.service.ThumbnailService;
 import lombok.RequiredArgsConstructor;
@@ -34,8 +34,8 @@ import static JOO.jooshop.global.exception.ResponseMessageConstants.PRODUCT_NOT_
 @Slf4j
 public class ProductServiceV1 {
 
-    private final ProductRepositoryV1 productRepository;
-    private final ProductColorRepositoryV1 productColorRepository;
+    private final ProductRepository productRepository;
+    private final ProductColorRepository productColorRepository;
     private final ModelMapper modelMapper;
     private final ThumbnailService thumbnailService;
     private final ContentImgService contentImgService;

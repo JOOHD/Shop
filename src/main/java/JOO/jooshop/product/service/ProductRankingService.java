@@ -2,8 +2,8 @@ package JOO.jooshop.product.service;
 
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.model.ProductRankResponseDto;
-import JOO.jooshop.product.repository.ProductColorRepositoryV1;
-import JOO.jooshop.product.repository.ProductRepositoryV1;
+import JOO.jooshop.product.repository.ProductColorRepository;
+import JOO.jooshop.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -34,8 +34,8 @@ public class ProductRankingService {
         - 단순 랭킹뿐 아니라, 제품 상세 캐시, 인기 상품 리스트, 유저 임시 정보 저장 등 다양한 기능에 대응
      */
 
-    public final ProductRepositoryV1 productRepository;
-    public final ProductColorRepositoryV1 productColorRepository;
+    public final ProductRepository productRepository;
+    public final ProductColorRepository productColorRepository;
     public final ModelMapper modelMapper;
     private final RedisTemplate<String, Object> redisTemplate;
 

@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ProductRepositoryV1 extends JpaRepository<Product, Long> {
+public interface ProductRepository extends JpaRepository<Product, Long> {
 
     // fetch join 으로 상품과 썸네일 같이 가져오기
     @EntityGraph(attributePaths = {"productThumbnails"})

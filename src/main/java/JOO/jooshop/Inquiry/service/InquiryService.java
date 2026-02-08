@@ -11,7 +11,7 @@ import JOO.jooshop.global.authorization.MemberAuthorizationUtil;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.repository.MemberRepositoryV1;
 import JOO.jooshop.product.entity.Product;
-import JOO.jooshop.product.repository.ProductRepositoryV1;
+import JOO.jooshop.product.repository.ProductRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -31,7 +31,7 @@ import static JOO.jooshop.global.exception.ResponseMessageConstants.*;
 public class InquiryService {
     public final InquiryRepository inquiryRepository;
     public final MemberRepositoryV1 memberRepository;
-    public final ProductRepositoryV1 productRepository;
+    public final ProductRepository productRepository;
     private final JWTUtil jwtUtil;
     public final ModelMapper modelMapper;
 

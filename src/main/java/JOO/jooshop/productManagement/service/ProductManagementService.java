@@ -3,8 +3,8 @@ package JOO.jooshop.productManagement.service;
 import JOO.jooshop.categorys.repository.CategoryRepository;
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.entity.ProductColor;
-import JOO.jooshop.product.repository.ProductColorRepositoryV1;
-import JOO.jooshop.product.repository.ProductRepositoryV1;
+import JOO.jooshop.product.repository.ProductColorRepository;
+import JOO.jooshop.product.repository.ProductRepository;
 import JOO.jooshop.productManagement.model.InventoryCreateDto;
 import JOO.jooshop.productManagement.repository.ProductManagementRepository;
 import JOO.jooshop.categorys.entity.Category;
@@ -27,8 +27,8 @@ import static JOO.jooshop.global.exception.ResponseMessageConstants.PRODUCT_NOT_
 public class ProductManagementService {
     public final ProductManagementRepository productManagementRepository;
     public final CategoryRepository categoryRepository;
-    public final ProductRepositoryV1 productRepository;
-    public final ProductColorRepositoryV1 productColorRepository;
+    public final ProductRepository productRepository;
+    public final ProductColorRepository productColorRepository;
 
     /**
      * 상품관리 등록

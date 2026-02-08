@@ -4,7 +4,7 @@ import JOO.jooshop.contentImgs.entity.ContentImages;
 import JOO.jooshop.contentImgs.entity.enums.UploadType;
 import JOO.jooshop.contentImgs.service.ContentImgService;
 import JOO.jooshop.product.entity.Product;
-import JOO.jooshop.product.repository.ProductRepositoryV1;
+import JOO.jooshop.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +24,7 @@ import static JOO.jooshop.global.exception.ResponseMessageConstants.DELETE_SUCCE
 public class ContentImgController {
 
     private final ContentImgService contentImgService;
-    private final ProductRepositoryV1 productRepository;
+    private final ProductRepository productRepository;
 
     // 이미지 업로드 (MultipartFile)
     @PostMapping("/upload")

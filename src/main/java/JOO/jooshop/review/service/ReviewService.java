@@ -5,7 +5,7 @@ import JOO.jooshop.members.repository.MemberRepositoryV1;
 import JOO.jooshop.payment.entity.PaymentHistory;
 import JOO.jooshop.payment.repository.PaymentRepository;
 import JOO.jooshop.product.entity.Product;
-import JOO.jooshop.product.repository.ProductRepositoryV1;
+import JOO.jooshop.product.repository.ProductRepository;
 import JOO.jooshop.review.entity.Review;
 import JOO.jooshop.review.model.ReviewCreateDto;
 import JOO.jooshop.review.model.ReviewDto;
@@ -32,7 +32,7 @@ import static JOO.jooshop.global.authorization.MemberAuthorizationUtil.*;
 public class ReviewService {
     public final PaymentRepository paymentRepository;
     public final ReviewRepository reviewRepository;
-    public final ProductRepositoryV1 productRepository;
+    public final ProductRepository productRepository;
     public final MemberRepositoryV1 memberRepository;
     public final ModelMapper modelMapper;
     public final ReviewImgService reviewImgService;
