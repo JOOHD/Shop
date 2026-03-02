@@ -15,6 +15,6 @@ public interface ProductThumbnailRepositoryV1 extends JpaRepository<ProductThumb
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("delete from ProductThumbnail t where t.product.productId in :productIds")
-    void deleteByProductIds(@Param("ids") List<Long> productIds);
+    void deleteByProductIdIn(@Param("ids") List<Long> productIds);
 
 }

@@ -12,9 +12,12 @@ import java.time.LocalDateTime;
 
 @Getter
 @Entity
-@Table(name = "content_imgs", indexes = {
-        @Index(name = "idx_content_imgs_product", columnList = "product_id")
-})
+@Table(
+        name = "content_imgs",
+        indexes = {
+                @Index(name = "idx_content_imgs_product", columnList = "product_id")
+        }
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ContentImages {
 
@@ -34,27 +37,45 @@ public class ContentImages {
     @Column(name = "upload_type", nullable = false, length = 30)
     private UploadType uploadType;
 
-    // ✅ createdAt은 DB/하이버네이트에 위임 (한 방식으로 통일)
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    /* ========= Factory ========= */
+    /* =========================================================
+       Factory
+    ========================================================= */
 
     public static ContentImages create(Product product, String imagePath, UploadType uploadType) {
         if (product == null) throw new IllegalArgumentException("product must not be null");
+
         String normalized = normalizePath(imagePath);
         if (normalized == null) throw new IllegalArgumentException("imagePath is invalid");
         if (uploadType == null) throw new IllegalArgumentException("uploadType must not be null");
 
         ContentImages img = new ContentImages();
-        img.product = product;
+        img.attachTo(product);
         img.imagePath = normalized;
         img.uploadType = uploadType;
         return img;
     }
 
-    /* ========= Domain methods ========= */
+    /* =========================================================
+       Association (attach / detach)
+       - 연관관계 세팅은 여기로 통일
+    ========================================================= */
+
+    public void attachTo(Product product) {
+        if (product == null) throw new IllegalArgumentException("product must not be null");
+        this.product = product;
+    }
+
+    public void detach() {
+        this.product = null;
+    }
+
+    /* =========================================================
+       Domain methods
+    ========================================================= */
 
     /** 필요 시 경로 교체(운영 정책상 금지라면 삭제해도 됨) */
     public void changePath(String newPath) {
@@ -63,7 +84,9 @@ public class ContentImages {
         this.imagePath = normalized;
     }
 
-    /* ========= Helpers ========= */
+    /* =========================================================
+       Helpers
+    ========================================================= */
 
     private static String normalizePath(String path) {
         if (path == null) return null;
@@ -74,7 +97,6 @@ public class ContentImages {
 
     @Override
     public String toString() {
-        // ✅ 엔티티 toString에서 path 노출은 로그 오염/보안/길이 문제 생김
         return "ContentImages{id=" + contentImgId + ", uploadType=" + uploadType + "}";
     }
 }

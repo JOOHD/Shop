@@ -98,7 +98,7 @@ public class ProductServiceV1 {
      */
     @Transactional(readOnly = true)
     public List<ProductListResponseDto> getAllProducts() {
-        return productRepository.findAll()
+        return productRepository.findAllWithThumbnails()
                 .stream()
                 .map(ProductListResponseDto::new)
                 .collect(Collectors.toList());

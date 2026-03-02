@@ -56,6 +56,9 @@ public class Product extends BaseEntity {
     @Column(nullable = false)
     private boolean isRecommend = false;
 
+    // orphanRemoval = true  (remove = DB delete)
+    // orphanRemoval = false (remove = FK null)
+    
     /** ✅ 썸네일 (생명주기 완전 일치) */
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<ProductThumbnail> productThumbnails = new ArrayList<>();
@@ -145,16 +148,14 @@ public class Product extends BaseEntity {
     }
 
     public void addContentImagePath(String imagePath, UploadType uploadType) {
-        String path = requireText(imagePath, "imagePath");
-        if (uploadType == null) throw new IllegalArgumentException("uploadType must not be null");
-
-        ContentImages image = ContentImages.create(this, path, uploadType);
+        ContentImages image = ContentImages.create(this, imagePath, uploadType);
         this.contentImages.add(image);
     }
 
     public void removeContentImage(ContentImages image) {
         if (image == null) return;
         this.contentImages.remove(image);
+        image.detach();
     }
 
     /**

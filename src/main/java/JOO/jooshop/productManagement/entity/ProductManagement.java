@@ -16,7 +16,7 @@ import java.util.List;
 
 @Getter
 @Entity
-@NoArgsConstructor(access = AccessLevel.PROTECTED) // ✅ JPA 기본 생성자만 보호 수준으로
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
         name = "product_management",
         indexes = {
@@ -24,7 +24,6 @@ import java.util.List;
                 @Index(name = "idx_pm_category", columnList = "category_id")
         },
         uniqueConstraints = {
-                // ✅ "옵션 중복" 원천 차단: 같은 상품에 같은 옵션(성별/사이즈/색/카테고리)이 2개 이상 못 생김
                 @UniqueConstraint(
                         name = "uk_pm_option",
                         columnNames = {"product_id", "gender", "size", "color_id", "category_id"}
@@ -73,6 +72,7 @@ public class ProductManagement {
     @Column(name = "product_stock", nullable = false)
     private long productStock;
 
+    // boolean 3개는 snake_case로 명시
     @Column(name = "is_sold_out", nullable = false)
     private boolean soldOut;
 
@@ -82,8 +82,13 @@ public class ProductManagement {
     @Column(name = "is_restocked", nullable = false)
     private boolean restocked;
 
+    /**
+     * Orders가 연관관계의 주인이라고 가정(mappedBy="productManagements")
+     * - 여기서는 "조회용" 컬렉션
+     * - add/remove 같은 도메인 조작은 Orders 쪽에서 통일하는 걸 추천
+     */
     @ManyToMany(mappedBy = "productManagements")
-    private List<Orders> orders = new ArrayList<>();
+    private final List<Orders> orders = new ArrayList<>();
 
     /* =========================================================
        Factory (필수값 강제)
@@ -101,7 +106,8 @@ public class ProductManagement {
         validateStock(stock);
 
         ProductManagement pm = new ProductManagement();
-        pm.product = product;
+        pm.attachTo(product);
+
         pm.color = color;
         pm.category = category;
         pm.gender = gender;
@@ -118,11 +124,6 @@ public class ProductManagement {
         return pm;
     }
 
-    /**
-     * Dummy 초기화 등에서 사용하던 of(...)는
-     * 필수 필드(특히 gender)가 빠져 불완전 객체가 만들어질 수 있어 제거 권장.
-     * 그래도 유지하고 싶으면 아래처럼 "필수값 포함" 형태로 변경해야 안전함.
-     */
     public static ProductManagement of(
             Product product,
             ProductColor color,
@@ -138,7 +139,8 @@ public class ProductManagement {
         validateStock(initialStock);
 
         ProductManagement pm = new ProductManagement();
-        pm.product = product;
+        pm.attachTo(product);
+
         pm.color = color;
         pm.category = category;
         pm.gender = gender;
@@ -156,7 +158,8 @@ public class ProductManagement {
     }
 
     /* =========================================================
-       Business methods (setter 대신 도메인 메서드)
+       Association (attach / detach)
+       - Product.addProductManagement(pm)에서 호출되어도 안전하게 동작하게 함
     ========================================================= */
 
     public void attachTo(Product product) {
@@ -167,6 +170,10 @@ public class ProductManagement {
     public void detach() {
         this.product = null;
     }
+
+    /* =========================================================
+       Business methods (setter 대신 도메인 메서드)
+    ========================================================= */
 
     /**
      * 옵션 메타 변경(카테고리 변경 등)

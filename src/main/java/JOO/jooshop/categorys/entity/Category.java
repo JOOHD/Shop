@@ -111,6 +111,11 @@ public class Category {
     public static Category ofName(String categoryName) {
         Category category = new Category();
         category.name = categoryName;
+
+        // NOT NULL 컬럼 기본값 세팅
+        category.depth = 0L;      // 최상위 기준 (DB/정책에 맞게 0 or 1)
+        category.parent = null;   // 최상위 카테고리면 null
+
         return category;
     }
 }

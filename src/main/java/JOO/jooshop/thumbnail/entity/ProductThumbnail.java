@@ -11,9 +11,12 @@ import java.time.LocalDateTime;
 
 @Getter
 @Entity
-@Table(name = "product_thumbnails", indexes = {
-        @Index(name = "idx_thumbnails_product", columnList = "product_id")
-})
+@Table(
+        name = "product_thumbnails",
+        indexes = {
+                @Index(name = "idx_thumbnails_product", columnList = "product_id")
+        }
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ProductThumbnail {
 
@@ -33,20 +36,39 @@ public class ProductThumbnail {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    /* ========= Factory ========= */
+    /* =========================================================
+       Factory
+    ========================================================= */
 
     public static ProductThumbnail create(Product product, String imagePath) {
         if (product == null) throw new IllegalArgumentException("product must not be null");
+
         String normalized = normalizePath(imagePath);
         if (normalized == null) throw new IllegalArgumentException("imagePath is invalid");
 
         ProductThumbnail t = new ProductThumbnail();
-        t.product = product;
+        t.attachTo(product);
         t.imagePath = normalized;
         return t;
     }
 
-    /* ========= Domain methods ========= */
+    /* =========================================================
+       Association (attach / detach)
+       - 연관관계 세팅은 여기로 통일 (setProduct 같은 애매한 메서드 제거)
+    ========================================================= */
+
+    public void attachTo(Product product) {
+        if (product == null) throw new IllegalArgumentException("product must not be null");
+        this.product = product;
+    }
+
+    public void detach() {
+        this.product = null;
+    }
+
+    /* =========================================================
+       Domain methods
+    ========================================================= */
 
     public void changePath(String newPath) {
         String normalized = normalizePath(newPath);
@@ -54,10 +76,9 @@ public class ProductThumbnail {
         this.imagePath = normalized;
     }
 
-    /** 연관관계 세팅은 엔티티 내부에서만 제한적으로 사용 */
-    void setProduct(Product product) {
-        this.product = product;
-    }
+    /* =========================================================
+       Internal helpers
+    ========================================================= */
 
     private static String normalizePath(String path) {
         if (path == null) return null;

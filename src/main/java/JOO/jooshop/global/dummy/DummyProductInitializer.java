@@ -24,10 +24,10 @@ import java.util.List;
 import java.util.Random;
 
 @Slf4j
-@Profile("local")
+@Profile("local") // 운영/배포에서는 사용 x
 @Component
 @RequiredArgsConstructor
-public class DummyProductInitializer implements CommandLineRunner {
+public class DummyProductInitializer implements CommandLineRunner { // 스프링 부트 시작 시, 자동 실행
 
     private static final String DUMMY_CATEGORY_NAME = "DUMMY";
     private static final String DUMMY_COLOR_NAME = "DUMMY_COLOR";
@@ -45,14 +45,15 @@ public class DummyProductInitializer implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
+
         log.info("[DummyProductInitializer] START");
 
-        resetDummyData();
+        resetDummyData(); // 기존 더미 삭제
 
-        Category dummyCategory = getOrCreateDefaultCategory();
+        Category dummyCategory = getOrCreateDefaultCategory(); // 기본 카테고리/컬러 확보
         ProductColor dummyColor = getOrCreateDefaultColor();
 
-        createDummyProducts(dummyCategory, dummyColor);
+        createDummyProducts(dummyCategory, dummyColor); // 새 더미 생성
 
         log.info("[DummyProductInitializer] END");
     }
@@ -102,7 +103,7 @@ public class DummyProductInitializer implements CommandLineRunner {
     private void safeDeleteOptionsByProductIds(List<Long> productIds) {
         try {
             // ✅ bulk 메서드가 있으면 이걸 쓰는 게 최적
-            productManagementRepository.deleteByProductIds(productIds);
+            productManagementRepository.deleteByProductIdIn(productIds);
             log.info("[DummyProductInitializer] deleted options (bulk): {}", productIds.size());
         } catch (Exception bulkNotFoundOrFail) {
             // ✅ bulk 메서드가 없거나 실패하면 단수 delete로 fallback
@@ -122,7 +123,7 @@ public class DummyProductInitializer implements CommandLineRunner {
     private void safeDeleteThumbnailsByProductIds(List<Long> productIds) {
         try {
             // ✅ 썸네일 repo는 보통 bulk가 있음 (네가 try-catch로 이미 쓰고 있음)
-            productThumbnailRepository.deleteByProductIds(productIds);
+            productThumbnailRepository.deleteByProductIdIn(productIds);
             log.info("[DummyProductInitializer] deleted thumbnails (bulk): {}", productIds.size());
         } catch (Exception e) {
             log.warn("[DummyProductInitializer] delete thumbnails failed. size={}", productIds.size(), e);
