@@ -105,10 +105,10 @@ public class DummyProductInitializer implements CommandLineRunner { // 스프링
             // ✅ bulk 메서드가 있으면 이걸 쓰는 게 최적
             productManagementRepository.deleteByProductIdIn(productIds);
             log.info("[DummyProductInitializer] deleted options (bulk): {}", productIds.size());
-        } catch (Exception bulkNotFoundOrFail) {
+        } catch (Exception bulkFail) {
             // ✅ bulk 메서드가 없거나 실패하면 단수 delete로 fallback
             log.warn("[DummyProductInitializer] bulk delete options failed -> fallback to single delete. size={}",
-                    productIds.size(), bulkNotFoundOrFail);
+                    productIds.size(), bulkFail);
 
             for (Long productId : productIds) {
                 try {
@@ -176,7 +176,7 @@ public class DummyProductInitializer implements CommandLineRunner { // 스프링
                 Product product = createProduct(name);
 
                 // 썸네일 1개 추가
-                addThumbnailToProduct(product, url);
+                addThumbnail(product, url);
 
                 // 옵션(성별 x 사이즈) 생성
                 addOptions(product, dummyCategory, dummyColor);
@@ -203,7 +203,7 @@ public class DummyProductInitializer implements CommandLineRunner { // 스프링
         );
     }
 
-    private void addThumbnailToProduct(Product product, String imageUrl) {
+    private void addThumbnail(Product product, String imageUrl) {
         String normalized = normalizeUrl(imageUrl);
         if (normalized == null) {
             log.warn("[Dummy] skip invalid thumbnail url. product={}", product.getProductName());
@@ -215,15 +215,13 @@ public class DummyProductInitializer implements CommandLineRunner { // 스프링
     private void addOptions(Product product, Category category, ProductColor color) {
         for (Gender gender : Gender.values()) {
             for (Size size : Size.values()) {
-                ProductManagement pm = ProductManagement.create(
-                        product,
+                product.addOption(
                         color,
                         category,
                         gender,
                         size,
                         DEFAULT_STOCK
                 );
-                product.addProductManagement(pm); // ✅ Product 편의 메서드로 연결
             }
         }
     }

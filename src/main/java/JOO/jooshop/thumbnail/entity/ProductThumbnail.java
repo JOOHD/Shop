@@ -37,24 +37,24 @@ public class ProductThumbnail {
     private LocalDateTime createdAt;
 
     /* =========================================================
-       Factory
+       Factor
+        - Product 와의 연결은 여기서 하지 않는다.
     ========================================================= */
 
-    public static ProductThumbnail create(Product product, String imagePath) {
-        if (product == null) throw new IllegalArgumentException("product must not be null");
-
+    public static ProductThumbnail create(String imagePath) {
         String normalized = normalizePath(imagePath);
-        if (normalized == null) throw new IllegalArgumentException("imagePath is invalid");
+        if (normalized == null) {
+            throw new IllegalArgumentException("imagePath is invalid");
+        }
 
-        ProductThumbnail t = new ProductThumbnail();
-        t.attachTo(product);
-        t.imagePath = normalized;
-        return t;
+        ProductThumbnail thumbnail = new ProductThumbnail();
+        thumbnail.imagePath = normalized;
+        return thumbnail;
     }
 
     /* =========================================================
        Association (attach / detach)
-       - 연관관계 세팅은 여기로 통일 (setProduct 같은 애매한 메서드 제거)
+       - 실제 흐름은 Product가 담당
     ========================================================= */
 
     public void attachTo(Product product) {
@@ -75,10 +75,6 @@ public class ProductThumbnail {
         if (normalized == null) throw new IllegalArgumentException("imagePath is invalid");
         this.imagePath = normalized;
     }
-
-    /* =========================================================
-       Internal helpers
-    ========================================================= */
 
     private static String normalizePath(String path) {
         if (path == null) return null;

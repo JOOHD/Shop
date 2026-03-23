@@ -22,13 +22,13 @@ import java.util.List;
         indexes = {
                 @Index(name = "idx_pm_product", columnList = "product_id"),
                 @Index(name = "idx_pm_category", columnList = "category_id")
-        },
+        }, // 조회 성능 UP
         uniqueConstraints = {
                 @UniqueConstraint(
                         name = "uk_pm_option",
                         columnNames = {"product_id", "gender", "size", "color_id", "category_id"}
                 )
-        }
+        }  // 중복 방지
 )
 public class ProductManagement {
 
@@ -91,23 +91,22 @@ public class ProductManagement {
     private final List<Orders> orders = new ArrayList<>();
 
     /* =========================================================
-       Factory (필수값 강제)
+       Factory
+       - Product와 연결하지 않는다.
+       - 생성과 연결 책임 분리
     ========================================================= */
 
     public static ProductManagement create(
-            Product product,
             ProductColor color,
             Category category,
             Gender gender,
             Size size,
             long stock
     ) {
-        validateRequired(product, color, category, gender, size);
+        validateRequired(color, category, gender, size);
         validateStock(stock);
 
         ProductManagement pm = new ProductManagement();
-        pm.attachTo(product);
-
         pm.color = color;
         pm.category = category;
         pm.gender = gender;
@@ -125,7 +124,6 @@ public class ProductManagement {
     }
 
     public static ProductManagement of(
-            Product product,
             ProductColor color,
             Category category,
             Gender gender,
@@ -135,12 +133,10 @@ public class ProductManagement {
             Boolean restocked,
             Boolean soldOut
     ) {
-        validateRequired(product, color, category, gender, size);
+        validateRequired(color, category, gender, size);
         validateStock(initialStock);
 
         ProductManagement pm = new ProductManagement();
-        pm.attachTo(product);
-
         pm.color = color;
         pm.category = category;
         pm.gender = gender;
@@ -159,7 +155,7 @@ public class ProductManagement {
 
     /* =========================================================
        Association (attach / detach)
-       - Product.addProductManagement(pm)에서 호출되어도 안전하게 동작하게 함
+       - 실제로는 Product가 호출해야 한다.
     ========================================================= */
 
     public void attachTo(Product product) {
@@ -180,6 +176,19 @@ public class ProductManagement {
      * - 옵션 교체는 서비스에서 delete/insert가 최선
      * - 다만 재고 운영 중 카테고리만 바뀌는 케이스가 있다면 허용 가능
      */
+
+    public boolean sameOption(
+            ProductColor color,
+            Category category,
+            Gender gender,
+            Size size
+    ) {
+        return this.color.equals(color)
+                && this.category.equals(category)
+                && this.gender == gender
+                && this.size == size;
+    }
+
     public void changeCategory(Category category) {
         if (category == null) throw new IllegalArgumentException("category must not be null");
         this.category = category;
@@ -191,7 +200,6 @@ public class ProductManagement {
 
         this.additionalStock += amount;
         this.productStock += amount;
-
         this.restocked = true;
         this.soldOut = (this.productStock == 0);
     }
@@ -221,13 +229,11 @@ public class ProductManagement {
     ========================================================= */
 
     private static void validateRequired(
-            Product product,
             ProductColor color,
             Category category,
             Gender gender,
             Size size
     ) {
-        if (product == null) throw new IllegalArgumentException("product must not be null");
         if (color == null) throw new IllegalArgumentException("color must not be null");
         if (category == null) throw new IllegalArgumentException("category must not be null");
         if (gender == null) throw new IllegalArgumentException("gender must not be null");

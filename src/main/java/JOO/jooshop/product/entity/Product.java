@@ -4,16 +4,18 @@ import JOO.jooshop.admin.products.model.AdminProductRequestDto;
 import JOO.jooshop.contentImgs.entity.ContentImages;
 import JOO.jooshop.contentImgs.entity.enums.UploadType;
 import JOO.jooshop.global.time.BaseEntity;
+import JOO.jooshop.product.entity.enums.Gender;
 import JOO.jooshop.product.entity.enums.ProductType;
 import JOO.jooshop.product.model.ProductRequestDto;
 import JOO.jooshop.productManagement.entity.ProductManagement;
+import JOO.jooshop.productManagement.entity.enums.Size;
 import JOO.jooshop.thumbnail.entity.ProductThumbnail;
 import JOO.jooshop.wishList.entity.WishList;
+import JOO.jooshop.categorys.entity.Category;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -24,7 +26,6 @@ import java.util.List;
 
 @Entity
 @Getter
-@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "products_table")
 public class Product extends BaseEntity {
@@ -34,6 +35,7 @@ public class Product extends BaseEntity {
     private Long productId;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private ProductType productType;
 
     @NotBlank
@@ -56,34 +58,29 @@ public class Product extends BaseEntity {
     @Column(nullable = false)
     private boolean isRecommend = false;
 
-    // orphanRemoval = true  (remove = DB delete)
-    // orphanRemoval = false (remove = FK null)
-    
-    /** ✅ 썸네일 (생명주기 완전 일치) */
+    /** Product가 생명주기 완전 소유 */
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<ProductThumbnail> productThumbnails = new ArrayList<>();
 
-    /** ✅ 상세 이미지 (생명주기 완전 일치) */
+    /** Product가 생명주기 완전 소유 */
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<ContentImages> contentImages = new ArrayList<>();
 
-    /** ✅ 옵션/재고 (생명주기 완전 일치) */
+    /** Product가 생명주기 완전 소유 */
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<ProductManagement> productManagements = new ArrayList<>();
 
-    /** ✅ 위시리스트는 사용자 활동 데이터라 cascade/orphanRemoval 없이 조회용만 */
+    /** 사용자 활동 데이터 - Product aggregate 외부 */
     @OneToMany(mappedBy = "product")
     private final List<WishList> wishLists = new ArrayList<>();
 
-    /** 파생값이면 제거 권장(유지한다면 서비스 레벨에서만 변경) */
     private Long wishListCount;
 
-    /** 더미 플래그 */
     @Column(nullable = false)
     private boolean dummy = false;
 
     /* =========================
-       Factory / Identity
+       Factory
     ========================= */
 
     public static Product ofId(Long productId) {
@@ -104,20 +101,42 @@ public class Product extends BaseEntity {
     ) {
         Product p = new Product();
         p.productName = requireText(productName, "productName");
-        p.productType = type;
+        p.productType = requireNotNull(type, "productType");
         p.price = requireNotNull(price, "price");
         p.productInfo = productInfo;
         p.manufacturer = manufacturer;
 
         p.applyDiscount(Boolean.TRUE.equals(isDiscount), discountRate);
         p.isRecommend = Boolean.TRUE.equals(isRecommend);
-
         p.dummy = true;
         return p;
     }
 
+    public static Product create(
+            String productName,
+            ProductType type,
+            BigDecimal price,
+            String productInfo,
+            String manufacturer,
+            Boolean isDiscount,
+            Integer discountRate,
+            Boolean isRecommend
+    ) {
+        Product p = new Product();
+        p.productName = requireText(productName, "productName");
+        p.productType = requireNotNull(type, "productType");
+        p.price = requireNotNull(price, "price");
+        p.productInfo = productInfo;
+        p.manufacturer = manufacturer;
+
+        p.applyDiscount(Boolean.TRUE.equals(isDiscount), discountRate);
+        p.isRecommend = Boolean.TRUE.equals(isRecommend);
+        p.dummy = false;
+        return p;
+    }
+
     /* =========================
-       Read-only views (외부 노출용)
+       Read-only views
     ========================= */
 
     public List<ProductThumbnail> thumbnailsView() {
@@ -133,18 +152,27 @@ public class Product extends BaseEntity {
     }
 
     /* =========================
-       Convenience methods (양방향 정합성 보장)
+       Aggregate behaviors
+       - 자식 추가/삭제/연결은 Product만 책임진다.
     ========================= */
 
     public void addThumbnailPath(String imagePath) {
         String path = requireText(imagePath, "imagePath");
-        ProductThumbnail thumbnail = ProductThumbnail.create(this, path);
+
+        ProductThumbnail thumbnail = ProductThumbnail.create(path);
+        thumbnail.attachTo(this);
+
         this.productThumbnails.add(thumbnail);
     }
 
     public void removeThumbnail(ProductThumbnail thumbnail) {
-        if (thumbnail == null) return;
-        this.productThumbnails.remove(thumbnail);
+        if (thumbnail == null) {
+            return;
+        }
+
+        if (this.productThumbnails.remove(thumbnail)) {
+            thumbnail.detach();
+        }
     }
 
     public void addContentImagePath(String imagePath, UploadType uploadType) {
@@ -153,26 +181,76 @@ public class Product extends BaseEntity {
     }
 
     public void removeContentImage(ContentImages image) {
-        if (image == null) return;
-        this.contentImages.remove(image);
-        image.detach();
+        if (image == null) {
+            return;
+        }
+
+        if (this.contentImages.remove(image)) {
+            image.detach();
+        }
     }
 
-    /**
-     * ✅ 옵션(재고) 추가
-     * - 리스트에만 넣지 말고 "pm.product"가 반드시 this를 가리키게 보장해야 FK가 안정적이다.
-     * - pm을 외부에서 만들어 올 수도 있으니 안전 장치로 attach 수행.
-     */
+    public void addOption(
+            ProductColor color,
+            Category category,
+            Gender gender,
+            Size size,
+            long stock
+    ) {
+        validateDuplicateOption(color, category, gender, size);
+
+        ProductManagement option = ProductManagement.create(
+                color,
+                category,
+                gender,
+                size,
+                stock
+        );
+        option.attachTo(this);
+
+        this.productManagements.add(option);
+    }
+
     public void addProductManagement(ProductManagement pm) {
-        if (pm == null) return;
-        pm.attachTo(this); // ✅ 아래 ProductManagement에 attachTo() 추가 필요
+        if (pm == null) {
+            throw new IllegalArgumentException("productManagement must not be null");
+        }
+
+        validateDuplicateOption(
+                pm.getColor(),
+                pm.getCategory(),
+                pm.getGender(),
+                pm.getSize()
+        );
+
+        pm.attachTo(this);
         this.productManagements.add(pm);
     }
 
     public void removeProductManagement(ProductManagement pm) {
-        if (pm == null) return;
-        this.productManagements.remove(pm); // orphanRemoval=true → flush 시 DELETE
-        pm.detach(); // 안전(선택)
+        if (pm == null) {
+            return;
+        }
+
+        if (this.productManagements.remove(pm)) {
+            pm.detach();
+        }
+    }
+
+    private void validateDuplicateOption(
+            ProductColor color,
+            Category category,
+            Gender gender,
+            Size size
+    ) {
+        boolean duplicated = this.productManagements.stream()
+                .anyMatch(pm ->
+                        pm.sameOption(color, category, gender, size)
+                );
+
+        if (duplicated) {
+            throw new IllegalStateException("already exists same option in product");
+        }
     }
 
     /* =========================
@@ -196,10 +274,12 @@ public class Product extends BaseEntity {
     }
 
     private void applyRequestDto(ProductRequestDto dto) {
-        if (dto == null) throw new IllegalArgumentException("dto must not be null");
+        if (dto == null) {
+            throw new IllegalArgumentException("dto must not be null");
+        }
 
         this.productName = requireText(dto.getProductName(), "productName");
-        this.productType = dto.getProductType();
+        this.productType = requireNotNull(dto.getProductType(), "productType");
         this.price = requireNotNull(dto.getPrice(), "price");
         this.productInfo = dto.getProductInfo();
         this.manufacturer = dto.getManufacturer();
@@ -209,10 +289,12 @@ public class Product extends BaseEntity {
     }
 
     private void applyAdminDto(AdminProductRequestDto dto) {
-        if (dto == null) throw new IllegalArgumentException("dto must not be null");
+        if (dto == null) {
+            throw new IllegalArgumentException("dto must not be null");
+        }
 
         this.productName = requireText(dto.getProductName(), "productName");
-        this.productType = dto.getProductType();
+        this.productType = requireNotNull(dto.getProductType(), "productType");
         this.price = requireNotNull(dto.getPrice(), "price");
         this.productInfo = dto.getProductInfo();
         this.manufacturer = dto.getManufacturer();
@@ -223,12 +305,12 @@ public class Product extends BaseEntity {
 
     private void applyDiscount(boolean discount, Integer rate) {
         this.isDiscount = discount;
+
         if (!discount) {
             this.discountRate = null;
             return;
         }
-        // 할인인데 rate가 null이면 정책상 0으로 둘지, 예외로 막을지 선택.
-        // 운영에서 안정적으로 가려면 "null이면 0" 추천.
+
         this.discountRate = (rate == null ? 0 : rate);
     }
 
@@ -245,12 +327,16 @@ public class Product extends BaseEntity {
     }
 
     private static String requireText(String value, String field) {
-        if (value == null || value.isBlank()) throw new IllegalArgumentException(field + " is required");
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(field + " is required");
+        }
         return value;
     }
 
     private static <T> T requireNotNull(T value, String field) {
-        if (value == null) throw new IllegalArgumentException(field + " is required");
+        if (value == null) {
+            throw new IllegalArgumentException(field + " is required");
+        }
         return value;
     }
 }
