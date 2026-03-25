@@ -18,6 +18,8 @@ public class QMember extends EntityPathBase<Member> {
 
     private static final long serialVersionUID = -132042210L;
 
+    private static final PathInits INITS = PathInits.DIRECT2;
+
     public static final QMember member = new QMember("member1");
 
     public final JOO.jooshop.global.time.QBaseEntity _super = new JOO.jooshop.global.time.QBaseEntity(this);
@@ -25,8 +27,6 @@ public class QMember extends EntityPathBase<Member> {
     public final BooleanPath accountExpired = createBoolean("accountExpired");
 
     public final BooleanPath active = createBoolean("active");
-
-    public final ListPath<JOO.jooshop.address.entity.Addresses, JOO.jooshop.address.entity.QAddresses> addresses = this.<JOO.jooshop.address.entity.Addresses, JOO.jooshop.address.entity.QAddresses>createList("addresses", JOO.jooshop.address.entity.Addresses.class, JOO.jooshop.address.entity.QAddresses.class, PathInits.DIRECT2);
 
     public final BooleanPath admin = createBoolean("admin");
 
@@ -51,9 +51,9 @@ public class QMember extends EntityPathBase<Member> {
 
     public final BooleanPath passwordExpired = createBoolean("passwordExpired");
 
-    public final ListPath<JOO.jooshop.payment.entity.PaymentHistory, JOO.jooshop.payment.entity.QPaymentHistory> paymentHistories = this.<JOO.jooshop.payment.entity.PaymentHistory, JOO.jooshop.payment.entity.QPaymentHistory>createList("paymentHistories", JOO.jooshop.payment.entity.PaymentHistory.class, JOO.jooshop.payment.entity.QPaymentHistory.class, PathInits.DIRECT2);
-
     public final StringPath phoneNumber = createString("phoneNumber");
+
+    public final JOO.jooshop.profiile.entity.QProfiles profile;
 
     public final StringPath socialId = createString("socialId");
 
@@ -64,18 +64,25 @@ public class QMember extends EntityPathBase<Member> {
 
     public final StringPath username = createString("username");
 
-    public final ListPath<JOO.jooshop.wishList.entity.WishList, JOO.jooshop.wishList.entity.QWishList> wishLists = this.<JOO.jooshop.wishList.entity.WishList, JOO.jooshop.wishList.entity.QWishList>createList("wishLists", JOO.jooshop.wishList.entity.WishList.class, JOO.jooshop.wishList.entity.QWishList.class, PathInits.DIRECT2);
-
     public QMember(String variable) {
-        super(Member.class, forVariable(variable));
+        this(Member.class, forVariable(variable), INITS);
     }
 
     public QMember(Path<? extends Member> path) {
-        super(path.getType(), path.getMetadata());
+        this(path.getType(), path.getMetadata(), PathInits.getFor(path.getMetadata(), INITS));
     }
 
     public QMember(PathMetadata metadata) {
-        super(Member.class, metadata);
+        this(metadata, PathInits.getFor(metadata, INITS));
+    }
+
+    public QMember(PathMetadata metadata, PathInits inits) {
+        this(Member.class, metadata, inits);
+    }
+
+    public QMember(Class<? extends Member> type, PathMetadata metadata, PathInits inits) {
+        super(type, metadata, inits);
+        this.profile = inits.isInitialized("profile") ? new JOO.jooshop.profiile.entity.QProfiles(forProperty("profile"), inits.get("profile")) : null;
     }
 
 }

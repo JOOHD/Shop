@@ -1,29 +1,32 @@
 package JOO.jooshop.members.entity;
 
-import JOO.jooshop.address.entity.Addresses;
 import JOO.jooshop.global.time.BaseEntity;
 import JOO.jooshop.members.entity.enums.MemberRole;
 import JOO.jooshop.members.entity.enums.SocialType;
-import JOO.jooshop.payment.entity.PaymentHistory;
-import JOO.jooshop.wishList.entity.WishList;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import JOO.jooshop.profiile.entity.Profiles;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
-@Setter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 @Table(name = "member", uniqueConstraints = {
-        @UniqueConstraint(columnNames = "social_id") // 중복 소셜ID 방지
+        @UniqueConstraint(name = "uk_member_social_id", columnNames = "social_id")
 })
 public class Member extends BaseEntity {
+
+    /**
+     * 26.03.25 refactoring
+     * 1. 회원 계정의 중심
+     * 2. 계정 상태 / 인증 여부 / 비밀번호 / 닉네임 / 프로필 소유
+     * 3. Profiles를 편입하는 root
+     * 4. @setter 제거 -> domain 메서드
+     */
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,269 +34,231 @@ public class Member extends BaseEntity {
     private Long id;
 
     @NotBlank
+    @Column(nullable = false)
     private String email;
 
+    @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
     private String username;
 
+    @Column(nullable = false)
     private String nickname;
 
-    @Column(name = "phone")
+    @Column(name = "phone", nullable = false)
     private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "member_role")
-    @JsonProperty("member_role")
+    @Column(name = "member_role", nullable = false)
     private MemberRole memberRole;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "social_type")
-    @JsonProperty("social_type")
+    @Column(name = "social_type", nullable = false)
     private SocialType socialType;
 
-    // OAuth2 로그인은 Optional 필드가 맞다. @NotBlank 제거
-    // unique = true 제거, ddl-auto 설정으로 기존 unique 와 꼬임 방지
     @Column(name = "social_id")
-    @JsonProperty("social_id")
     private String socialId;
 
-    @Column(name = "joined_at")
-    @JsonProperty("joined_at")
+    @Column(name = "joined_at", nullable = false)
     private LocalDateTime joinedAt;
 
-    @Column(name = "is_active")
-    private boolean active = true;
+    @Column(name = "is_active", nullable = false)
+    private boolean active;
 
-    @Column(name = "is_banned")
-    private boolean banned = false;
+    @Column(name = "is_banned", nullable = false)
+    private boolean banned;
 
-    @Column(name = "is_account_expired")
-    private boolean accountExpired = false;
+    @Column(name = "is_account_expired", nullable = false)
+    private boolean accountExpired;
 
-    @Column(name = "is_password_expired")
-    private boolean passwordExpired = false;
+    @Column(name = "is_password_expired", nullable = false)
+    private boolean passwordExpired;
 
-    @Column(name = "is_admin")
-    private boolean admin = false;
+    @Column(name = "is_admin", nullable = false)
+    private boolean admin;
 
-    @Column(name = "is_certified_email")
-    private boolean certifiedByEmail = false;
+    @Column(name = "is_certified_email", nullable = false)
+    private boolean certifiedByEmail;
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<WishList> wishLists = new ArrayList<>();
+    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Profiles profile;
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<PaymentHistory> paymentHistories = new ArrayList<>();
+    private Member(
+            String email,
+            String password,
+            String username,
+            String nickname,
+            String phoneNumber,
+            MemberRole memberRole,
+            SocialType socialType,
+            String socialId,
+            boolean certifiedByEmail,
+            boolean admin
+    ) {
+        this.email = email;
+        this.password = password;
+        this.username = username;
+        this.nickname = nickname;
+        this.phoneNumber = phoneNumber;
+        this.memberRole = memberRole;
+        this.socialType = socialType;
+        this.socialId = socialId;
+        this.certifiedByEmail = certifiedByEmail;
+        this.admin = admin;
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<Addresses> addresses = new ArrayList<>();
+        this.active = true;
+        this.banned = false;
+        this.accountExpired = false;
+        this.passwordExpired = false;
+        this.joinedAt = LocalDateTime.now();
+    }
 
-    // ========================== Transient Getter ==========================
+    /* 일반 회원 가입 */
+    public static Member registerGeneral(
+            String email,
+            String encodedPassword,
+            String username,
+            String nickname,
+            String phoneNumber,
+            String socialId
+    ) {
+        return new Member(
+                email,
+                encodedPassword,
+                username,
+                nickname,
+                phoneNumber,
+                MemberRole.USER,
+                SocialType.GENERAL,
+                socialId,
+                false,
+                false
+        );
+    }
 
-    /**
-     * 회원 상태 텍스트 반환
-     * - DB 컬럼과 매핑되지 않음 (@Transient)
-     * - active, banned, accountExpired, passwordExpired, admin 상태를 종합하여
-     *   화면에 표시할 간단한 문자열 상태 생성용
-     * - 예: "활성", "비활성화", "정지", "관리자", "계정 만료", "비밀번호 만료"
-     */
+    /* 관리자 생성 */
+    public static Member registerAdmin(
+            String email,
+            String encodedPassword,
+            String username,
+            String nickname,
+            String phoneNumber,
+            String socialId
+    ) {
+        return new Member(
+                email,
+                encodedPassword,
+                username,
+                nickname,
+                phoneNumber,
+                MemberRole.ADMIN,
+                SocialType.GENERAL,
+                socialId,
+                true,
+                true
+        );
+    }
+
+    /* OAuth2 소셜 회원 생성 */
+    public static Member registerSocial(
+            String email,
+            String username,
+            MemberRole role,
+            SocialType socialType,
+            String socialId
+    ) {
+        return new Member(
+                email,
+                "",
+                username,
+                username,
+                "",
+                role,
+                socialType,
+                socialId,
+                true,
+                role == MemberRole.ADMIN
+        );
+    }
+
+    /* Profile child 편입 */
+    public void attachProfile(Profiles profile) {
+        this.profile = profile;
+        profile.attachTo(this);
+    }
+
+    /* 이메일 인증 완료 */
+    public void verifyEmail() {
+        this.certifiedByEmail = true;
+    }
+
+    /* OAuth2 로그인 시 최신 정보 반영 */
+    public void changePassword(String encodedPassword) {
+        this.password = encodedPassword;
+        this.passwordExpired = false;
+    }
+
+    public void changeNickname(String newNickname) {
+        this.nickname = newNickname;
+    }
+
+    public void changePhoneNumber(String newPhoneNumber) {
+        this.phoneNumber = newPhoneNumber;
+    }
+
+    public void activate() {
+        this.active = true;
+    }
+
+    public void deactivate() {
+        this.active = false;
+    }
+
+    public void ban() {
+        this.banned = true;
+    }
+
+    public void unban() {
+        this.banned = false;
+    }
+
+    public void expireAccount() {
+        this.accountExpired = true;
+    }
+
+    public void renewAccount() {
+        this.accountExpired = false;
+    }
+
+    public void expirePassword() {
+        this.passwordExpired = true;
+    }
+
+    public void renewPassword() {
+        this.passwordExpired = false;
+    }
+
+    public void grantAdminRole() {
+        this.memberRole = MemberRole.ADMIN;
+        this.admin = true;
+    }
+
+    public void updateSocialLoginInfo(String email, String username, String socialId, SocialType socialType) {
+        this.email = email;
+        this.username = username;
+        this.socialId = socialId;
+        this.socialType = socialType;
+        this.certifiedByEmail = true;
+    }
+
     @Transient
-    public String   getStatusText() {
+    public String getStatusText() {
         if (banned) return "정지";
         if (!active) return "비활성화";
         if (accountExpired) return "계정 만료";
         if (passwordExpired) return "비밀번호 만료";
         if (admin) return "관리자";
         return "활성";
-    }
-
-    // ========================== 정적 생성 메서드 ==========================
-
-    /**
-     * [OAuth2 기반 소셜 로그인 회원 생성]
-     * - 회원가입이 아닌, 소셜 로그인 인증 성공 후 호출
-     * - 인증 정보를 DB에 저장할 때 사용됨
-     */
-    public static Member createSocialMember(String email, String username,
-                                            MemberRole role, SocialType socialType, String socialId) {
-        Member member = new Member();
-        member.email = email;
-        member.username = username;
-        member.memberRole = role;
-        member.socialType = socialType;
-        member.socialId = socialId;
-        member.certifiedByEmail = true;     // 소셜 로그인은 이메일 인증 생략
-        member.active = true;
-        return member;
-    }
-
-    /**
-     * [이메일 회원가입 요청 시, 기본 회원 객체 생성]
-     * - 인증 메일 발송 직후, DB에 임시 계정으로 저장할 때 사용
-     * - 패스워드는 없는 상태이며, 인증 이후 최종 정보 업데이트 필요
-     */
-    public static Member createEmailMember(String email) {
-        Member member = new Member();
-        member.email = email;
-        member.memberRole = MemberRole.USER;
-        member.socialType = SocialType.GENERAL;
-        member.certifiedByEmail = false;    // 인증 전 상태
-        member.active = true;
-        return member;
-    }
-
-    /**
-     * [이메일+패스워드 기반 일반 회원 생성]
-     * - 사용자 입력 정보로 일반 회원 생성
-     */
-    public static Member createGeneralMember(String email, String username, String nickname,
-                                             String password, String phone, String socialId) {
-        Member member = new Member();
-        member.email = email;
-        member.username = username;
-        member.nickname = nickname;
-        member.password = password;
-        member.phoneNumber = phone;
-        member.memberRole = MemberRole.USER;
-        member.socialType = SocialType.GENERAL;
-        member.socialId = socialId;
-        member.certifiedByEmail = false;
-        member.active = true;
-        return member;
-    }
-
-    /**
-     * [관리자 계정 생성]
-     * - admin 권한 부여 및 기본 인증 완료 처리
-     */
-    public static Member createAdminMember(String email, String username, String nickname,
-                                           String password, String phone, String socialId) {
-        Member member = new Member();
-        member.email = email;
-        member.username = username;
-        member.nickname = nickname;
-        member.password = password;
-        member.phoneNumber = phone;
-        member.memberRole = MemberRole.ADMIN;
-        member.socialType = SocialType.GENERAL;
-        member.socialId = socialId;
-        member.certifiedByEmail = true;
-        member.admin = true;
-        member.active = true;
-        return member;
-    }
-
-    /**
-     * [프로필 전용 객체 반환]
-     * - 비밀번호, 전화번호 등 민감 정보 제외하고 사용자 정보만 전달할 때 사용
-     * - 보통 API 응답 DTO로 변환 전 단계
-     */
-    public static Member createProfileMember(Member member) {
-        Member profile = new Member();
-        profile.email = member.getEmail();
-        profile.username = member.getUsername();
-        profile.nickname = member.getNickname();
-        profile.memberRole = member.getMemberRole();
-        profile.socialType = member.getSocialType();
-        profile.socialId = member.getSocialId();
-        profile.certifiedByEmail = member.isCertifiedByEmail();
-        return profile;
-    }
-
-    // ========================== 도메인 메서드 ==========================
-
-    /**
-     * [소셜 회원 정보 업데이트]
-     * - 동일 이메일 또는 socialId로 로그인한 사용자가 있을 경우 정보 갱신
-     */
-    public void updateOAuth2Member(Member newOAuth2Member) {
-        this.email = newOAuth2Member.getEmail();
-        this.username = newOAuth2Member.getUsername();
-        this.memberRole = newOAuth2Member.getMemberRole();
-        this.socialType = newOAuth2Member.getSocialType();
-        this.socialId = newOAuth2Member.getSocialId();
-        this.certifiedByEmail = newOAuth2Member.isCertifiedByEmail();
-    }
-
-    /**
-     * [관리자 권한 부여]
-     */
-    public void grantAdminRole() {
-        this.admin = true;
-    }
-
-    /**
-     * [계정 활성화 처리]
-     */
-    public void activate() {
-        this.active = true;
-    }
-
-    /**
-     * [계정 비활성화 처리]
-     * - 탈퇴 혹은 임시 정지 상태로 설정할 때 사용
-     */
-    public void deactivate() {
-        this.active = false;
-    }
-
-    /**
-     * [회원 정지 처리]
-     * - 운영자 판단 하에 사용 정지
-     */
-    public void ban() {
-        this.banned = true;
-    }
-
-    /**
-     * [정지 해제]
-     */
-    public void unban() {
-        this.banned = false;
-    }
-
-    /**
-     * [계정 만료 처리]
-     * - 예: 장기 미접속자 처리 등
-     */
-    public void expireAccount() {
-        this.accountExpired = true;
-    }
-
-    /**
-     * [계정 만료 해제]
-     */
-    public void renewAccount() {
-        this.accountExpired = false;
-    }
-
-    /**
-     * [비밀번호 만료 처리]
-     * - 주기적 비밀번호 변경 요구 시 사용
-     */
-    public void expirePassword() {
-        this.passwordExpired = true;
-    }
-
-    /**
-     * [비밀번호 만료 해제]
-     */
-    public void renewPassword() {
-        this.passwordExpired = false;
-    }
-
-    /**
-     * [비밀번호 변경]
-     */
-    public void changePassword(String newPassword) {
-        this.password = newPassword;
-    }
-
-    /**
-     * [닉네임 변경]
-     */
-    public void changeNickname(String newNickname) {
-        this.nickname = newNickname;
     }
 }

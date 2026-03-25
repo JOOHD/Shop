@@ -58,7 +58,7 @@ public class QProfiles extends EntityPathBase<Profiles> {
 
     public QProfiles(Class<? extends Profiles> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.member = inits.isInitialized("member") ? new JOO.jooshop.members.entity.QMember(forProperty("member")) : null;
+        this.member = inits.isInitialized("member") ? new JOO.jooshop.members.entity.QMember(forProperty("member"), inits.get("member")) : null;
     }
 
 }

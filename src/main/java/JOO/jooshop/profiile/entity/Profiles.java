@@ -7,8 +7,6 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 
@@ -18,19 +16,28 @@ import java.time.LocalDateTime;
 @Table(name = "member_profile")
 public class Profiles {
 
+    /**
+     * 26.03.25 refactoring
+     * 실제 FK owner는 profiles.member
+     * root인 Member가 attachProfile(profile) 호출
+     * 내부에서 profile.attachTo(this)로 FK owner 세팅
+     *
+     * DB 관계 변경의 진짜 주체는 자식의 FK 필드
+     * aggregate 편입을 선언하는 주체는 root
+     */
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "profile_id")
     private Long profileId;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id", nullable = false, unique = true)
     private Member member;
 
-    @Setter
     @Column(name = "profile_img_name")
     private String profileImgName;
-    @Setter
+
     @Column(name = "profile_img_path")
     private String profileImgPath;
 
@@ -45,15 +52,13 @@ public class Profiles {
     @Column(name = "member_gender")
     private MemberGender memberGender;
 
-    @CreatedDate
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
-
-    public Profiles(Member member, String introduction, String profileImgName, String profileImgPath) {
-        this.member = member;
+    
+    private Profiles(String introduction, String profileImgName, String profileImgPath) {
         this.introduction = introduction;
         this.profileImgName = profileImgName;
         this.profileImgPath = profileImgPath;
@@ -61,47 +66,45 @@ public class Profiles {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // **도메인 주도 설계(DDD)**
-    // Setter 대신 의미 있는 메서드로 상태 변경을 캡슐화
-    // 엔티티 내부에서 상태 변경(변수 변경)을 안전하게 다루기 위해 설정된 메서드들
-
-    // 최초 회원가입 시, 기본적으로 만들어주는 프로필. (CustomOAuth2UserServiceV2)
-    public static Profiles createMemberProfile(Member member) {
-        return new Profiles(member, "자기 소개를 수정해주세요. ", null, null);
+    /* 기본 프로필 생성 */
+    public static Profiles createDefaultProfile() {
+        return new Profiles("자기 소개를 수정해주세요.", null, null);
     }
 
-    public void updateDateTime(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    /* Aggregate Root(Member)가 child를 편입할 때 호출 */
+    public void attachTo(Member member) {
+        this.member = member;
     }
 
-    public void updateProfileImgPath(String profileImgPath) {
-        this.profileImgPath = profileImgPath;
-    }
-
-    public void updateProfileImgName(String profileImgName) {
-        this.profileImgName = profileImgName;
-    }
-
-    public void updateIntroduction(String introduction) {
+    public void changeIntroduction(String introduction) {
         this.introduction = introduction;
+        touch();
     }
 
-    // 경로와 파일명 설정 메서드 호출
-    public void setProfileImage(byte[] imageBytes) {
-        setProfileImagePathAndImageName(new String(imageBytes));
+    public void changeProfileImage(String profileImgPath) {
+        this.profileImgPath = profileImgPath;
+        this.profileImgName = extractFileName(profileImgPath);
+        touch();
     }
 
-    // 경로에서 파일명을 추출
-    private void setProfileImagePathAndImageName(String imagePath) {
-        this.profileImgPath = imagePath;
-        this.profileImgName = this.profileImgPath.substring(this.profileImgPath.lastIndexOf("/") + 1);
-    }
-
-    public void updateMemberAge(MemberAges newAge) {
+    public void changeMemberAge(MemberAges newAge) {
         this.memberAges = newAge;
+        touch();
     }
 
-    public void updateMemberGender(MemberGender newGender) {
+    public void changeMemberGender(MemberGender newGender) {
         this.memberGender = newGender;
+        touch();
+    }
+
+    private void touch() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    private String extractFileName(String imagePath) {
+        if (imagePath == null || imagePath.isBlank()) {
+            return null;
+        }
+        return imagePath.substring(imagePath.lastIndexOf("/") + 1);
     }
 }
