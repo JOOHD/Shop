@@ -1,4 +1,4 @@
-package JOO.jooshop.members.model;
+package JOO.jooshop.members.model.response;
 
 import JOO.jooshop.members.entity.Member;
 import lombok.AllArgsConstructor;

@@ -6,7 +6,7 @@ import JOO.jooshop.global.exception.customException.PaymentCancelFailureExceptio
 import JOO.jooshop.global.exception.customException.PaymentHistoryNotFoundException;
 import JOO.jooshop.global.exception.ResponseMessageConstants;
 import JOO.jooshop.members.entity.Member;
-import JOO.jooshop.members.repository.MemberRepositoryV1;
+import JOO.jooshop.members.repository.MemberRepository;
 import JOO.jooshop.order.entity.OrderProduct;
 import JOO.jooshop.order.entity.Orders;
 import JOO.jooshop.order.repository.OrderRepository;
@@ -80,7 +80,7 @@ public class PaymentService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final CartRepository cartRepository;
     private final OrderRepository orderRepository;
-    private final MemberRepositoryV1 memberRepository;
+    private final MemberRepository memberRepository;
     private final PaymentRepository paymentRepository;
     private final PaymentRefundRepository paymentRefundRepository;
 

@@ -11,16 +11,16 @@ import com.querydsl.core.types.dsl.PathInits;
 
 
 /**
- * QRefresh is a Querydsl query type for Refresh
+ * QRefreshToken is a Querydsl query type for RefreshToken
  */
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
-public class QRefresh extends EntityPathBase<Refresh> {
+public class QRefreshToken extends EntityPathBase<RefreshToken> {
 
-    private static final long serialVersionUID = 338222039L;
+    private static final long serialVersionUID = 1843248226L;
 
     private static final PathInits INITS = PathInits.DIRECT2;
 
-    public static final QRefresh refresh = new QRefresh("refresh");
+    public static final QRefreshToken refreshToken1 = new QRefreshToken("refreshToken1");
 
     public final DateTimePath<java.time.LocalDateTime> expiration = createDateTime("expiration", java.time.LocalDateTime.class);
 
@@ -30,25 +30,25 @@ public class QRefresh extends EntityPathBase<Refresh> {
 
     public final StringPath refreshToken = createString("refreshToken");
 
-    public QRefresh(String variable) {
-        this(Refresh.class, forVariable(variable), INITS);
+    public QRefreshToken(String variable) {
+        this(RefreshToken.class, forVariable(variable), INITS);
     }
 
-    public QRefresh(Path<? extends Refresh> path) {
+    public QRefreshToken(Path<? extends RefreshToken> path) {
         this(path.getType(), path.getMetadata(), PathInits.getFor(path.getMetadata(), INITS));
     }
 
-    public QRefresh(PathMetadata metadata) {
+    public QRefreshToken(PathMetadata metadata) {
         this(metadata, PathInits.getFor(metadata, INITS));
     }
 
-    public QRefresh(PathMetadata metadata, PathInits inits) {
-        this(Refresh.class, metadata, inits);
+    public QRefreshToken(PathMetadata metadata, PathInits inits) {
+        this(RefreshToken.class, metadata, inits);
     }
 
-    public QRefresh(Class<? extends Refresh> type, PathMetadata metadata, PathInits inits) {
+    public QRefreshToken(Class<? extends RefreshToken> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.member = inits.isInitialized("member") ? new QMember(forProperty("member")) : null;
+        this.member = inits.isInitialized("member") ? new QMember(forProperty("member"), inits.get("member")) : null;
     }
 
 }

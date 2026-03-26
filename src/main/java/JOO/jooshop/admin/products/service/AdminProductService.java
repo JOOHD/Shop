@@ -140,7 +140,6 @@ public class AdminProductService {
         Size size = Size.valueOf(dto.getSize());
 
         return ProductManagement.create(
-                product,
                 color,
                 category,
                 dto.getGender(),

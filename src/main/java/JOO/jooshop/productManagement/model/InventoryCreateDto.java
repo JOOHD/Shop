@@ -55,7 +55,6 @@ public class InventoryCreateDto {
     public ProductManagement toEntity(Product product, ProductColor color, Category category) {
         // ProductManagement.of 시그니처에 맞춰 정확히 호출
         return ProductManagement.of(
-                product,
                 color,
                 category,
                 this.gender,

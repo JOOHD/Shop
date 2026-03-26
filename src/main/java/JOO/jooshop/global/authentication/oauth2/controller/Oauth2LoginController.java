@@ -4,16 +4,15 @@ import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.authentication.oauth2.custom.dto.KakaoProfile;
 import JOO.jooshop.global.authentication.oauth2.custom.dto.OAuthToken;
 import JOO.jooshop.members.entity.Member;
-import JOO.jooshop.members.entity.Refresh;
+import JOO.jooshop.members.entity.RefreshToken;
 import JOO.jooshop.members.entity.enums.MemberRole;
 import JOO.jooshop.members.entity.enums.SocialType;
-import JOO.jooshop.members.model.RefreshDto;
-import JOO.jooshop.members.repository.MemberRepositoryV1;
-import JOO.jooshop.members.repository.RefreshRepository;
+import JOO.jooshop.members.model.request.RefreshRequest;
+import JOO.jooshop.members.repository.MemberRepository;
+import JOO.jooshop.members.repository.RefreshTokenRepository;
 import JOO.jooshop.profiile.entity.Profiles;
 import JOO.jooshop.profiile.repository.ProfileRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,7 +20,6 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -83,8 +81,8 @@ public class Oauth2LoginController {
      */
 
 
-    private final MemberRepositoryV1 memberRepository;
-    private final RefreshRepository refreshRepository;
+    private final MemberRepository memberRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final ProfileRepository profileRepository;
     private final JWTUtil jwtUtil;
 
@@ -259,17 +257,17 @@ public class Oauth2LoginController {
     // 8. RefreshToken DB 저장
     // ===============================================
     private void saveRefresh(Member member, String newRefreshToken) {
-        Optional<Refresh> existedRefresh = refreshRepository.findByMember(member);
+        Optional<RefreshToken> existedRefresh = refreshTokenRepository.findByMember(member);
         LocalDateTime expirationDateTime = LocalDateTime.now().plusSeconds(refreshTokenExpirationPeriod);
 
         if (existedRefresh.isEmpty()) {
-            Refresh refreshEntity = new Refresh(member, newRefreshToken, expirationDateTime);
-            refreshRepository.save(refreshEntity);
+            RefreshToken refreshTokenEntity = new RefreshToken(member, newRefreshToken, expirationDateTime);
+            refreshTokenRepository.save(refreshTokenEntity);
         } else {
-            Refresh refreshEntity = existedRefresh.get();
-            RefreshDto refreshDto = RefreshDto.createRefreshDto(newRefreshToken, expirationDateTime);
-            refreshEntity.updateRefreshToken(refreshDto);
-            refreshRepository.save(refreshEntity);
+            RefreshToken refreshTokenEntity = existedRefresh.get();
+            RefreshRequest refreshRequest = RefreshRequest.createRefreshDto(newRefreshToken, expirationDateTime);
+            refreshTokenEntity.updateRefreshToken(refreshRequest);
+            refreshTokenRepository.save(refreshTokenEntity);
         }
     }
 

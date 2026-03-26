@@ -4,11 +4,11 @@ package JOO.jooshop.global.authentication.jwts.controller;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.authentication.jwts.utils.TokenResolver;
 import JOO.jooshop.members.entity.Member;
-import JOO.jooshop.members.entity.Refresh;
+import JOO.jooshop.members.entity.RefreshToken;
 import JOO.jooshop.members.entity.enums.MemberRole;
-import JOO.jooshop.members.model.RefreshDto;
-import JOO.jooshop.members.repository.MemberRepositoryV1;
-import JOO.jooshop.members.repository.RefreshRepository;
+import JOO.jooshop.members.model.request.RefreshRequest;
+import JOO.jooshop.members.repository.MemberRepository;
+import JOO.jooshop.members.repository.RefreshTokenRepository;
 import com.google.gson.JsonObject;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.Cookie;
@@ -54,8 +54,8 @@ public class TokenController {
      */
 
     private JWTUtil jwtUtil;
-    private final RefreshRepository refreshRepository;
-    private final MemberRepositoryV1 memberRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final MemberRepository memberRepository;
     private Long accessTokenExpirationPeriod = 60L * 30; // 30 분
     private Long refreshTokenExpirationPeriod = 3600L * 24 * 7; // 7일
 
@@ -116,7 +116,7 @@ public class TokenController {
         }
 
         // 4. DB 존재 여부 확인
-        if (!refreshRepository.existsByRefreshToken(refreshTokenInCookie)) {
+        if (!refreshTokenRepository.existsByRefreshToken(refreshTokenInCookie)) {
             throw new NoSuchElementException("Refresh 토큰이 존재하지 않습니다.");
         }
 
@@ -134,7 +134,7 @@ public class TokenController {
         String newRefresh = jwtUtil.createRefreshToken("refresh", memberId, role.toString());
 
         // 기존 refreshToken 삭제하고 새 Refresh token DB에 저장
-        refreshRepository.deleteByRefreshToken(refreshTokenInCookie);
+        refreshTokenRepository.deleteByRefreshToken(refreshTokenInCookie);
         Member findMember = memberRepository.findById(Long.valueOf(memberId))
                 .orElseThrow(() -> new EntityNotFoundException("토큰 memberId에 해당하는 회원이 존재하지 않습니다."));
 
@@ -156,12 +156,12 @@ public class TokenController {
     // refresh entity 저장
     private void saveRefreshEntity(Member member, String refresh) throws ClassNotFoundException {
         LocalDateTime expirationDateTime = LocalDateTime.now().plusSeconds(refreshTokenExpirationPeriod);
-        Refresh refreshEntity = refreshRepository.findById(member.getId())
+        RefreshToken refreshTokenEntity = refreshTokenRepository.findById(member.getId())
                 .orElseThrow(() -> new ClassNotFoundException("해당 Refresh가 존재하지 않습니다."));
 
-        RefreshDto refreshDto = RefreshDto.createRefreshDto(refresh, expirationDateTime);
-        refreshEntity.updateRefreshToken(refreshDto);
-        refreshRepository.save(refreshEntity);
+        RefreshRequest refreshRequest = RefreshRequest.createRefreshDto(refresh, expirationDateTime);
+        refreshTokenEntity.updateRefreshToken(refreshRequest);
+        refreshTokenRepository.save(refreshTokenEntity);
     }
 
     // 쿠키 생성

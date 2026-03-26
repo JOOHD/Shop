@@ -5,8 +5,7 @@ import JOO.jooshop.global.authentication.jwts.entity.CustomMemberDto;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.entity.enums.MemberRole;
-import JOO.jooshop.members.repository.MemberRepositoryV1;
-import JOO.jooshop.members.service.MemberService;
+import JOO.jooshop.members.repository.MemberRepository;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -26,7 +25,7 @@ import java.io.PrintWriter;
 public class JWTFilterV0 extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
-    private final MemberRepositoryV1 memberRepository;
+    private final MemberRepository memberRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {

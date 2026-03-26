@@ -18,12 +18,10 @@ public class Profiles {
 
     /**
      * 26.03.25 refactoring
-     * 실제 FK owner는 profiles.member
-     * root인 Member가 attachProfile(profile) 호출
-     * 내부에서 profile.attachTo(this)로 FK owner 세팅
-     *
-     * DB 관계 변경의 진짜 주체는 자식의 FK 필드
-     * aggregate 편입을 선언하는 주체는 root
+     * FK owner가 Profiles.member
+     * Member.attachProfile(profile) 기준으로 aggregate 편입
+     * setter 대신 의미 있는 메서드 사용
+     * touch()로 수정 시각 일관 처리
      */
 
     @Id
@@ -74,11 +72,6 @@ public class Profiles {
     /* Aggregate Root(Member)가 child를 편입할 때 호출 */
     public void attachTo(Member member) {
         this.member = member;
-    }
-
-    public void changeIntroduction(String introduction) {
-        this.introduction = introduction;
-        touch();
     }
 
     public void changeProfileImage(String profileImgPath) {

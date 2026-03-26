@@ -1,7 +1,7 @@
 package JOO.jooshop.profiile.controller;
 
 import JOO.jooshop.members.entity.Member;
-import JOO.jooshop.members.repository.MemberRepositoryV1;
+import JOO.jooshop.members.repository.MemberRepository;
 import JOO.jooshop.profiile.entity.Profiles;
 import JOO.jooshop.profiile.model.MemberDTO;
 import JOO.jooshop.profiile.model.MemberProfileDTO;
@@ -18,7 +18,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ProfileViewController {
 
-    private final MemberRepositoryV1 memberRepository;
+    private final MemberRepository memberRepository;
     private final ProfileRepository profileRepository;
 
     /**

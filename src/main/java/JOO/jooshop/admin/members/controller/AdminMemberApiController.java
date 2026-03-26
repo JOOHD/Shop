@@ -5,7 +5,7 @@ import JOO.jooshop.admin.members.model.AdminMemberResponse;
 import JOO.jooshop.admin.members.service.AdminMemberService;
 import JOO.jooshop.global.exception.customException.UnverifiedEmailException;
 import JOO.jooshop.global.mail.service.EmailMemberService;
-import JOO.jooshop.members.model.JoinMemberRequest;
+import JOO.jooshop.members.model.request.JoinMemberRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

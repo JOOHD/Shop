@@ -1,7 +1,7 @@
 package JOO.jooshop.review.service;
 
 import JOO.jooshop.members.entity.Member;
-import JOO.jooshop.members.repository.MemberRepositoryV1;
+import JOO.jooshop.members.repository.MemberRepository;
 import JOO.jooshop.payment.entity.PaymentHistory;
 import JOO.jooshop.payment.repository.PaymentRepository;
 import JOO.jooshop.product.entity.Product;
@@ -33,7 +33,7 @@ public class ReviewService {
     public final PaymentRepository paymentRepository;
     public final ReviewRepository reviewRepository;
     public final ProductRepository productRepository;
-    public final MemberRepositoryV1 memberRepository;
+    public final MemberRepository memberRepository;
     public final ModelMapper modelMapper;
     public final ReviewImgService reviewImgService;
     public final ReviewImgRepository reviewImgRepository;

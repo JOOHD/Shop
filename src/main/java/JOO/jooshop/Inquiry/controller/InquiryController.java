@@ -6,7 +6,7 @@ import JOO.jooshop.Inquiry.model.InquiryDto;
 import JOO.jooshop.Inquiry.model.InquiryUpdateDto;
 import JOO.jooshop.Inquiry.service.InquiryService;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
-import JOO.jooshop.members.repository.MemberRepositoryV1;
+import JOO.jooshop.members.repository.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ import static JOO.jooshop.global.exception.ResponseMessageConstants.*;
 @RequiredArgsConstructor
 public class InquiryController {
     private final InquiryService inquiryService;
-    private final MemberRepositoryV1 memberRepository;
+    private final MemberRepository memberRepository;
     private final JWTUtil jwtUtil;
 
     /**

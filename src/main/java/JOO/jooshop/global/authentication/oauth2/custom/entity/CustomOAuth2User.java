@@ -2,7 +2,7 @@ package JOO.jooshop.global.authentication.oauth2.custom.entity;
 
 import JOO.jooshop.members.entity.enums.MemberRole;
 import JOO.jooshop.members.entity.enums.SocialType;
-import JOO.jooshop.members.model.OAuthUserDTO;
+import JOO.jooshop.members.support.OAuthUserInfo;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class CustomOAuth2User implements OAuth2User, Serializable {
 
-    private final OAuthUserDTO oAuthUserDTO;
+    private final OAuthUserInfo oAuthUserInfo;
 
     // email, username, role, socialType, socialId
     private String email;
@@ -27,13 +27,13 @@ public class CustomOAuth2User implements OAuth2User, Serializable {
     @Getter
     private String socialId;
 
-    public CustomOAuth2User(OAuthUserDTO oAuthUserDTO) {
-        this.oAuthUserDTO = oAuthUserDTO;
-        this.email = oAuthUserDTO.getEmail();
-        this.username = oAuthUserDTO.getUsername();
-        this.role = oAuthUserDTO.getRole();
-        this.socialType = oAuthUserDTO.getSocialType();
-        this.socialId = oAuthUserDTO.getSocialId();
+    public CustomOAuth2User(OAuthUserInfo oAuthUserInfo) {
+        this.oAuthUserInfo = oAuthUserInfo;
+        this.email = oAuthUserInfo.getEmail();
+        this.username = oAuthUserInfo.getUsername();
+        this.role = oAuthUserInfo.getRole();
+        this.socialType = oAuthUserInfo.getSocialType();
+        this.socialId = oAuthUserInfo.getSocialId();
     }
 
     /*
@@ -50,7 +50,7 @@ public class CustomOAuth2User implements OAuth2User, Serializable {
     */
     @Override
     public Map<String, Object> getAttributes() {
-        return oAuthUserDTO.toMap();
+        return oAuthUserInfo.toMap();
     }
 
     @Override
@@ -61,7 +61,7 @@ public class CustomOAuth2User implements OAuth2User, Serializable {
         collection.add(new GrantedAuthority() {
             @Override
             public String getAuthority() {
-                return oAuthUserDTO.getRole().toString();
+                return oAuthUserInfo.getRole().toString();
             }
         });
         return collection;
@@ -78,5 +78,5 @@ public class CustomOAuth2User implements OAuth2User, Serializable {
         return OAuth2User.super.getAttribute(name);
     }
 
-    public Long getMemberId() { return oAuthUserDTO.getMemberId(); }
+    public Long getMemberId() { return oAuthUserInfo.getMemberId(); }
 }

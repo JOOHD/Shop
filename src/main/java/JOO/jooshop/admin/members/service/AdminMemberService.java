@@ -3,8 +3,8 @@ package JOO.jooshop.admin.members.service;
 import JOO.jooshop.global.exception.customException.EmailAlreadyExistsException;
 import JOO.jooshop.global.exception.customException.InvalidNicknameException;
 import JOO.jooshop.members.entity.Member;
-import JOO.jooshop.members.model.JoinMemberRequest;
-import JOO.jooshop.members.repository.MemberRepositoryV1;
+import JOO.jooshop.members.model.request.JoinMemberRequest;
+import JOO.jooshop.members.repository.MemberRepository;
 import JOO.jooshop.profiile.entity.Profiles;
 import JOO.jooshop.profiile.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +21,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AdminMemberService {
 
-    private final MemberRepositoryV1 memberRepository;
-    private final ProfileRepository profileRepository;
+    private final MemberRepository memberRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
     /**
@@ -58,21 +57,19 @@ public class AdminMemberService {
 
         String socialId = generateSocialId();
 
-        Member admin = Member.createAdminMember(
+        Member admin = Member.registerAdmin(
                 req.getEmail(),
                 req.getUsername(),
                 req.getNickname(),
-                passwordEncoder.encode(req.getPassword1()),
                 req.getPhoneNumber(),
+                passwordEncoder.encode(req.getPassword1()),
                 socialId
         );
 
-        admin.activate(); // 관리자 즉시 활성화
+        Profiles profile = Profiles.createDefaultProfile();
+        admin.attachProfile(profile);
 
-        memberRepository.save(admin);
-        profileRepository.save(Profiles.createMemberProfile(admin));
-
-        return admin;
+        return memberRepository.save(admin);
     }
 
     /**
@@ -81,56 +78,72 @@ public class AdminMemberService {
     @Transactional
     public void activate(Long memberId) {
         Member member = findMemberById(memberId);
-        if (member != null) {
-            member.setActive(true); // 오직 active만 수정
+        if (member.isActive()) {
+            throw new IllegalStateException("이미 활성화된 계정입니다.");
         }
+        member.activate();
     }
 
     @Transactional
     public void deactivate(Long memberId) {
         Member member = findMemberById(memberId);
-        if (member != null) {
-            member.setActive(false); // 다른 필드 건드리지 않음
+        if (!member.isActive()) {
+            throw new IllegalStateException("이미 비활성화된 계쩡입니다.");
         }
+        member.deactivate();
     }
 
     @Transactional
     public void ban(Long memberId) {
         Member member = findMemberById(memberId);
-        if (member != null) {
-            member.setBanned(true);
+        if (member.isBanned()) {
+            throw new IllegalStateException("이미 정지된 계정입니다.");
         }
+        member.ban();
     }
 
     @Transactional
     public void unban(Long memberId) {
         Member member = findMemberById(memberId);
-        if (member != null) {
-            member.setBanned(false);
+        if (!member.isBanned()) {
+            throw new IllegalStateException("이미 정지 해제된 계정입니다.");
         }
+        member.unban();
     }
 
     @Transactional
     public void expireAccount(Long memberId) {
         Member member = findMemberById(memberId);
+        if (member.isAccountExpired()) {
+            throw new IllegalStateException("이미 만료된 계정입니다.");
+        }
         member.expireAccount();
     }
 
     @Transactional
     public void renewAccount(Long memberId) {
         Member member = findMemberById(memberId);
+        if (!member.isAccountExpired()) {
+            throw new IllegalStateException("이미 만료 해제된 계정입니다.");
+        }
         member.renewAccount();
     }
 
     @Transactional
     public void expirePassword(Long memberId) {
         Member member = findMemberById(memberId);
+        if (member.isPasswordExpired()) {
+            throw new IllegalStateException("이미 만료된 비밀번호입니다.");
+        }
         member.expirePassword();
     }
 
     @Transactional
     public void renewPassword(Long memberId) {
         Member member = findMemberById(memberId);
+        if (!member.isPasswordExpired()) {
+            throw new IllegalStateException("이미 만료 해제된 비밀번호입니다.");
+        }
         member.renewPassword();
     }
 

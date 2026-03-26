@@ -5,7 +5,7 @@ import JOO.jooshop.cart.model.CartDto;
 import JOO.jooshop.cart.model.CartUpdateDto;
 import JOO.jooshop.cart.repository.CartRepository;
 import JOO.jooshop.members.entity.Member;
-import JOO.jooshop.members.repository.MemberRepositoryV1;
+import JOO.jooshop.members.repository.MemberRepository;
 import JOO.jooshop.productManagement.entity.ProductManagement;
 import JOO.jooshop.productManagement.repository.ProductManagementRepository;
 
@@ -27,7 +27,7 @@ import static JOO.jooshop.global.authorization.MemberAuthorizationUtil.verifyUse
 public class CartService {
 
     private final CartRepository cartRepository;
-    private final MemberRepositoryV1 memberRepository;
+    private final MemberRepository memberRepository;
     private final ProductManagementRepository productManagementRepository;
 
     /** =================== 장바구니 리스트 조회 =================== */

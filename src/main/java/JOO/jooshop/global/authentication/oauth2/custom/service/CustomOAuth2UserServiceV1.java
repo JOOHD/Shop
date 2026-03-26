@@ -9,14 +9,12 @@ import JOO.jooshop.global.authentication.oauth2.responsedto.OAuth2Response;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.entity.enums.MemberRole;
 import JOO.jooshop.members.entity.enums.SocialType;
-import JOO.jooshop.members.model.OAuthUserDTO;
-import JOO.jooshop.members.repository.MemberRepositoryV1;
+import JOO.jooshop.members.support.OAuthUserInfo;
+import JOO.jooshop.members.repository.MemberRepository;
 import JOO.jooshop.profiile.entity.Profiles;
 import JOO.jooshop.profiile.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -31,7 +29,7 @@ import java.util.Optional;
 @Slf4j
 public class CustomOAuth2UserServiceV1 extends DefaultOAuth2UserService {
 
-    private final MemberRepositoryV1 memberRepository;
+    private final MemberRepository memberRepository;
     private final ProfileRepository profileRepository;
 
     @Override
@@ -109,7 +107,7 @@ public class CustomOAuth2UserServiceV1 extends DefaultOAuth2UserService {
 
     private CustomOAuth2User createOAuth2User(Member member) {
         // Member -> OAuthUserDTO 변환 후 CustomOAuth2User 생성
-        OAuthUserDTO userDTO = OAuthUserDTO.createOAuthUserDTO(
+        OAuthUserInfo userDTO = OAuthUserInfo.createOAuthUserDTO(
                 member.getId(),
                 member.getEmail(),
                 member.getUsername(),

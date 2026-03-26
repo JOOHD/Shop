@@ -50,7 +50,7 @@ public class QReviewReply extends EntityPathBase<ReviewReply> {
 
     public QReviewReply(Class<? extends ReviewReply> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.replyBy = inits.isInitialized("replyBy") ? new JOO.jooshop.members.entity.QMember(forProperty("replyBy")) : null;
+        this.replyBy = inits.isInitialized("replyBy") ? new JOO.jooshop.members.entity.QMember(forProperty("replyBy"), inits.get("replyBy")) : null;
         this.review = inits.isInitialized("review") ? new QReview(forProperty("review"), inits.get("review")) : null;
     }
 

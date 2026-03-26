@@ -9,7 +9,7 @@ import JOO.jooshop.global.exception.ResponseMessageConstants;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.authorization.MemberAuthorizationUtil;
 import JOO.jooshop.members.entity.Member;
-import JOO.jooshop.members.repository.MemberRepositoryV1;
+import JOO.jooshop.members.repository.MemberRepository;
 import JOO.jooshop.product.entity.Product;
 import JOO.jooshop.product.repository.ProductRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,7 +30,7 @@ import static JOO.jooshop.global.exception.ResponseMessageConstants.*;
 @RequiredArgsConstructor
 public class InquiryService {
     public final InquiryRepository inquiryRepository;
-    public final MemberRepositoryV1 memberRepository;
+    public final MemberRepository memberRepository;
     public final ProductRepository productRepository;
     private final JWTUtil jwtUtil;
     public final ModelMapper modelMapper;

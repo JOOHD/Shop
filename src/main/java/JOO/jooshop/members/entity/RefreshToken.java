@@ -1,7 +1,7 @@
 package JOO.jooshop.members.entity;
 
 
-import JOO.jooshop.members.model.RefreshDto;
+import JOO.jooshop.members.model.request.RefreshRequest;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor
 @Table(name = "refresh")
-public class Refresh {
+public class RefreshToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,14 +30,14 @@ public class Refresh {
     @Column(columnDefinition = "TIMESTAMP") // MySQL의 경우
     private LocalDateTime expiration;
 
-    public Refresh(Member member, String refreshToken, LocalDateTime expiration) {
+    public RefreshToken(Member member, String refreshToken, LocalDateTime expiration) {
         this.member = member;
         this.refreshToken = refreshToken;
         this.expiration = expiration;
     }
 
-    public void updateRefreshToken(RefreshDto refreshDto) {
-        this.refreshToken = refreshDto.getRefreshToken(); // this.~ -> entity 필드
-        this.expiration = refreshDto.getExpirationDate();
+    public void updateRefreshToken(RefreshRequest refreshRequest) {
+        this.refreshToken = refreshRequest.getRefreshToken(); // this.~ -> entity 필드
+        this.expiration = refreshRequest.getExpirationDate();
     }
 }

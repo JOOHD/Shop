@@ -53,7 +53,7 @@ public class QInquiryReply extends EntityPathBase<InquiryReply> {
     public QInquiryReply(Class<? extends InquiryReply> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
         this.inquiry = inits.isInitialized("inquiry") ? new QInquiry(forProperty("inquiry"), inits.get("inquiry")) : null;
-        this.replyBy = inits.isInitialized("replyBy") ? new JOO.jooshop.members.entity.QMember(forProperty("replyBy")) : null;
+        this.replyBy = inits.isInitialized("replyBy") ? new JOO.jooshop.members.entity.QMember(forProperty("replyBy"), inits.get("replyBy")) : null;
     }
 
 }

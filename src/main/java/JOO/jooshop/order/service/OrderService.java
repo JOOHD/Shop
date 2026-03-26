@@ -2,7 +2,7 @@ package JOO.jooshop.order.service;
 
 import JOO.jooshop.cart.entity.Cart;
 import JOO.jooshop.cart.repository.CartRepository;
-import JOO.jooshop.members.repository.MemberRepositoryV1;
+import JOO.jooshop.members.repository.MemberRepository;
 import JOO.jooshop.order.entity.OrderProduct;
 import JOO.jooshop.order.entity.Orders;
 import JOO.jooshop.order.entity.TemporaryOrderRedis;
@@ -33,7 +33,7 @@ public class OrderService {
     private final RedisOrderRepository redisOrderRepository;
     private final CartRepository cartRepository;
     private final OrderRepository orderRepository;
-    private final MemberRepositoryV1 memberRepository;
+    private final MemberRepository memberRepository;
 
     /**
      * Redis 임시 주문 저장 + DB Orders 객체 생성 (OrderProduct와 연결 전)

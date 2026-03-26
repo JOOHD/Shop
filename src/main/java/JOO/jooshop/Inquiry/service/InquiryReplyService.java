@@ -9,7 +9,7 @@ import JOO.jooshop.global.authorization.MemberAuthorizationUtil;
 import JOO.jooshop.global.authorization.RequiresRole;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.entity.enums.MemberRole;
-import JOO.jooshop.members.repository.MemberRepositoryV1;
+import JOO.jooshop.members.repository.MemberRepository;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
@@ -29,7 +29,7 @@ import static JOO.jooshop.global.exception.ResponseMessageConstants.*;
 public class InquiryReplyService {
     private final InquiryReplyRepository inquiryReplyRepository;
     private final InquiryRepository inquiryRepository;
-    private final MemberRepositoryV1 memberRepository;
+    private final MemberRepository memberRepository;
     private final JavaMailSender mailSender;
 
     /**

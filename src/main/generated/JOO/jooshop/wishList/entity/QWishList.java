@@ -46,7 +46,7 @@ public class QWishList extends EntityPathBase<WishList> {
 
     public QWishList(Class<? extends WishList> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.member = inits.isInitialized("member") ? new JOO.jooshop.members.entity.QMember(forProperty("member")) : null;
+        this.member = inits.isInitialized("member") ? new JOO.jooshop.members.entity.QMember(forProperty("member"), inits.get("member")) : null;
         this.product = inits.isInitialized("product") ? new JOO.jooshop.product.entity.QProduct(forProperty("product")) : null;
     }
 

@@ -5,10 +5,10 @@ import JOO.jooshop.global.authentication.jwts.utils.CookieUtil;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.authentication.oauth2.custom.entity.CustomOAuth2User;
 import JOO.jooshop.members.entity.Member;
-import JOO.jooshop.members.entity.Refresh;
-import JOO.jooshop.members.model.RefreshDto;
-import JOO.jooshop.members.repository.MemberRepositoryV1;
-import JOO.jooshop.members.repository.RefreshRepository;
+import JOO.jooshop.members.entity.RefreshToken;
+import JOO.jooshop.members.model.request.RefreshRequest;
+import JOO.jooshop.members.repository.MemberRepository;
+import JOO.jooshop.members.repository.RefreshTokenRepository;
 import com.google.gson.JsonObject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -39,9 +39,9 @@ public class Oauth2LoginSuccessHandlerV2 extends SimpleUrlAuthenticationSuccessH
 
     private final JWTUtil jwtUtil;
 
-    private final MemberRepositoryV1 memberRepository;
+    private final MemberRepository memberRepository;
 
-    private final RefreshRepository refreshRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     private Long refreshTokenExpirationPeriod = 1209600L; // Refresh 만료 14일
 
@@ -126,22 +126,22 @@ public class Oauth2LoginSuccessHandlerV2 extends SimpleUrlAuthenticationSuccessH
 
     private void saveOrUpdateRefreshEntity(Member member, String newRefreshToken) {
         // 멤버의 PK 식별자로, refresh 토큰을 가져온다.
-        Optional<Refresh> existedRefresh = refreshRepository.findByMember(member);
+        Optional<RefreshToken> existedRefresh = refreshTokenRepository.findByMember(member);
         LocalDateTime expiration = LocalDateTime.now().plusSeconds(refreshTokenExpirationPeriod);
         existedRefresh.ifPresentOrElse(refreshEntity -> {
             if (refreshEntity.getExpiration().isBefore(LocalDateTime.now())) {
-                refreshRepository.delete(refreshEntity);
+                refreshTokenRepository.delete(refreshEntity);
                 log.info("만료된 Refresh 토큰 삭제 완료: {}", refreshEntity.getRefreshToken());
-                Refresh newRefreshEntity = new Refresh(member, newRefreshToken, expiration);
-                refreshRepository.save(newRefreshEntity);
+                RefreshToken newRefreshTokenEntity = new RefreshToken(member, newRefreshToken, expiration);
+                refreshTokenRepository.save(newRefreshTokenEntity);
             } else {
-                RefreshDto refreshDto = RefreshDto.createRefreshDto(newRefreshToken, expiration);
-                refreshEntity.updateRefreshToken(refreshDto);
-                refreshRepository.save(refreshEntity);
+                RefreshRequest refreshRequest = RefreshRequest.createRefreshDto(newRefreshToken, expiration);
+                refreshEntity.updateRefreshToken(refreshRequest);
+                refreshTokenRepository.save(refreshEntity);
             }
         }, () -> {
-            Refresh newRefreshEntity = new Refresh(member, newRefreshToken, expiration);
-            refreshRepository.save(newRefreshEntity);
+            RefreshToken newRefreshTokenEntity = new RefreshToken(member, newRefreshToken, expiration);
+            refreshTokenRepository.save(newRefreshTokenEntity);
         });
 
     }

@@ -4,7 +4,7 @@ import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.mail.repository.CertificationRepository;
 import JOO.jooshop.global.mail.service.EmailMemberService;
 import JOO.jooshop.members.entity.Member;
-import JOO.jooshop.members.repository.MemberRepositoryV1;
+import JOO.jooshop.members.repository.MemberRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +29,7 @@ public class EmailVerificationController {
      * 컨트롤러는 /verify, /resend 기능만 담당
      */
     private final EmailMemberService emailMemberService;
-    private final MemberRepositoryV1 memberRepository;
+    private final MemberRepository memberRepository;
     private final CertificationRepository certificationRepository;
     private final JWTUtil jwtUtil;
 

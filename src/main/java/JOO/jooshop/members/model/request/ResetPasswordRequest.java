@@ -1,4 +1,4 @@
-package JOO.jooshop.members.model;
+package JOO.jooshop.members.model.request;
 
 import lombok.Data;
 

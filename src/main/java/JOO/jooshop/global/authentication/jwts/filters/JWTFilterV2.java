@@ -5,9 +5,7 @@ import JOO.jooshop.global.authentication.jwts.entity.CustomMemberDto;
 import JOO.jooshop.global.authentication.jwts.service.CookieService;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.members.entity.Member;
-import JOO.jooshop.members.entity.enums.MemberRole;
-import JOO.jooshop.members.repository.MemberRepositoryV1;
-import JOO.jooshop.members.service.MemberService;
+import JOO.jooshop.members.repository.MemberRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,13 +16,9 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Objects;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -32,7 +26,7 @@ public class JWTFilterV2 extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
     private final CookieService cookieService;
-    private final MemberRepositoryV1 memberRepository;
+    private final MemberRepository memberRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {

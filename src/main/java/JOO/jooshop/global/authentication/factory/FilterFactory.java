@@ -3,8 +3,8 @@ package JOO.jooshop.global.authentication.factory;
 import JOO.jooshop.global.authentication.jwts.filters.JWTFilterV3;
 import JOO.jooshop.global.authentication.jwts.filters.LoginFilter;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
-import JOO.jooshop.members.repository.RefreshRepository;
-import JOO.jooshop.members.service.MemberService;
+import JOO.jooshop.members.repository.RefreshTokenRepository;
+import JOO.jooshop.members.service.MemberAccountService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -17,22 +17,22 @@ public class FilterFactory {
 
     private final ObjectMapper objectMapper;
     private final JWTUtil jwtUtil;
-    private final RefreshRepository refreshRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final RedisTemplate<String, String> redisTemplate;
 
-    public LoginFilter createLoginFilter(AuthenticationManager authenticationManager, MemberService memberService) {
+    public LoginFilter createLoginFilter(AuthenticationManager authenticationManager, MemberAccountService memberService) {
         LoginFilter loginFilter = new LoginFilter(
                 authenticationManager,
                 objectMapper,
                 memberService,
                 jwtUtil,
-                refreshRepository
+                refreshTokenRepository
         );
         loginFilter.setFilterProcessesUrl("/api/login");
         return loginFilter;
     }
 
-    public JWTFilterV3 createJWTFilter(MemberService memberService) {
+    public JWTFilterV3 createJWTFilter(MemberAccountService memberService) {
         return new JWTFilterV3(jwtUtil, redisTemplate, memberService);
     }
 }

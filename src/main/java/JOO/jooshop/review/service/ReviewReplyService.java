@@ -3,7 +3,7 @@ package JOO.jooshop.review.service;
 import JOO.jooshop.global.authorization.RequiresRole;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.entity.enums.MemberRole;
-import JOO.jooshop.members.repository.MemberRepositoryV1;
+import JOO.jooshop.members.repository.MemberRepository;
 import JOO.jooshop.review.entity.Review;
 import JOO.jooshop.review.entity.ReviewReply;
 import JOO.jooshop.review.model.ReviewReplyDto;
@@ -23,7 +23,7 @@ import static JOO.jooshop.global.exception.ResponseMessageConstants.*;
 public class ReviewReplyService {
     private final ReviewReplyRepository reviewReplyRepository;
     private final ReviewRepository reviewRepository;
-    private final MemberRepositoryV1 memberRepository;
+    private final MemberRepository memberRepository;
 
     /**
      * 리뷰 댓글 작성

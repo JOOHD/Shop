@@ -9,9 +9,8 @@ import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.authentication.oauth2.custom.service.CustomOAuth2UserServiceV1;
 import JOO.jooshop.global.authentication.oauth2.handler.Oauth2LoginFailureHandler;
 import JOO.jooshop.global.authentication.oauth2.handler.Oauth2LoginSuccessHandlerV2;
-import JOO.jooshop.global.authorization.CustomAuthorizationRequestResolver;
-import JOO.jooshop.members.repository.RefreshRepository;
-import JOO.jooshop.members.service.MemberService;
+import JOO.jooshop.members.repository.RefreshTokenRepository;
+import JOO.jooshop.members.service.MemberAccountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -120,7 +119,7 @@ public class SecurityConfig {
     @Order(1)
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http,
                                                       AuthenticationManager authenticationManager,
-                                                      MemberService memberService) throws Exception {
+                                                      MemberAccountService memberService) throws Exception {
 
         JWTFilterV3 jwtFilter = new JWTFilterV3(jwtUtil, redisTemplate, memberService);
         var loginFilter = filterFactory.createLoginFilter(authenticationManager, memberService);
@@ -183,10 +182,10 @@ public class SecurityConfig {
      */
     @Bean
     @Order(2)
-    public SecurityFilterChain webSecurityFilterChain(HttpSecurity http, MemberService memberService, RefreshRepository refreshRepository) throws Exception {
+    public SecurityFilterChain webSecurityFilterChain(HttpSecurity http, MemberAccountService memberService, RefreshTokenRepository refreshTokenRepository) throws Exception {
 
         JWTFilterV3 jwtFilterV3 = filterFactory.createJWTFilter(memberService);
-        CustomLogoutFilter customLogoutFilter = new CustomLogoutFilter(jwtUtil, redisTemplate, refreshRepository);
+        CustomLogoutFilter customLogoutFilter = new CustomLogoutFilter(jwtUtil, redisTemplate, refreshTokenRepository);
 
         http
                 .securityMatcher("/**")

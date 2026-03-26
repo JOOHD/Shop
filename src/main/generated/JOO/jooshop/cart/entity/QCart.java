@@ -50,7 +50,7 @@ public class QCart extends EntityPathBase<Cart> {
 
     public QCart(Class<? extends Cart> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.member = inits.isInitialized("member") ? new JOO.jooshop.members.entity.QMember(forProperty("member")) : null;
+        this.member = inits.isInitialized("member") ? new JOO.jooshop.members.entity.QMember(forProperty("member"), inits.get("member")) : null;
         this.productManagement = inits.isInitialized("productManagement") ? new JOO.jooshop.productManagement.entity.QProductManagement(forProperty("productManagement"), inits.get("productManagement")) : null;
     }
 

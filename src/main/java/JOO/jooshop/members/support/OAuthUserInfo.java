@@ -1,10 +1,8 @@
-package JOO.jooshop.members.model;
+package JOO.jooshop.members.support;
 
 
 import JOO.jooshop.members.entity.enums.MemberRole;
 import JOO.jooshop.members.entity.enums.SocialType;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -13,7 +11,7 @@ import java.util.Map;
 
 @Data
 @NoArgsConstructor
-public class OAuthUserDTO {
+public class OAuthUserInfo {
 
     private Long memberId;
     private String username;
@@ -23,8 +21,8 @@ public class OAuthUserDTO {
     private String socialId;
     private boolean isCertify;
 
-    public static OAuthUserDTO createOAuthUserDTO(Long memberId, String email, String username, MemberRole role, SocialType socialType, String socialId, boolean isCertifty) {
-        OAuthUserDTO userDTO = new OAuthUserDTO();
+    public static OAuthUserInfo createOAuthUserDTO(Long memberId, String email, String username, MemberRole role, SocialType socialType, String socialId, boolean isCertifty) {
+        OAuthUserInfo userDTO = new OAuthUserInfo();
         userDTO.setMemberId(memberId); // Member Id 를 반환하도록 추가
         userDTO.setEmail(email);
         userDTO.setUsername(username);

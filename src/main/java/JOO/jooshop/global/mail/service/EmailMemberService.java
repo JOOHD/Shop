@@ -4,7 +4,7 @@ import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.mail.entity.CertificationEntity;
 import JOO.jooshop.global.mail.repository.CertificationRepository;
 import JOO.jooshop.members.entity.Member;
-import JOO.jooshop.members.repository.MemberRepositoryV1;
+import JOO.jooshop.members.repository.MemberRepository;
 
 import jakarta.mail.Message;
 import jakarta.mail.internet.InternetAddress;
@@ -14,11 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import javax.swing.text.html.Option;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +23,7 @@ public class EmailMemberService {
 
     private final JWTUtil jwtUtil;
     private final JavaMailSender mailSender;
-    private final MemberRepositoryV1 memberRepository;
+    private final MemberRepository memberRepository;
     private final CertificationRepository certificationRepository;
 
     @Value("${spring.backend.url}")

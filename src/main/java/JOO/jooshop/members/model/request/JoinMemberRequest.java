@@ -1,4 +1,4 @@
-package JOO.jooshop.members.model;
+package JOO.jooshop.members.model.request;
 
 import JOO.jooshop.address.model.AddressesReqeustDto;
 import jakarta.validation.constraints.Email;

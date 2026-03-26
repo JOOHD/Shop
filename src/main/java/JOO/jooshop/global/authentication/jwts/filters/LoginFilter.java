@@ -3,10 +3,10 @@ package JOO.jooshop.global.authentication.jwts.filters;
 import JOO.jooshop.global.authentication.jwts.utils.CookieUtil;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.members.entity.Member;
-import JOO.jooshop.members.entity.Refresh;
-import JOO.jooshop.members.model.RefreshDto;
-import JOO.jooshop.members.repository.RefreshRepository;
-import JOO.jooshop.members.service.MemberService;
+import JOO.jooshop.members.entity.RefreshToken;
+import JOO.jooshop.members.model.request.RefreshRequest;
+import JOO.jooshop.members.repository.RefreshTokenRepository;
+import JOO.jooshop.members.service.MemberAccountService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
@@ -31,8 +31,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static JOO.jooshop.global.authentication.jwts.utils.CookieUtil.createCookieWithSameSiteForLocal;
-
 @Slf4j
 public class LoginFilter extends CustomJsonEmailPasswordAuthenticationFilter {
 
@@ -49,17 +47,17 @@ public class LoginFilter extends CustomJsonEmailPasswordAuthenticationFilter {
 
     private Long refreshTokenExpirationPeriod = 1209600L;
 
-    private final MemberService memberService;
+    private final MemberAccountService memberService;
     private final JWTUtil jwtUtil;
-    private final RefreshRepository refreshRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     private static final String CONTENT_TYPE = "application/json"; // JSON 타입의 데이터로 오는 로그인 요청만 처리
 
-    public LoginFilter(AuthenticationManager authenticationManager, ObjectMapper objectMapper, MemberService memberService, JWTUtil jwtUtil, RefreshRepository refreshRepository) {
+    public LoginFilter(AuthenticationManager authenticationManager, ObjectMapper objectMapper, MemberAccountService memberService, JWTUtil jwtUtil, RefreshTokenRepository refreshTokenRepository) {
         super(authenticationManager, objectMapper); // 초기화
         this.memberService = memberService;
         this.jwtUtil = jwtUtil;
-        this.refreshRepository = refreshRepository;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
     /**
@@ -201,19 +199,19 @@ public class LoginFilter extends CustomJsonEmailPasswordAuthenticationFilter {
      */
     private void saveOrUpdateRefreshEntity(Member member, String newRefreshToken) {
         // memberId 로 refresh 엔티티 조회 (중복 저장 방지)
-        Optional<Refresh> existedRefresh = refreshRepository.findByMember(member);
+        Optional<RefreshToken> existedRefresh = refreshTokenRepository.findByMember(member);
         LocalDateTime expirationDateTime = LocalDateTime.now().plusSeconds(refreshTokenExpirationPeriod);
 
         if (existedRefresh.isPresent()) {
             // 이미 존재한다면, 기존 엔티티 업데이트
-            Refresh refreshEntity = existedRefresh.get();
-            RefreshDto refreshDto = RefreshDto.createRefreshDto(newRefreshToken, expirationDateTime);
-            refreshEntity.updateRefreshToken(refreshDto);
-            refreshRepository.save(refreshEntity);
+            RefreshToken refreshTokenEntity = existedRefresh.get();
+            RefreshRequest refreshRequest = RefreshRequest.createRefreshDto(newRefreshToken, expirationDateTime);
+            refreshTokenEntity.updateRefreshToken(refreshRequest);
+            refreshTokenRepository.save(refreshTokenEntity);
         } else {
             // 없으면 새로 저장
-            Refresh newRefreshEntity = new Refresh(member, newRefreshToken, expirationDateTime);
-            refreshRepository.save(newRefreshEntity);
+            RefreshToken newRefreshTokenEntity = new RefreshToken(member, newRefreshToken, expirationDateTime);
+            refreshTokenRepository.save(newRefreshTokenEntity);
         }
     }
 }

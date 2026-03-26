@@ -2,7 +2,7 @@ package JOO.jooshop.global.authentication.jwts.entity;
 
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.entity.enums.MemberRole;
-import JOO.jooshop.members.repository.MemberRepositoryV1;
+import JOO.jooshop.members.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -63,7 +63,7 @@ public class CustomUserDetails implements UserDetails {
     /**
      * 이메일 기준으로 Member 조회 (repository 직접 사용)
      */
-    public Member getMember(MemberRepositoryV1 memberRepository) {
+    public Member getMember(MemberRepository memberRepository) {
         return memberRepository.findByEmail(customMemberDto.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }

@@ -71,7 +71,6 @@ public class ProductManagementDto {
 
         // ProductManagement 생성
         return ProductManagement.of(
-                product,
                 color,
                 category,
                 dto.getGender(),

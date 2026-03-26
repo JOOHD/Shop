@@ -4,7 +4,7 @@ import JOO.jooshop.address.entity.Addresses;
 import JOO.jooshop.address.model.AddressesReqeustDto;
 import JOO.jooshop.address.repository.AddressRepository;
 import JOO.jooshop.members.entity.Member;
-import JOO.jooshop.members.repository.MemberRepositoryV1;
+import JOO.jooshop.members.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +23,7 @@ import static JOO.jooshop.global.exception.ResponseMessageConstants.*;
 public class AddressService {
 
     private final AddressRepository addressRepository;
-    private final MemberRepositoryV1 memberRepository;
+    private final MemberRepository memberRepository;
 
     /* 회원의 새로운 주소를 생성한다. */
     public ResponseEntity<Addresses> createAddress(Long memberId, AddressesReqeustDto addressDto) {

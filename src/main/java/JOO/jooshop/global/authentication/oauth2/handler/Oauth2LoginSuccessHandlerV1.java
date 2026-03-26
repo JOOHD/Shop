@@ -4,10 +4,10 @@ import JOO.jooshop.global.authentication.jwts.utils.CookieUtil;
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.authentication.oauth2.custom.entity.CustomOAuth2User;
 import JOO.jooshop.members.entity.Member;
-import JOO.jooshop.members.entity.Refresh;
-import JOO.jooshop.members.model.RefreshDto;
-import JOO.jooshop.members.repository.MemberRepositoryV1;
-import JOO.jooshop.members.repository.RefreshRepository;
+import JOO.jooshop.members.entity.RefreshToken;
+import JOO.jooshop.members.model.request.RefreshRequest;
+import JOO.jooshop.members.repository.MemberRepository;
+import JOO.jooshop.members.repository.RefreshTokenRepository;
 import com.google.gson.JsonObject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -41,8 +41,8 @@ public class Oauth2LoginSuccessHandlerV1 extends SimpleUrlAuthenticationSuccessH
         - 로그인 성공 후, frontend 로 redirect
      */
     private final JWTUtil jwtUtil;
-    private final MemberRepositoryV1 memberRepository;
-    private final RefreshRepository refreshRepository;
+    private final MemberRepository memberRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     private Long accessTokenExpirationPeriod = 60L * 12; // 12 분
     private Long refreshTokenExpirationPeriod = 3600L * 24 * 7; // 7일
@@ -89,21 +89,21 @@ public class Oauth2LoginSuccessHandlerV1 extends SimpleUrlAuthenticationSuccessH
 
     private void saveOrUpdateRefreshEntity(Member member, String newRefreshToken) {
         // 멤버의 PK 식별자로, refresh 토큰을 가져온다.
-        Optional<Refresh> optionalRefresh = refreshRepository.findById(member.getId());
+        Optional<RefreshToken> optionalRefresh = refreshTokenRepository.findById(member.getId());
         LocalDateTime expirationDateTime = LocalDateTime.now().plusSeconds(refreshTokenExpirationPeriod);
         if (optionalRefresh.isPresent()) {
             // 로그인 이메일과 같은 이메일을 가지고 있는 Refresh 앤티티에 대해서, refresh 값을 새롭게 업데이트 해줌
-            Refresh existedRefresh = optionalRefresh.get();
+            RefreshToken existedRefreshToken = optionalRefresh.get();
             // Dto 를 통해서, 새롭게 생성한 RefreshToken 값, 유효기간 등을 받아온다.
-            RefreshDto refreshDto = RefreshDto.createRefreshDto(newRefreshToken, expirationDateTime);
+            RefreshRequest refreshRequest = RefreshRequest.createRefreshDto(newRefreshToken, expirationDateTime);
             // Dto 정보들로 기존에 있던 Refresh 앤티티를 업데이트한다.
-            existedRefresh.updateRefreshToken(refreshDto);
+            existedRefreshToken.updateRefreshToken(refreshRequest);
             // 저장
-            refreshRepository.save(existedRefresh);
+            refreshTokenRepository.save(existedRefreshToken);
         } else {
             // 완전히 새로운 리프레쉬 토큰을 생성 후 저장.
-            Refresh newRefreshEntity = new Refresh(member, newRefreshToken, expirationDateTime);
-            refreshRepository.save(newRefreshEntity);
+            RefreshToken newRefreshTokenEntity = new RefreshToken(member, newRefreshToken, expirationDateTime);
+            refreshTokenRepository.save(newRefreshTokenEntity);
         }
     }
 

@@ -1,8 +1,7 @@
 package JOO.jooshop.global.authentication.jwts.filters;
 
 import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
-import JOO.jooshop.members.repository.RefreshRepository;
-import io.jsonwebtoken.ExpiredJwtException;
+import JOO.jooshop.members.repository.RefreshTokenRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -24,7 +23,7 @@ public class CustomLogoutFilter extends GenericFilterBean {
 
     private final JWTUtil jwtUtil;
     private final RedisTemplate<String, String> redisTemplate;
-    private final RefreshRepository refreshRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain) throws IOException, ServletException {
@@ -78,8 +77,8 @@ public class CustomLogoutFilter extends GenericFilterBean {
         }
 
         if (refresh != null && !jwtUtil.isExpired(refresh) && "refresh".equals(jwtUtil.getCategory(refresh))) {
-            if (refreshRepository.existsByRefreshToken(refresh)) {
-                refreshRepository.deleteByRefreshToken(refresh);
+            if (refreshTokenRepository.existsByRefreshToken(refresh)) {
+                refreshTokenRepository.deleteByRefreshToken(refresh);
             }
         }
 

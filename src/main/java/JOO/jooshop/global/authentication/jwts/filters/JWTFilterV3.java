@@ -6,7 +6,7 @@ import JOO.jooshop.global.authentication.jwts.utils.JWTUtil;
 import JOO.jooshop.global.authentication.jwts.utils.TokenResolver;
 import JOO.jooshop.members.entity.Member;
 import JOO.jooshop.members.entity.enums.MemberRole;
-import JOO.jooshop.members.service.MemberService;
+import JOO.jooshop.members.service.MemberAccountService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -38,7 +38,7 @@ public class JWTFilterV3 extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
     private final RedisTemplate<String, String> redisTemplate;
-    private final MemberService memberService;
+    private final MemberAccountService memberService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
