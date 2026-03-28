@@ -13,7 +13,6 @@ import java.util.concurrent.TimeUnit;
 
 @Data
 @NoArgsConstructor
-@Builder
 @RedisHash("TemporaryOrder") // Redis key : TemporaryOrder:{id}
 public class TemporaryOrderRedis implements Serializable {
     /**
@@ -48,37 +47,30 @@ public class TemporaryOrderRedis implements Serializable {
     private String phoneNumber;         // 전화번호
 
     // ====== 리스트 필드 초기화 ======
-    @Builder.Default
+    
     private List<Long> cartIds = new ArrayList<>();
-    @Builder.Default
     private List<String> productNames = new ArrayList<>();
-    @Builder.Default
     private List<String> productSizes = new ArrayList<>();
-    @Builder.Default
     private List<String> productImages = new ArrayList<>();
-    @Builder.Default
     private List<Integer> productQuantities = new ArrayList<>();
-
-    private BigDecimal totalPrice;      // 총 결제 금액
-
-    @Builder.Default
+    private BigDecimal totalPrice;
+    
     @TimeToLive(unit = TimeUnit.MINUTES)
     private long expiration = 30; // TTL: 30분 후 자동 삭제
 
-    // ====== 안전한 빌더 생성자 ======
-    @Builder
-    public TemporaryOrderRedis(String id,
-                               Long memberId,
-                               String username,
-                               String ordererName,
-                               String phoneNumber,
-                               List<Long> cartIds,
-                               List<String> productNames,
-                               List<String> productSizes,
-                               List<String> productImages,
-                               List<Integer> productQuantities,
-                               BigDecimal totalPrice,
-                               long expiration) {
+    private TemporaryOrderRedis(
+            String id,
+            Long memberId,
+            String username,
+            String ordererName,
+            String phoneNumber,
+            List<Long> cartIds,
+            List<String> productNames,
+            List<String> productSizes,
+            List<String> productImages,
+            List<Integer> productQuantities,
+            BigDecimal totalPrice
+    ) {
         this.id = id;
         this.memberId = memberId;
         this.username = username;
@@ -90,6 +82,32 @@ public class TemporaryOrderRedis implements Serializable {
         this.productImages = productImages != null ? productImages : new ArrayList<>();
         this.productQuantities = productQuantities != null ? productQuantities : new ArrayList<>();
         this.totalPrice = totalPrice;
-        this.expiration = expiration;
+    }
+
+    public static TemporaryOrderRedis createTemporaryOrder(
+            Long memberId,
+            String username,
+            String ordererName,
+            String phoneNumber,
+            List<Long> cartIds,
+            List<String> productNames,
+            List<String> productSizes,
+            List<String> productImages,
+            List<Integer> productQuantities,
+            BigDecimal totalPrice
+    ) {
+        return new TemporaryOrderRedis(
+                "tempOrder:" + memberId,
+                memberId,
+                username,
+                ordererName,
+                phoneNumber,
+                cartIds,
+                productNames,
+                productSizes,
+                productImages,
+                productQuantities,
+                totalPrice
+        );
     }
 }

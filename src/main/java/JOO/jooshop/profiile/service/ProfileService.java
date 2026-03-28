@@ -88,7 +88,7 @@ public class ProfileService {
 
         String fileName = UUID.randomUUID().toString().replace("-", "") + imageFile.getOriginalFilename();
         String filePath = uploadsDir + fileName;
-        String dbFilePath = "/uploads/profileImgs/" + fileName;
+//        String dbFilePath = "/uploads/profileImgs/" + fileName;
 
         try {
             String resizedFileName = ImageUtil.resizeImageFile(imageFile, filePath, "jpeg");

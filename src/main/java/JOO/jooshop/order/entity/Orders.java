@@ -22,17 +22,14 @@ import java.util.List;
 @Table(name = "orders")
 public class Orders {
 
-    /*
-        Product (PK)
-        ProductMgt (FK, Product 참조, 연결점)
-        Orders (JoinColumns)
-        Orders_ProductManagement (InverseJoinColumns, 양방향 연결점)
-
-        Member (1) <-> Orders (N) <-> ProductManagement (N) <-> Product (1)
-        - 회원(1명)은 여러 주문(N개) 가능
-        - 하나의 주문에는 여러 개의 상품 옵션이 있을 수 있고,
-            여러 주문이 동일한 상품 옵션을 가질 수 있다. (다대다)
-        - 상품 관리 항목은 하나의 상품을 참조 (1:N)
+    /**
+     Aggregate Root
+     역할:
+         주문 전체 대표
+         주문 상태 관리
+         주문 자식(OrderProduct) 생명주기 관리
+         결제 전/후 상태 변경 관리
+         외부 서비스가 주문 내부를 직접 조립하지 못하게 막는 중심
      */
 
     @Id
@@ -40,20 +37,9 @@ public class Orders {
     @Column(name = "order_id")
     private Long orderId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
-
-    @ManyToMany // 다대다 연결을 표현하기 위해 중간 테이블이 자동 생성된다.
-    @JoinTable(
-            name = "orders_product_management", // JoinTable : 현재 어떤 엔티티와 연결이 되었는지 명시적 설정, DB에 정확하게 저장 위해
-            joinColumns = @JoinColumn(name = "orders_id"),  // JoinColumn : FK 를 사용하기 위해
-            inverseJoinColumns = @JoinColumn(name = "product_management_id") // InverseJoinColumn : 상대 엔티티의 외래 키 설정
-    )
-
-    private List<ProductManagement> productManagements = new ArrayList<>();
-
-    // 주문 상품들
 
     @OneToMany(mappedBy = "orders", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderProduct> orderProducts = new ArrayList<>();
@@ -61,18 +47,18 @@ public class Orders {
     @Column(name = "order_name", nullable = false)
     private String ordererName;
 
-    // 문자열로 저장, 쉼표로 구분된 형태로 저장
     @Column(name = "product_name", nullable = false)
-    private String productName;
+    private String productNameSummary;
 
     @Enumerated(EnumType.STRING)
-    PayMethod payMethod;
+    @Column(name = "pay_method", nullable = false)
+    private PayMethod payMethod;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_status", nullable = false)
-    private PaymentStatus paymentStatus = PaymentStatus.COMPLETE; // 기본값 설정도 가능
+    private PaymentStatus paymentStatus;
 
-    @Column(length = 100, name = "merchant_uid")
+    @Column(length = 100, name = "merchant_uid", nullable = false, unique = true)
     private String merchantUid;
 
     @Column(name = "total_price", nullable = false)
@@ -87,59 +73,136 @@ public class Orders {
     @Column(name = "post_code", length = 100, nullable = false)
     private String postCode;
 
-    @Column(name = "phone_number")
+    @Column(name = "phone_number", nullable = false)
     private String phoneNumber;
 
     @CreationTimestamp
-    @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime orderDay;
 
     @OneToMany(mappedBy = "orders")
     private List<PaymentHistory> paymentHistories = new ArrayList<>();
 
-    public void updatePayStatus(PaymentStatus paymentStatus) {
+    private Orders(
+            Member member,
+            String ordererName,
+            String phoneNumber,
+            String postCode,
+            String address,
+            String detailAddress,
+            PayMethod payMethod,
+            String merchantUid
+    ) {
+        validateCreate(member, ordererName, phoneNumber, postCode, address, payMethod, merchantUid);
+
+        this.member = member;
+        this.ordererName = ordererName;
+        this.phoneNumber = phoneNumber;
+        this.postCode = postCode;
+        this.address = address;
+        this.detailAddress = detailAddress;
+        this.payMethod = payMethod;
+        this.merchantUid = merchantUid;
+        this.paymentStatus = PaymentStatus.COMPLETE; // 현재 프로젝트 흐름 유지, 추후 READY로 변경 가능
+        this.totalPrice = BigDecimal.ZERO;
+        this.productNameSummary = "";
+    }
+
+    public static Orders createOrder(
+            Member member,
+            String ordererName,
+            String phoneNumber,
+            String postCode,
+            String address,
+            String detailAddress,
+            PayMethod payMethod,
+            String merchantUid
+    ) {
+        return new Orders(
+                member,
+                ordererName,
+                phoneNumber,
+                postCode,
+                address,
+                detailAddress,
+                payMethod,
+                merchantUid
+        );
+    }
+
+    public void addOrderProducts(OrderProduct orderProduct) {
+        if (orderProduct == null) {
+            throw new IllegalArgumentException("주문 상품은 null일 수 없습니다.");
+        }
+
+        this.orderProducts.add(orderProduct);
+        orderProduct.attachTo(this);
+        recalculateOrderSummary();
+    }
+
+    public void addOrderProduct(OrderProduct orderProduct) {
+        if (orderProduct == null) {
+            throw new IllegalArgumentException("주문 상품은 null일 수 없습니다.");
+        }
+
+        this.orderProducts.add(orderProduct);
+        orderProduct.attachTo(this);
+        recalculateOrderSummary();
+    }
+
+    public void addOrderProducts(List<OrderProduct> orderProducts) {
+        if (orderProducts == null || orderProducts.isEmpty()) {
+            throw new IllegalArgumentException("주문 상품은 최소 1개 이상이어야 합니다.");
+        }
+
+        orderProducts.forEach(this::addOrderProducts);
+    }
+
+    public void changePaymentStatus(PaymentStatus paymentStatus) {
+        if (paymentStatus == null) {
+            throw new IllegalArgumentException("결제 상태는 null일 수 없습니다.");
+        }
         this.paymentStatus = paymentStatus;
     }
 
-    /**
-     * [Orders 생성용 static factory]
-     * 주문 생성 시, 필요한 정보만 받아서 Orders 엔티티 생성
-     * orderProducts 는 별도로 addOrderProducts() 로 연결
-     */
-    public static Orders createOrder(Member member,
-                                     String ordererName,
-                                     String phoneNumber,
-                                     String productName,
-                                     BigDecimal totalPrice,
-                                     String postCode,
-                                     String address,
-                                     String detailAddress,
-                                     PayMethod payMethod,
-                                     String merchantUid) {
-        Orders orders = new Orders();
-        orders.setMember(member);
-        orders.setOrdererName(ordererName);
-        orders.setPhoneNumber(phoneNumber);
-        orders.setProductName(productName);
-        orders.setTotalPrice(totalPrice);
-        orders.setPostCode(postCode);
-        orders.setAddress(address);
-        orders.setDetailAddress(detailAddress);
-        orders.setPayMethod(payMethod);
-        orders.setMerchantUid(merchantUid);
-        return orders;
+    public void markPaid() {
+        this.paymentStatus = PaymentStatus.COMPLETE;
     }
 
-    /**
-     * Orders 엔티티에 여러 개의 OrderProduct 를 연결할 때 사용
-     * [Orders ↔ OrderProduct 는 양방향 관계입니다.
-     *
-     * addOrderProducts를 사용하면:
-     * 1. Orders의 리스트에 OrderProduct 추가
-     * 2. 각 OrderProduct가 자신이 속한 Orders를 참조OrderProduct 연관 추가]
-     */
-    public void addOrderProducts(List<OrderProduct> orderProducts) {
-        this.orderProducts.addAll(orderProducts);
-        orderProducts.forEach(op -> op.setOrders(this));
+    public void markCanceled() {
+        this.paymentStatus = PaymentStatus.CANCELED;
+    }
+
+    private void recalculateOrderSummary() {
+        this.totalPrice = this.orderProducts.stream()
+                .map(OrderProduct::calculateLineTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        this.productNameSummary = this.orderProducts.stream()
+                .map(OrderProduct::getProductName)
+                .reduce((first, second) -> first + "," + second)
+                .orElse("");
+    }
+
+    private void validateCreate(
+            Member member,
+            String ordererName,
+            String phoneNumber,
+            String postCode,
+            String address,
+            PayMethod payMethod,
+            String merchantUid
+    ) {
+        if (member == null) throw new IllegalArgumentException("주문 회원은 필수입니다.");
+        if (isBlank(ordererName)) throw new IllegalArgumentException("주문자명은 필수입니다.");
+        if (isBlank(phoneNumber)) throw new IllegalArgumentException("전화번호는 필수입니다.");
+        if (isBlank(postCode)) throw new IllegalArgumentException("우편번호는 필수입니다.");
+        if (isBlank(address)) throw new IllegalArgumentException("주소는 필수입니다.");
+        if (payMethod == null) throw new IllegalArgumentException("결제수단은 필수입니다.");
+        if (isBlank(merchantUid)) throw new IllegalArgumentException("merchantUid는 필수입니다.");
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 }

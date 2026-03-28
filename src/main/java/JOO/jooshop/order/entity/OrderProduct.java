@@ -2,97 +2,124 @@ package JOO.jooshop.order.entity;
 
 import JOO.jooshop.productManagement.entity.ProductManagement;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@ToString(exclude = {"orders", "productManagement"}) // 양방향 관계 시 무한 루프 방지
+@ToString(exclude = {"orders", "productManagement"})
+@Table(name = "order_product")
 public class OrderProduct {
+
+    /**
+     Orders의 자식 엔티티
+     역할:
+         주문 당시 상품 스냅샷 보존
+         상품명 / 옵션 / 수량 / 가격 / 썸네일 등 기록
+         자신이 어느 주문에 속하는지 관리
+         주문 단위에 묶인 상품 행(row) 역할
+
+     중요:
+         Product와는 “현재 상품 정보”
+         OrderProduct는 “주문 당시 확정 정보”
+
+     즉, 주문 후 상품명이 바뀌어도 주문 기록은 안 바뀌어야 하니까 스냅샷 개념이 필요함.
+     */
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "order_product_id")
     private Long id;
 
-    // 주문과 연결
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "orders_id")
+    @JoinColumn(name = "orders_id", nullable = false)
     private Orders orders;
 
-    // 상품 옵션과 연결
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_management_id")
+    @JoinColumn(name = "product_management_id", nullable = false)
     private ProductManagement productManagement;
 
-    // 주문 당시 가격
+    @Column(name = "price_at_order", nullable = false)
     private BigDecimal priceAtOrder;
 
-    // 상품명
+    @Column(name = "product_name", nullable = false)
     private String productName;
 
-    // 상품 사이즈
+    @Column(name = "product_size")
     private String productSize;
 
-    // 상품 이미지 URL (썸네일)
+    @Column(name = "product_img")
     private String productImg;
 
-    // 주문 수량
+    @Column(name = "quantity", nullable = false)
     private int quantity;
 
-    // 리뷰 작성 여부
+    @Column(name = "reviewed", nullable = false)
     private boolean reviewed;
 
-    // 반품 여부
+    @Column(name = "returned", nullable = false)
     private boolean returned;
 
-    /**
-     * static factory: 주문 확정 시 사용
-     * @param orders Orders 엔티티 (연결 전엔 null 가능)
-     * @param productManagement ProductManagement 엔티티
-     * @param productName 상품명
-     * @param productSize 사이즈
-     * @param productImg 이미지 URL
-     * @param priceAtOrder 주문 당시 가격
-     * @param quantity 수량
-     * @return OrderProduct 인스턴스
-     */
-    public static OrderProduct createOrderProduct(Orders orders,
-                                                  ProductManagement productManagement,
-                                                  String productName,
-                                                  String productSize,
-                                                  String productImg,
-                                                  BigDecimal priceAtOrder,
-                                                  int quantity) {
-        OrderProduct op = new OrderProduct();
-        op.orders = orders;
-        op.productManagement = productManagement;
-        op.productName = productName;
-        op.productSize = productSize;
-        op.productImg = productImg;
-        op.priceAtOrder = priceAtOrder;
-        op.quantity = quantity;
-        op.reviewed = false;
-        op.returned = false;
-        return op;
+    private OrderProduct(
+            ProductManagement productManagement,
+            String productName,
+            String productSize,
+            String productImg,
+            BigDecimal priceAtOrder,
+            int quantity
+    ) {
+        if (productManagement == null) throw new IllegalArgumentException("상품 옵션은 필수입니다.");
+        if (priceAtOrder == null || priceAtOrder.signum() < 0) {
+            throw new IllegalArgumentException("주문 당시 가격은 0 이상이어야 합니다.");
+        }
+        if (quantity <= 0) throw new IllegalArgumentException("주문 수량은 1 이상이어야 합니다.");
+
+        this.productManagement = productManagement;
+        this.productName = productName;
+        this.productSize = productSize;
+        this.productImg = productImg;
+        this.priceAtOrder = priceAtOrder;
+        this.quantity = quantity;
+        this.reviewed = false;
+        this.returned = false;
     }
 
-    /**
-     * Orders 엔티티와 연결
-     */
-    public void setOrders(Orders orders) {
+    public static OrderProduct createOrderProduct(
+            ProductManagement productManagement,
+            String productName,
+            String productSize,
+            String productImg,
+            BigDecimal priceAtOrder,
+            int quantity
+    ) {
+        return new OrderProduct(
+                productManagement,
+                productName,
+                productSize,
+                productImg,
+                priceAtOrder,
+                quantity
+        );
+    }
+
+    void attachTo(Orders orders) {
         this.orders = orders;
     }
 
-    /** 리뷰 완료 처리 */
     public void completeReview() {
         this.reviewed = true;
     }
 
-    /** 반품 처리 */
-    public void returnProduct() {
+    public void markReturned() {
         this.returned = true;
+    }
+
+    public BigDecimal calculateLineTotal() {
+        return this.priceAtOrder.multiply(BigDecimal.valueOf(this.quantity));
     }
 }
