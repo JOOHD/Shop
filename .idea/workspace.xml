@@ -6,13 +6,16 @@
   <component name="ChangeListManager">
     <list default="true" id="644ff0fc-af39-443a-9d6f-503af0ded063" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/order/entity/QOrders.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/order/entity/QOrders.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/order/controller/OrderApiController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/order/controller/OrderApiController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/order/entity/OrderProduct.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/order/entity/OrderProduct.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/members/entity/QMember.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/generated/JOO/jooshop/members/entity/QMember.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/admin/members/service/AdminMemberService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/admin/members/service/AdminMemberService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/global/mail/service/EmailMemberService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/global/mail/service/EmailMemberService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/members/entity/Member.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/members/entity/Member.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/members/service/MemberAccountService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/members/service/MemberAccountService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/order/entity/Orders.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/order/entity/Orders.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/order/entity/TemporaryOrderRedis.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/order/entity/TemporaryOrderRedis.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/order/service/OrderService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/order/service/OrderService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/profiile/service/ProfileService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/profiile/service/ProfileService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/product/entity/Product.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/product/entity/Product.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/thumbnail/entity/ProductThumbnail.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/thumbnail/entity/ProductThumbnail.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/JOO/jooshop/thumbnail/service/ThumbnailService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/JOO/jooshop/thumbnail/service/ThumbnailService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

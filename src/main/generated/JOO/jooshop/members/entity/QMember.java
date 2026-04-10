@@ -30,6 +30,8 @@ public class QMember extends EntityPathBase<Member> {
 
     public final BooleanPath admin = createBoolean("admin");
 
+    public final BooleanPath availableForLogin = createBoolean("availableForLogin");
+
     public final BooleanPath banned = createBoolean("banned");
 
     public final BooleanPath certifiedByEmail = createBoolean("certifiedByEmail");

@@ -140,7 +140,7 @@ public class MemberAccountService {
         if (!member.isAccountExpired()) {
             throw new IllegalStateException("이미 만료 해제된 계정입니다.");
         }
-        member.renewAccount();
+        member.restoreAccount();
     }
 
     @Transactional
@@ -158,7 +158,7 @@ public class MemberAccountService {
         if (!member.isPasswordExpired()) {
             throw new IllegalStateException("이미 만료 해제된 비밀번호입니다.");
         }
-        member.renewPassword();
+        member.restorePassword();
     }
 
     @Transactional

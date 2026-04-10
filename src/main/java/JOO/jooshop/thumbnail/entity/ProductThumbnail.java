@@ -41,7 +41,7 @@ public class ProductThumbnail {
         - Product 와의 연결은 여기서 하지 않는다.
     ========================================================= */
 
-    public static ProductThumbnail create(String imagePath) {
+    public static ProductThumbnail createThumbnail(String imagePath) {
         String normalized = normalizePath(imagePath);
         if (normalized == null) {
             throw new IllegalArgumentException("imagePath is invalid");

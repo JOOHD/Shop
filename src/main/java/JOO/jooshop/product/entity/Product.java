@@ -159,7 +159,7 @@ public class Product extends BaseEntity {
     public void addThumbnailPath(String imagePath) {
         String path = requireText(imagePath, "imagePath");
 
-        ProductThumbnail thumbnail = ProductThumbnail.create(path);
+        ProductThumbnail thumbnail = ProductThumbnail.createThumbnail(path);
         thumbnail.attachTo(this);
 
         this.productThumbnails.add(thumbnail);

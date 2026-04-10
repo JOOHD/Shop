@@ -31,6 +31,11 @@ import static JOO.jooshop.global.authorization.MemberAuthorizationUtil.verifyUse
 @RequiredArgsConstructor
 public class OrderService {
 
+    /**
+     * 주문(Order) 1건 안에 여러 상품(OrderProduct)이 들어 잇다.
+     * ㄴ 그래서 Order 생성에서는 list 가 아닌, 1개 생성
+     */
+
     private final RedisOrderRepository redisOrderRepository;
     private final CartRepository cartRepository;
     private final OrderRepository orderRepository;
@@ -62,6 +67,7 @@ public class OrderService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new NoSuchElementException("회원 정보를 찾을 수 없습니다."));
 
+        // dto는 보통 service가 이미 들고 있는 입력값 묶음
         Orders order = Orders.createOrder(
                 member,
                 resolveOrdererName(orderDto, member),
@@ -73,7 +79,7 @@ public class OrderService {
                 generateMerchantUid(orderDto)
         );
 
-        carts.forEach(cart -> order.addOrderProduct(createOrderProductFromCart(cart)));
+        carts.forEach(cart -> order.addOrderProduct(orderProductFromCart(cart)));
 
         saveTemporaryOrder(orderDto, carts, order);
 
@@ -86,15 +92,20 @@ public class OrderService {
      * - Orders Aggregate 재생성 후 DB 저장
      */
     public Orders confirmOrder(OrderDto orderDto) {
+        // 1. 임시 주문 정보 조회
         TemporaryOrderRedis tempOrder = redisOrderRepository.findById("tempOrder:" + orderDto.getMemberId())
                 .orElseThrow(() -> new IllegalArgumentException("임시 주문 정보가 없습니다."));
 
+        // 2. 주문자 조회
         Member member = memberRepository.findById(orderDto.getMemberId())
                 .orElseThrow(() -> new NoSuchElementException("회원 정보를 찾을 수 없습니다."));
 
+        // 3. 현재 로그인 유저 = 주문자 일치 검증
         verifyUserIdMatch(member.getId());
 
-        Orders order = Orders.createOrder(
+        // 4. 주문 엔티티 1개 생성
+        // 엔티티가 아닌, dto에서 값을 가져오는 이유 = 서비스가 dto 값을 꺼내 엔티티에 전달
+        Orders order = Orders.createOrder( // (= createOrder가 만든 Orders 객체)
                 member,
                 tempOrder.getOrdererName(),
                 tempOrder.getPhoneNumber(),
@@ -105,11 +116,14 @@ public class OrderService {
                 generateMerchantUid(orderDto)
         );
 
+        // 5. tempOrder 안에 들어있던 cartId 목록을 꺼냄
         tempOrder.getCartIds().stream()
                 .map(cartRepository::findById)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .forEach(cart -> order.addOrderProduct(createOrderProductFromCart(cart)));
+                // 6. cart -> OrderProduct
+                // 7. order 1개 안에
+                .forEach(cart -> order.addOrderProduct(orderProductFromCart(cart)));
 
         Orders savedOrder = orderRepository.save(order);
         log.info("주문 확정 완료: orderId={}", savedOrder.getOrderId());
@@ -152,7 +166,7 @@ public class OrderService {
      * Cart -> OrderProduct 변환
      * 주문 시점 스냅샷 생성 책임은 서비스에서 조립
      */
-    private OrderProduct createOrderProductFromCart(Cart cart) {
+    private OrderProduct orderProductFromCart(Cart cart) {
         ProductManagement pm = cart.getProductManagement();
         Product product = pm.getProduct();
 
@@ -175,7 +189,7 @@ public class OrderService {
                 : product.getProductThumbnails().get(0).getImagePath();
     }
 
-    private void validateCarts(List<Cart> carts) {
+    private void  validateCarts(List<Cart> carts) {
         if (carts == null || carts.isEmpty()) {
             throw new IllegalArgumentException("주문할 장바구니가 없습니다.");
         }

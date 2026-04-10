@@ -18,7 +18,7 @@ import java.util.List;
 @Getter
 @Entity
 @AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor // JPA 에서는 필수: new 생성자 남발 방지
 @Table(name = "orders")
 public class Orders {
 
@@ -83,10 +83,12 @@ public class Orders {
     @OneToMany(mappedBy = "orders")
     private List<PaymentHistory> paymentHistories = new ArrayList<>();
 
+    // private (생성자 숨김) = 외부 클래스에서 new Order(...) 방지
+    // 생성자는 "createOrder에서 받은 값으로 자기 자신을 채우는 곳"
     private Orders(
-            Member member,
-            String ordererName,
-            String phoneNumber,
+            Member member,          // createOrder 에서 받은 값 채워짐
+            String ordererName,     // createOrder 에서 받은 값 채워짐
+            String phoneNumber,     // createOrder 에서 받은 값 채워짐
             String postCode,
             String address,
             String detailAddress,
@@ -108,17 +110,21 @@ public class Orders {
         this.productNameSummary = "";
     }
 
+    // 외부에 공개된 주문 생성 공식 입구
     public static Orders createOrder(
-            Member member,
-            String ordererName,
-            String phoneNumber,
+            // 여기 선언변수에 서비스에서 가져온,
+            // createOrder(orderDto/tempOrder 가져온 값) 값을 넣어줌
+            Member member,          // orderDto 에서 가져온 값
+            String ordererName,     // orderDto 에서 가져온 값
+            String phoneNumber,     // orderDto 에서 가져온 값...
             String postCode,
             String address,
             String detailAddress,
             PayMethod payMethod,
             String merchantUid
     ) {
-        return new Orders(
+        return new Orders(          // 1. new Orders 생성자 호출
+                                    // 2. return 객체 반환
                 member,
                 ordererName,
                 phoneNumber,
@@ -128,16 +134,6 @@ public class Orders {
                 payMethod,
                 merchantUid
         );
-    }
-
-    public void addOrderProducts(OrderProduct orderProduct) {
-        if (orderProduct == null) {
-            throw new IllegalArgumentException("주문 상품은 null일 수 없습니다.");
-        }
-
-        this.orderProducts.add(orderProduct);
-        orderProduct.attachTo(this);
-        recalculateOrderSummary();
     }
 
     public void addOrderProduct(OrderProduct orderProduct) {
@@ -155,7 +151,7 @@ public class Orders {
             throw new IllegalArgumentException("주문 상품은 최소 1개 이상이어야 합니다.");
         }
 
-        orderProducts.forEach(this::addOrderProducts);
+        orderProducts.forEach(this::addOrderProduct); // = for (OrderProduct orderProduct : orderProducts)
     }
 
     public void changePaymentStatus(PaymentStatus paymentStatus) {

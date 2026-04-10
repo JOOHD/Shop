@@ -112,7 +112,7 @@ public class ThumbnailService {
             String relativePath = fileStorageService.saveFile(file, "thumbnails"); // ex: "thumbnails/abc.jpg"
 
             // ✅ 엔티티 생성 규칙 통일
-            ProductThumbnail thumbnail = ProductThumbnail.create(product, relativePath);
+            ProductThumbnail thumbnail = ProductThumbnail.createThumbnail(relativePath);
 
             // 컬렉션 일관성
             product.getProductThumbnails().add(thumbnail);
@@ -134,7 +134,7 @@ public class ThumbnailService {
         if (product == null) throw new IllegalArgumentException("product must not be null");
         String normalized = normalizeExternalUrl(externalImageUrl);
 
-        ProductThumbnail thumbnail = ProductThumbnail.create(product, normalized);
+        ProductThumbnail thumbnail = ProductThumbnail.createThumbnail(normalized);
 
         product.getProductThumbnails().add(thumbnail);
         productThumbnailRepository.save(thumbnail);

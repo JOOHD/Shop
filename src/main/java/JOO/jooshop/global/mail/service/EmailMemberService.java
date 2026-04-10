@@ -78,15 +78,17 @@ public class EmailMemberService {
         return cert.getEmail();
     }
 
+    /**
+     * 상태 변경 책임은 Member가 가짐
+     * save 호출 없이 dirty checking 기대 가능
+     */
     @Transactional
     public void completeEmailVerification(String email) {
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("가입된 회원이 아닙니다."));
-        if (!member.isCertifiedByEmail()) {
-            member.setCertifiedByEmail(true);
-            memberRepository.save(member);  // 영속성 컨텍스트 상황에 따라 save() 필요 없을 수도 있음
-            log.info("회원 이메일 인증 완료: {}", email);
-        }
+
+        member.verifyEmail();
+        log.info("회원 이메일 인증 완료: {}", email);
     }
 
     /**
