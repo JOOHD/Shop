@@ -1,70 +1,121 @@
 package JOO.jooshop.cart.model;
 
 import JOO.jooshop.cart.entity.Cart;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import JOO.jooshop.product.entity.Product;
+import JOO.jooshop.productManagement.entity.ProductManagement;
+import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.util.List;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
+/**
+ * 장바구니 단건 응답 DTO
+ */
+@Getter
 public class CartDto {
-    private Long id;                     // 장바구니 ID
-    private Long memberId;               // 로그인 사용자 ID
-    private String memberName;           // 주문자명   
-    private String phoneNumber;          // 전화번호
-    private String productName;          // 상품명
-    private String size;                 // 옵션/사이즈
-    private double originalPrice;        // 원가 (단가)
-    private int discountRate;            // 할인율 (%)
-    private double finalPrice;           // 할인 적용된 단가
-    private int quantity;                // 수량
-    private double totalPrice;           // (할인 적용 단가 * 수량)
-    private String productThumbnailUrl;  // 썸네일
 
-    /** Entity -> DTO 변환 + 계산 수행 */
+    private final Long cartId;
+    private final Long memberId;
+    private final String memberName;
+    private final String phoneNumber;
+    private final String productName;
+    private final String size;
+    private final BigDecimal originalPrice;
+    private final int discountRate;
+    private final BigDecimal finalPrice;
+    private final int quantity;
+    private final BigDecimal totalPrice;
+    private final String productThumbnailUrl;
+
+    public CartDto(Long cartId,
+                   Long memberId,
+                   String memberName,
+                   String phoneNumber,
+                   String productName,
+                   String size,
+                   BigDecimal originalPrice,
+                   int discountRate,
+                   BigDecimal finalPrice,
+                   int quantity,
+                   BigDecimal totalPrice,
+                   String productThumbnailUrl) {
+        this.cartId = cartId;
+        this.memberId = memberId;
+        this.memberName = memberName;
+        this.phoneNumber = phoneNumber;
+        this.productName = productName;
+        this.size = size;
+        this.originalPrice = originalPrice;
+        this.discountRate = discountRate;
+        this.finalPrice = finalPrice;
+        this.quantity = quantity;
+        this.totalPrice = totalPrice;
+        this.productThumbnailUrl = productThumbnailUrl;
+    }
+
+    /**
+     * Cart 엔티티를 장바구니 응답 DTO로 변환
+     */
     public static CartDto toDto(Cart cart) {
+        ProductManagement productManagement = cart.getProductManagement();
+        Product product = productManagement.getProduct();
 
         int quantity = cart.getQuantity();
-
-        BigDecimal unitPrice = cart.getProductManagement().getProduct().getPrice();
-
-        // DB에 저장된 할인율 (%), null 이면 0
-        Integer discountRate = cart.getProductManagement().getProduct().getDiscountRate();
-        int appliedRate = (discountRate != null) ? discountRate : 0;
-
-        // 할인율 적용
-        BigDecimal discountMultiplier = BigDecimal.valueOf(100 - appliedRate)
-                .divide(BigDecimal.valueOf(100));
-
-        // 할인 적용도니 단가
-        BigDecimal finalPrice = unitPrice.multiply(discountMultiplier);
-
-        // 총액
+        BigDecimal originalPrice = product.getPrice();
+        int discountRate = extractDiscountRate(product);
+        BigDecimal finalPrice = calculateDiscountedPrice(originalPrice, discountRate);
         BigDecimal totalPrice = finalPrice.multiply(BigDecimal.valueOf(quantity));
+        String thumbnailUrl = extractThumbnailUrl(product);
+        String size = extractSize(productManagement);
 
-        // 썸네일 URL
-        String thumbnailUrl = cart.getProductManagement().getProduct().getProductThumbnails().isEmpty()
+        return new CartDto(
+                cart.getCartId(),
+                cart.getMember().getId(),
+                cart.getMember().getUsername(),
+                cart.getMember().getPhoneNumber(),
+                product.getProductName(),
+                size,
+                originalPrice,
+                discountRate,
+                finalPrice,
+                quantity,
+                totalPrice,
+                thumbnailUrl
+        );
+    }
+
+    /**
+     * 할인율이 없으면 0으로 처리
+     */
+    private static int extractDiscountRate(Product product) {
+        return product.getDiscountRate() != null ? product.getDiscountRate() : 0;
+    }
+
+    /**
+     * 원가에 할인율을 적용한 단가 계산
+     */
+    private static BigDecimal calculateDiscountedPrice(BigDecimal originalPrice, int discountRate) {
+        BigDecimal discountMultiplier = BigDecimal.valueOf(100 - discountRate)
+                .divide(BigDecimal.valueOf(100));
+        return originalPrice.multiply(discountMultiplier);
+    }
+
+    /**
+     * 대표 썸네일 URL 추출
+     */
+    private static String extractThumbnailUrl(Product product) {
+        List<?> thumbnails = product.getProductThumbnails();
+        return thumbnails == null || thumbnails.isEmpty()
                 ? null
-                : cart.getProductManagement().getProduct().getProductThumbnails().get(0).getImagePath();
+                : product.getProductThumbnails().get(0).getImagePath();
+    }
 
-        return CartDto.builder()
-                .id(cart.getCartId())
-                .productName(cart.getProductManagement().getProduct().getProductName())
-                .size(cart.getProductManagement().getSize().toString())
-                .originalPrice(unitPrice.doubleValue())          // 원가
-                .discountRate(appliedRate)                       // 할인율
-                .finalPrice(finalPrice.doubleValue())            // 할인 적용된 단가
-                .quantity(quantity)                              // 수량
-                .totalPrice(totalPrice.doubleValue())            // 총액
-                .productThumbnailUrl(thumbnailUrl)
-                .memberId(cart.getMember().getId())
-                .memberName(cart.getMember().getUsername())      // 주문자명
-                .phoneNumber(cart.getMember().getPhoneNumber())              // 전화번호
-                .build();
+    /**
+     * 옵션 사이즈 문자열 추출
+     */
+    private static String extractSize(ProductManagement productManagement) {
+        return productManagement.getSize() != null
+                ? productManagement.getSize().name()
+                : null;
     }
 }

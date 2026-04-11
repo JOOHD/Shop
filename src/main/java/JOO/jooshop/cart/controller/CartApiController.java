@@ -5,8 +5,8 @@ import JOO.jooshop.cart.model.CartRequestDto;
 import JOO.jooshop.cart.model.CartResponse;
 import JOO.jooshop.cart.model.CartUpdateDto;
 import JOO.jooshop.cart.service.CartService;
-import JOO.jooshop.global.exception.ResponseMessageConstants;
 import JOO.jooshop.global.authentication.jwts.entity.CustomUserDetails;
+import JOO.jooshop.global.exception.ResponseMessageConstants;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,35 +22,17 @@ public class CartApiController {
 
     private final CartService cartService;
 
-    /**
-     * 장바구니 담기
-     * 
-     * 기존 문제
-     * - CartRequestDto 에 memberId 가 포함되어 있고, 클라이언트가 직접 memberId 를 보냄
-     * - 클라이언트가 임의로 다른 memberId 를 보낼 수 있어 보안상 위험
-     * - 인증 관련 로직이 컨트롤러에 포함되어 있지 않아 인증된 사용자 정보 활용이 어려움
-     * 
-     * 리팩토링 방향 25.08.11
-     * - 클라이언트가 memberId 를 보내지 않도록 변경
-     * - JWT 인증을 통해 서버에서 현재 로그인한 memberId 를 가져옴
-     * - @AuthenticationPrincipal 을 통해 CustomUserDetails(인증된 사용자 정보)를 받아서 memberId 추출
-     * - 요청 바디에는 실제 필요한 데이터(quantity 등)만 받음
-     *
-     * - ProductManagement = 옵션 조합 객체, inventoryId = 그 옵션 조합 객체의 고유 ID
-     */
-    /** =================== 장바구니 담기 =================== */
     @PostMapping("/add/{inventoryId}")
     public ResponseEntity<String> addCart(@Valid @RequestBody CartRequestDto request,
-                                          @PathVariable("inventoryId") Long inventoryId,
+                                          @PathVariable Long inventoryId,
                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        Long memberId = userDetails.getMemberId(); // JWT 인증 정보에서 추출
+        Long memberId = userDetails.getMemberId();
         Long createdId = cartService.addCart(memberId, inventoryId, request.getQuantity());
 
         return ResponseEntity.ok("장바구니에 추가 되었습니다. cart_id : " + createdId);
     }
 
-    /** =================== 내 장바구니 전체 조회 =================== */
     @GetMapping("/my")
     public ResponseEntity<CartResponse> getMyCarts(@AuthenticationPrincipal CustomUserDetails userDetails) {
         Long memberId = userDetails.getMemberId();
@@ -59,26 +41,20 @@ public class CartApiController {
         return ResponseEntity.ok(new CartResponse(memberId, carts));
     }
 
-    /** =================== 장바구니 수량 수정 =================== */
     @PutMapping("/{cartId}")
-    public ResponseEntity<CartDto> updateCart(
-            @PathVariable Long cartId,
-            @Valid @RequestBody CartUpdateDto request,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<CartDto> updateCart(@PathVariable Long cartId,
+                                              @Valid @RequestBody CartUpdateDto request,
+                                              @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         Long memberId = userDetails.getMemberId();
-
-        // 서비스에서 CartUpdateDto를 활용해 수정 후 DTO 변환
-        CartDto updatedCartDto = cartService.updateCart(cartId, request);
+        CartDto updatedCartDto = cartService.updateCart(memberId, cartId, request);
 
         return ResponseEntity.ok(updatedCartDto);
     }
 
-    /** =================== 장바구니 단일 삭제 =================== */
     @DeleteMapping("/{cartId}")
-    public ResponseEntity<String> deleteCart(
-            @PathVariable Long cartId,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<String> deleteCart(@PathVariable Long cartId,
+                                             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         Long memberId = userDetails.getMemberId();
         cartService.deleteCart(cartId, memberId);
@@ -86,11 +62,9 @@ public class CartApiController {
         return ResponseEntity.ok(ResponseMessageConstants.DELETE_SUCCESS);
     }
 
-    /** =================== 장바구니 여러 항목 삭제 =================== */
     @DeleteMapping("/batch-delete")
-    public ResponseEntity<String> deleteCartList(
-            @RequestBody List<Long> cartIds,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<String> deleteCartList(@RequestBody List<Long> cartIds,
+                                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         Long memberId = userDetails.getMemberId();
         cartService.deleteCartList(cartIds, memberId);
@@ -98,24 +72,3 @@ public class CartApiController {
         return ResponseEntity.ok(ResponseMessageConstants.DELETE_SUCCESS);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
