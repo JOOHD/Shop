@@ -24,6 +24,20 @@ import static JOO.jooshop.global.exception.ResponseMessageConstants.PRODUCT_NOT_
 @RequiredArgsConstructor
 public class CartService {
 
+    /*
+     * [Service]
+
+     *기존
+     * - 상품 추가 시 단순 insert 중심
+     * - 동일 상품 옵션 중복 처리 로직이 분산되거나 약함
+     * - 장바구니를 도메인 개념이 아닌 저장 데이터로 취급
+     *
+     * refactoring 26.04
+     * - addCart(): 기존 상품 존재 시 수량 변경, 없으면 생성
+     * - 장바구니 핵심 흐름을 서비스에서 orchestration
+     * - 엔티티 도메인 메서드 호출 중심으로 상태 변경
+     */
+
     private final CartRepository cartRepository;
     private final MemberRepository memberRepository;
     private final ProductManagementRepository productManagementRepository;

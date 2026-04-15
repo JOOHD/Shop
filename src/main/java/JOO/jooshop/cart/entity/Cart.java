@@ -17,12 +17,23 @@ import java.util.Objects;
 @Table(name = "cart")
 public class Cart {
     /*
-        1. Cart를 aggregate root로 둠
-        2. setter 제거
-        3. 생성자는 protected
-        4. 정적 팩토리 메서드 사용
-        5. 수량 변경 시 내부에서 price 재계산
-        6.member/productManagement/quantity/price validation 포함
+     * [Entity]
+     *
+     * 기존
+     * - Cart를 단순 장바구니 데이터 저장 엔티티로 사용
+     * - 수량 변경 / 중복 상품 처리 같은 규칙이 서비스에 치우칠 수 있었음
+     * - 장바구니를 도메인 객체라기보다 임시 저장 데이터처럼 다룰 가능성이 있었음
+     *
+     * refactoring 26.04
+     * - Cart는 회원이 선택한 상품 옵션과 수량을 보관하는 장바구니 엔티티
+     * - Member와 ProductManagement를 참조하여
+     *   "누가 어떤 옵션 상품을 몇 개 담았는지"를 표현
+     * - createCart()를 통해 생성 책임을 엔티티 내부로 이동
+     * - replaceQuantity(), increaseQuantity() 등
+     *   수량 변경 책임을 엔티티 내부 도메인 메서드로 관리
+     * - 동일 회원 + 동일 상품 옵션 조합 여부는 서비스/리포지토리에서 판별하고
+     *   상태 변경은 Cart가 직접 수행하도록 설계
+     * - 장바구니 상태 변경 규칙을 엔티티 중심으로 정리
      */
 
     @Id

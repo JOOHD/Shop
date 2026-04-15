@@ -25,8 +25,18 @@ public class MemberAuthService {
     private final MemberRepository memberRepository;
 
     /**
-     * 로그인 / 토큰 발급 / 로그인 가능 여부 검증
-     * = 인증 흐름을 담당하는 서비스
+     [Service]
+     * 기존
+     * - MemberService 하나에 모든 책임 집중
+        (회원가입 / 로그인 / 인증 / 프로필 / 비밀번호 변경 등)
+     * - 변경 이유가 많아지는 God Service 형태
+     * - 인증 흐름과 회원 관리 흐름이 강하게 결합
+     *
+     * refactoring 26.04
+     * - MemberAuthService (로그인/회원가입/인증)
+     * - MemberAccountService (프로필/비밀번호/조회)
+     * - 책임 분리로 변경 영향 범위 최소화
+     * - 엔티티 상태 변경은 도메인 메서드 호출로 처리
      */
 
     @Transactional

@@ -16,12 +16,21 @@ import java.time.LocalDateTime;
 @Table(name = "member_profile")
 public class Profiles {
 
-    /**
-     * 26.03.25 refactoring
-     * FK owner가 Profiles.member
-     * Member.attachProfile(profile) 기준으로 aggregate 편입
-     * setter 대신 의미 있는 메서드 사용
-     * touch()로 수정 시각 일관 처리
+    /*
+     * [Entity]
+     *
+     * 기존
+     * - 회원 부가 정보 엔티티로 사용되었지만
+     *   Member와의 관계에서 어떤 쪽이 관리 주체인지 구조적으로 모호할 수 있었음
+     * - 단순 프로필 정보 보관 객체처럼 보일 수 있었음
+     *
+     * refactoring 26.04
+     * - Profile은 Member에 종속된 하위 엔티티
+     * - 독립적으로 동작하기보다 Member Aggregate 내부에서 관리
+     * - attachTo(member)를 통해 Member와 연관관계 설정
+     * - 실제 연결 책임은 Member.attachProfile()에서 시작되도록 설계
+     * - 프로필은 회원의 부가 정보를 표현하지만,
+     *   생명주기와 관계 관리는 Member 중심으로 통일
      */
 
     @Id

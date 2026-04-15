@@ -16,19 +16,29 @@ import java.math.BigDecimal;
 @Table(name = "order_product")
 public class OrderProduct {
 
-    /**
-     Orders의 자식 엔티티
-     역할:
-         주문 당시 상품 스냅샷 보존
-         상품명 / 옵션 / 수량 / 가격 / 썸네일 등 기록
-         자신이 어느 주문에 속하는지 관리
-         주문 단위에 묶인 상품 행(row) 역할
-
-     중요:
-         Product와는 “현재 상품 정보”
-         OrderProduct는 “주문 당시 확정 정보”
-
-     즉, 주문 후 상품명이 바뀌어도 주문 기록은 안 바뀌어야 하니까 스냅샷 개념이 필요함.
+    /*
+     * [Entity]
+     *
+     * 기존
+     * - OrderProduct를 주문 상품 엔티티로 사용했지만,
+     *   "주문 당시 확정 정보 보존" 역할이 주석/구조상 충분히 드러나지 않을 수 있었음
+     * - Orders 와의 연관관계는 존재하지만,
+     *   Aggregate 내부 자식 엔티티라는 의도가 코드 설명에서 약했음
+     * - 상품명 / 옵션 / 가격 / 이미지가 왜 별도 저장되는지
+     *   즉, 스냅샷 개념이 명확하게 표현되지 않았음
+     *
+     * refactoring 26.04
+     * - Orders = Aggregate Root
+     * - OrderProduct = Orders의 자식 엔티티
+     * - 주문 당시 상품 스냅샷 보존
+     *   (상품명, 옵션, 이미지, 주문 가격, 수량)
+     * - Product / ProductManagement의 현재 값이 아니라
+     *   주문 시점의 확정 정보를 별도로 저장
+     * - 주문 이후 상품 정보가 변경되어도
+     *   주문 이력은 변하지 않도록 설계
+     * - 연관관계 연결은 Orders 내부 addOrderProduct()에서 관리
+     * - attachTo()는 Aggregate 내부에서만 호출되는 연결 메서드
+     * - calculateLineTotal()로 주문 상품 1건의 금액 계산 책임을 가짐
      */
 
     @Id

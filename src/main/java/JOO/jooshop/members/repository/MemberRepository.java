@@ -11,6 +11,19 @@ import java.util.Optional;
 
 @Repository
 public interface MemberRepository extends JpaRepository<Member, Long> {
+
+    /*
+     * [Repository]
+     
+     * 기존
+     * - 이메일, 소셜ID 등 다양한 조회가 혼재
+     * - 서비스 로직과 조회 로직 경계가 명확하지 않음
+     * 
+     * refactoring 26.04
+     * - 영속성 및 조회 책임에 집중
+     * - 도메인 의도를 드러내는 메서드 중심 구성
+     * - 서비스는 조회 결과를 기반으로 비즈니스 판단만 수행
+     */
     
     // email을 통해 회원 정보를 조회할 수 있지만,
     // socialId를 사용하여 동일한 이메일로 여러 계정을 가질 수 있기에 이를 대체한 메소드

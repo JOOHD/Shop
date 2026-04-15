@@ -22,14 +22,25 @@ import java.util.List;
 @Table(name = "orders")
 public class Orders {
 
-    /**
-     Aggregate Root
-     역할:
-         주문 전체 대표
-         주문 상태 관리
-         주문 자식(OrderProduct) 생명주기 관리
-         결제 전/후 상태 변경 관리
-         외부 서비스가 주문 내부를 직접 조립하지 못하게 막는 중심
+    /*
+     * [Entity]
+     *
+     * 기존
+     * - 주문 엔티티로 사용되었지만,
+     *   주문 생성 / 주문 상품 연결 / 합계 계산 책임이 구조상 명확히 드러나지 않았음
+     * - OrderProduct와 연관관계는 있었으나
+     *   주문이 자식 엔티티를 관리하는 Aggregate Root라는 의도가 약했음
+     * - 주문 생성 과정에서 서비스 레이어가 세부 생성 책임을 많이 가질 가능성이 있었음
+     *
+     * refactoring 26.04
+     * - Orders = 주문 도메인의 Aggregate Root
+     * - 주문자 정보, 배송 정보, 결제 수단, 주문 상태 등 주문의 핵심 상태를 관리
+     * - createOrder()를 통해 생성 책임을 엔티티 내부로 이동
+     * - addOrderProduct()를 통해 자식 엔티티(OrderProduct) 추가 및 연관관계 연결
+     * - 주문 상품 목록 기준으로 총 주문 금액/수량 등 요약 값을 재계산
+     * - 주문 관련 상태 변경은 의미 있는 도메인 메서드 중심으로 처리
+     * - 주문 도메인의 진입점은 Orders이며,
+     *   OrderProduct는 Orders를 통해서만 관리되도록 설계
      */
 
     @Id

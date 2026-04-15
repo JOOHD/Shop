@@ -3,82 +3,60 @@ package JOO.jooshop.payment.model;
 import JOO.jooshop.payment.entity.PaymentHistory;
 import JOO.jooshop.payment.entity.PaymentStatus;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Data
-@AllArgsConstructor
+/*
+ * [PaymentHistoryDto]
+ * 기존 -> toEntity() 네이밍 오류, statusType 사용
+ * 리팩토링 -> 조회 응답 DTO 로만 사용하고 from() 으로 통일,
+ *            paymentStatus 단일 필드 기준으로 매핑
+ */
+@Getter
 @NoArgsConstructor
+@AllArgsConstructor
 public class PaymentHistoryDto {
-    // 고유 id
+
     private Long paymentId;
     private Long memberId;
     private Long orderId;
-    // Product 관련 field
+
     private Long productId;
     private String productName;
     private String imagePath;
     private BigDecimal productPrice;
     private int productQuantity;
     private String option;
-    // Order 관련 field
-    private String merchantUid; // 주문번호
+
+    private String merchantUid;
     private String ordererName;
     private String phoneNumber;
-    private boolean isDiscount;
+    private boolean discount;
     private String buyerAddr;
     private LocalDateTime orderedAt;
     private BigDecimal totalPrice;
     private String payMethod;
     private String bankName;
-    private LocalDateTime paiedAt;
-    private PaymentStatus statusType; // 취소여부
-    private Boolean review;
+    private LocalDateTime paidAt;
+    private PaymentStatus paymentStatus;
+    private boolean review;
 
-
-    public PaymentHistoryDto(PaymentHistory paymentHistory) {
-        this(
-                paymentHistory.getId(),
-                paymentHistory.getMember().getId(),
-                paymentHistory.getOrders().getOrderId(),
-                // product field
-                paymentHistory.getProduct().getProductId(),
-                paymentHistory.getProduct().getProductName(),
-                paymentHistory.getFirstThumbnailImagePath(),
-                paymentHistory.getProduct().getPrice(),
-                paymentHistory.getQuantity(),
-                paymentHistory.getProductOption(),
-                // payment field
-                paymentHistory.getOrders().getMerchantUid(),
-                paymentHistory.getOrders().getOrdererName(),
-                paymentHistory.getOrders().getPhoneNumber(),
-                paymentHistory.getProduct().isDiscount(),
-                paymentHistory.getBuyerAddr(),
-                paymentHistory.getOrders().getOrderDay(),
-                paymentHistory.getTotalPrice(),
-                paymentHistory.getPayMethod(),
-                paymentHistory.getBankName(),
-                paymentHistory.getPaidAt(),
-                paymentHistory.getStatusType(),
-                paymentHistory.getReview()
-        );
-    }
-
-    /* dto -> entity */
-    public static PaymentHistoryDto toEntity(PaymentHistory paymentHistory) {
+    public static PaymentHistoryDto from(PaymentHistory paymentHistory) {
         return new PaymentHistoryDto(
                 paymentHistory.getId(),
                 paymentHistory.getMember().getId(),
                 paymentHistory.getOrders().getOrderId(),
+
                 paymentHistory.getProduct().getProductId(),
-                paymentHistory.getProduct().getProductName(),
+                paymentHistory.getProductName(),
                 paymentHistory.getFirstThumbnailImagePath(),
-                paymentHistory.getProduct().getPrice(),
+                paymentHistory.getPrice(),
                 paymentHistory.getQuantity(),
                 paymentHistory.getProductOption(),
+
                 paymentHistory.getOrders().getMerchantUid(),
                 paymentHistory.getOrders().getOrdererName(),
                 paymentHistory.getOrders().getPhoneNumber(),
@@ -89,9 +67,8 @@ public class PaymentHistoryDto {
                 paymentHistory.getPayMethod(),
                 paymentHistory.getBankName(),
                 paymentHistory.getPaidAt(),
-                paymentHistory.getStatusType(),
-                paymentHistory.getReview()
+                paymentHistory.getPaymentStatus(),
+                paymentHistory.isReview()
         );
     }
-
 }

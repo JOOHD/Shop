@@ -31,7 +31,7 @@ public class AdminOrderService {
                 // keyword가 null이거나 빈 문자열이면 필터 무시
                 .filter(o -> (keyword == null || keyword.isBlank())
                         || o.getOrdererName().contains(keyword)
-                        || o.getProductName().contains(keyword))
+                        || o.getProductNameSummary().contains(keyword))
                 .map(AdminOrderResponseDto::toEntity) // DTO -> Entity
                 .collect(Collectors.toList());
     }

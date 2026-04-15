@@ -56,8 +56,6 @@ public class QPaymentHistory extends EntityPathBase<PaymentHistory> {
 
     public final BooleanPath review = createBoolean("review");
 
-    public final EnumPath<PaymentStatus> statusType = createEnum("statusType", PaymentStatus.class);
-
     public final NumberPath<java.math.BigDecimal> totalPrice = createNumber("totalPrice", java.math.BigDecimal.class);
 
     public QPaymentHistory(String variable) {

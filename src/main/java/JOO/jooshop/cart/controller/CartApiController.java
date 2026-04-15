@@ -20,6 +20,21 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CartApiController {
 
+    /**
+     * [Controller]
+
+     * 기존
+     * - 단순 CRUD 형태로 장바구니 처리
+     * - memberId를 클라이언트에서 직접 전달받는 구조 존재
+     * - 사용자 인증/식별 책임이 불명확
+     *
+     * refactoring 26.04
+     * - 인증된 사용자 기준으로 장바구니 다루도록 정리
+     * - 기존 DTO에서 memberId를 다시 받는 대신, 인증 사용자 ID를 추출해서 사용
+     *    ㄴ즉, 클라이언트가 임의의 memberId를 보내서 다른 회원 장바구니 조작 x
+     * - 회원 식별은 요청 body가 아닌, JWT 인증 정보로 처리하도록 보안 구조 일원화
+     */
+
     private final CartService cartService;
 
     @PostMapping("/add/{inventoryId}")

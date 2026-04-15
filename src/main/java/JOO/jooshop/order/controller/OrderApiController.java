@@ -17,6 +17,18 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class OrderApiController {
 
+    /*
+     * [Controller]
+
+     * 기존
+     * - 주문 생성/확정 로직이 단순 요청 처리 형태
+     * - 주문 생성 흐름이 명확하게 드러나지 않음
+     *
+     * refactoring 26.04
+     * - 주문 요청 전달 역할만 수행
+     * - 비즈니스 로직은 Service로 위임
+     */
+
     private final OrderService orderService;
 
     @GetMapping("/temp/{memberId}")

@@ -24,13 +24,24 @@ import java.util.Objects;
 )
 public class Member extends BaseEntity {
 
-    /**
-     * 26.04.10 refactoring
-     *    + 상태 변경 메서드가 너무 단순 값 대입 수준
-     *    + null/" " 방어/검증 추가
-     * 2. 상태 변경용 메서드 분리
-     * 3. Profiles를 root가 편입
-     * 4. @setter 제거 -> domain 메서드
+    /*
+     * [Entity]
+     *
+     * 기존
+     * - 회원 정보를 저장하는 중심 엔티티였지만
+     *   인증, 계정, 프로필 관련 책임 경계가 구조상 명확하지 않을 수 있었음
+     * - 상태 변경보다 데이터 보관 역할 비중이 상대적으로 컸음
+     * - Profile과의 관계가 존재하더라도
+     *   Aggregate Root로서의 주도권이 코드 설명에서 약했음
+     *
+     * refactoring 26.04
+     * - Member = 회원 도메인의 Aggregate Root
+     * - 계정의 핵심 식별 정보와 인증/활성화 상태를 관리
+     * - Profile 등 하위 엔티티를 직접 연결/관리하는 루트 엔티티 역할 수행
+     * - attachProfile() 같은 편의 메서드로 연관관계 일관성 유지
+     * - activate(), changePassword() 등
+     *   의미 있는 상태 변경 메서드 중심으로 도메인 행위 구성
+     * - Setter 기반 변경보다 도메인 메서드 기반 변경을 우선하도록 설계
      */
 
     @Id

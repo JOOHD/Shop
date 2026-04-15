@@ -31,9 +31,19 @@ import static JOO.jooshop.global.authorization.MemberAuthorizationUtil.verifyUse
 @RequiredArgsConstructor
 public class OrderService {
 
-    /**
-     * 주문(Order) 1건 안에 여러 상품(OrderProduct)이 들어 잇다.
-     * ㄴ 그래서 Order 생성에서는 list 가 아닌, 1개 생성
+    /*
+     * [Service]
+
+     * 기존
+     * - 주문 생성 시 로직이 분산
+     * - Cart → Order 변환 과정이 명확히 구조화되지 않음
+     * - 엔티티 생성 로직이 서비스에 일부 포함
+     *
+     * refactoring 26.04
+     * - Cart → Order 변환 흐름 명확화
+     * - orderProductFromCart()로 스냅샷 생성
+     * - Orders.createOrder()로 생성 책임 위임
+     * - addOrderProduct()로 Aggregate 내부 관리
      */
 
     private final RedisOrderRepository redisOrderRepository;

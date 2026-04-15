@@ -1,6 +1,5 @@
 package JOO.jooshop.payment.controller;
 
-import JOO.jooshop.order.entity.OrderProduct;
 import JOO.jooshop.payment.model.PaymentCancelDto;
 import JOO.jooshop.payment.model.PaymentHistoryDto;
 import JOO.jooshop.payment.model.PaymentRequestDto;
@@ -13,41 +12,24 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 
+/*
+ * [PaymentController]
+ * 기존 -> 검증 후 Redis cart:* 전체 삭제 등 일부 후처리 로직이 컨트롤러에 남아 있었음
+ * 리팩토링 -> 컨트롤러는 요청 수신과 서비스 위임만 담당, 결제 후처리는 전부 서비스로 이동
+ */
 @RestController
-@RequestMapping("api/v1")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 @Slf4j
 public class PaymentController {
 
-    /**
-     *  25.04.26, 2차 리팩토링
-     *  - Controller 는 "요청 받고, 서비스에 위임만" -> 비즈니스 로직은 Service
-     *      예외처리 문구 통일, 세션 처리 로직 Service 분리
-     *  - String 값이였던 상태 값은, Enum 으로 따로 관리 추천 (PaymentStatus)
-     * 
-     *  25.04.27 3차 리팩토링
-     *  1. Redis 사용
-     *     - RedisTemplate 을 이용해 Redis 에 데이터 저장, 삭제 로직 추가
-     *     - orderProducts 라는 키로 주문한 상품 정보를 Redis 에 저장 (매번 주문 때 마다)
-     *     - 결제 완료 후, Redis 에 저장된 장바구니 정보 삭제 로직 구현 (validateIamport)
-     *  2. OrderProduct 엔티티 연결
-     *     - 주문 확정 후 생성되는 상품 정보로, Redis 에 저장되는 상품 데이터 관리
-     *  3. processPaymentDone service method
-     *     - 결제가 완료된 후 해당 결제 내역을 처리하는 비즈니스 로직을
-     *          paymentService.processPaymentDone 메서드로 위임
-     *     - 이 메서드는 주문 상태 변경 및 주문한 상품에 대한 처리를 담당
-     *  4. 세션 삭제
-     *     - 결제 완료 후 세션에서 임시 주문 정보(temporaryOrder & cartIds)를 삭제 기능 추가.
-     */
     private final PaymentService paymentService;
-    private final RedisTemplate<String, Object> redisTemplate;
     private IamportClient iamportClient;
 
     @Value("${IMP_API_KEY}")
@@ -56,63 +38,39 @@ public class PaymentController {
     @Value("${IMP_SECRET_KEY}")
     private String secretKey;
 
-    /**
-     * Iamport API 클라이언트 초기화 메서드
-     * - @PostConstruct로 빈 초기화 이후 실행
-     */
     @PostConstruct
     public void init() {
         this.iamportClient = new IamportClient(apiKey, secretKey);
     }
 
-    /**
-     * 결제 검증 및 결제 완료 처리
-     * - 결제 완료 후 아임포트로부터 결제 정보 검증 및 후처리
-     */
     @PostMapping("/payment/{imp_uid}")
     public ResponseEntity<IamportResponse<Payment>> validateIamport(
-            @PathVariable("imp_uid") String imp_uid,
-            @RequestBody PaymentRequestDto request,
-            OrderProduct orderProduct) throws IamportResponseException, IOException {
+            @PathVariable("imp_uid") String impUid,
+            @RequestBody PaymentRequestDto request
+    ) throws IamportResponseException, IOException {
 
-        // 결제 정보 검증
-        IamportResponse<Payment> paymentResponse = iamportClient.paymentByImpUid(imp_uid);
-        log.info("결제 요청 응답. 결제 내역 - 주문 번호: {}", paymentResponse.getResponse().getMerchantUid());
+        IamportResponse<Payment> paymentResponse = iamportClient.paymentByImpUid(impUid);
+        log.info("결제 요청 응답 - merchantUid={}", paymentResponse.getResponse().getMerchantUid());
 
-        // 결제 완료 후 비즈니스 로직 처리
-        paymentService.processPaymentDone(orderProduct, paymentResponse.getResponse(), request);
-
-        // Redis 에서 장바구니 정보 삭제 (결제 완료 후)
-        Set<String> cartKeys = redisTemplate.keys("cart:*");
-        if (cartKeys != null) {
-            redisTemplate.delete(cartKeys); // Redis 에서 삭제, httpSessiion.remove.. 필요 x
-        }
+        paymentService.processPaymentDone(paymentResponse.getResponse(), request);
 
         return ResponseEntity.ok(paymentResponse);
     }
 
-    /**
-     * 사용자 결제 내역 조회
-     * - 자신의 결제 내역만 조회 가능 (서버에서 ID 검증)
-     */
     @GetMapping("/paymentHistory/{memberId}")
-    public List<PaymentHistoryDto> getPaymentHistories(@PathVariable Long memberId) {
-        return paymentService.getPaymentHistoriesByMemberId(memberId);
+    public ResponseEntity<List<PaymentHistoryDto>> getPaymentHistories(@PathVariable Long memberId) {
+        return ResponseEntity.ok(paymentService.getPaymentHistoriesByMemberId(memberId));
     }
 
-    /**
-     * 결제 취소(환불) 요청 처리
-     * - 해당 결제 건에 대한 환불 처리 후 응답 반환
-     */
     @PostMapping("/payment/cancel/{paymentHistoryId}")
     public ResponseEntity<IamportResponse<Payment>> paymentCancel(
-            @PathVariable("paymentHistoryId") Long paymentHistoryId,
-            @RequestBody PaymentCancelDto requestDto) throws IamportResponseException, IOException {
+            @PathVariable Long paymentHistoryId,
+            @RequestBody PaymentCancelDto requestDto
+    ) throws IamportResponseException, IOException {
 
-        IamportResponse<Payment> cancelResponse = paymentService.cancelPayment(paymentHistoryId, requestDto, iamportClient);
+        IamportResponse<Payment> cancelResponse =
+                paymentService.cancelPayment(paymentHistoryId, requestDto, iamportClient);
+
         return ResponseEntity.ok(cancelResponse);
     }
-
 }
-
-

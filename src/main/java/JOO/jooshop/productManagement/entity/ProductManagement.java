@@ -32,6 +32,22 @@ import java.util.List;
 )
 public class ProductManagement {
 
+    /*
+     * [Entity]
+     *
+     * 기존
+     * - 상품 옵션/재고 엔티티로 사용되었지만
+     *   Product와의 관계, 옵션 단위 재고 관리 책임이 코드상 분산될 수 있었음
+     *
+     * refactoring 26.04
+     * - ProductManagement는 상품의 옵션 단위 관리 엔티티
+     * - 색상, 사이즈, 카테고리, 재고 등 실제 판매 가능한 SKU 수준의 상태를 관리
+     * - Cart / OrderProduct는 Product가 아니라 ProductManagement를 참조하여
+     *   "어떤 옵션 상품인지"를 명확히 식별
+     * - 상품 본체(Product)와 옵션/재고(ProductManagement)의 책임을 분리
+     * - 주문/장바구니에서 옵션 기준 참조를 일관되게 유지하도록 설계
+     */
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "inventory_id")
