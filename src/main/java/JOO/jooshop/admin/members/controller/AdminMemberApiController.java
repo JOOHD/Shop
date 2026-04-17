@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 @PreAuthorize("hasRole('ADMIN')") // ADMIN 권한 필요
 public class AdminMemberApiController {
 
-    private final EmailMemberService emailMemberService;
     private final AdminMemberService adminMemberService;
 
     /**
@@ -38,7 +37,7 @@ public class AdminMemberApiController {
     public ResponseEntity<List<AdminMemberResponse>> getMemberList() {
         List<AdminMemberResponse> list = adminMemberService.findAllMembers()
                 .stream()
-                .map(AdminMemberResponse::toDto) // Entity → DTO 변환
+                .map(AdminMemberResponse::from) // Entity → DTO 변환
                 .collect(Collectors.toList());
         return ResponseEntity.ok(list);
     }
@@ -50,24 +49,15 @@ public class AdminMemberApiController {
     @GetMapping("/{id}")
     public ResponseEntity<AdminMemberDetailResponse> getMemberDetail(@PathVariable Long id) {
         return ResponseEntity.ok(
-                AdminMemberDetailResponse.toDto(adminMemberService.findMemberById(id))
+                AdminMemberDetailResponse.from(adminMemberService.findMemberById(id))
         );
     }
 
     @PostMapping("/join")
     @ResponseBody
     public ResponseEntity<?> registerAdmin(@RequestBody @Valid JoinMemberRequest request) {
-
-        // 이메일 인증 체크
-        if (!emailMemberService.isEmailVerified(request.getEmail())) {
-            throw new UnverifiedEmailException("이메일 인증이 필요합니다.");
-        }
-
-        // 서비스 실행 (예외는 그대로 던짐 -> GlobalExcetptionHandler 가 처리)
         adminMemberService.registerAdmin(request);
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body("관리자 등록 성공");
+        return ResponseEntity.status(HttpStatus.CREATED).body("관리자 등록 성공");
     }
 
     /** 회원 활성화 */

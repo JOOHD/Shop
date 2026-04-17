@@ -1,49 +1,69 @@
 package JOO.jooshop.admin.orders.service;
 
-import JOO.jooshop.admin.orders.model.AdminOrderResponseDto;
+import JOO.jooshop.admin.orders.model.AdminOrderDetailResponse;
+import JOO.jooshop.admin.orders.model.AdminOrderListResponse;
 import JOO.jooshop.admin.orders.repository.AdminOrderRepository;
 import JOO.jooshop.order.entity.Orders;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AdminOrderService {
 
-    private final AdminOrderRepository orderRepository;
+    private final AdminOrderRepository adminOrderRepository;
 
     /**
      * 관리자용 주문 목록 조회
+     * - status, keyword는 선택 필터
      */
-    public List<AdminOrderResponseDto> getOrders(String status, String keyword) {
-        // 전체 주문 조회
-        List<Orders> orders = orderRepository.findAll(Sort.by(Sort.Direction.DESC, "orderDay"));
+    public List<AdminOrderListResponse> getOrders(String status, String keyword) {
+        List<Orders> orders = adminOrderRepository.findAll(
+                Sort.by(Sort.Direction.DESC, "orderDay")
+        );
 
-        // 검색,상태 따른 조회
         return orders.stream()
-                // status가 null이거나 빈 문자열이면 필터 무시
-                .filter(o -> (status == null || status.isBlank())
-                        || o.getPaymentStatus().name().equalsIgnoreCase(status))
-                // keyword가 null이거나 빈 문자열이면 필터 무시
-                .filter(o -> (keyword == null || keyword.isBlank())
-                        || o.getOrdererName().contains(keyword)
-                        || o.getProductNameSummary().contains(keyword))
-                .map(AdminOrderResponseDto::toEntity) // DTO -> Entity
-                .collect(Collectors.toList());
+                .filter(order -> isMatchedStatus(order, status))
+                .filter(order -> isMatchedKeyword(order, keyword))
+                .map(AdminOrderListResponse::from)
+                .toList();
     }
 
-
     /**
-     * 주문 상세 조회
+     * 관리자용 주문 상세 조회
      */
-    public AdminOrderResponseDto getOrderDetail(Long orderId) {
-        Orders order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다."));
+    public AdminOrderDetailResponse getOrderDetail(Long orderId) {
+        Orders order = adminOrderRepository.findWithOrderProductsByOrderId(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다. orderId=" + orderId));
 
-        return AdminOrderResponseDto.toEntity(order); // DTO -> Entity
+        return AdminOrderDetailResponse.from(order);
+    }
+
+    private boolean isMatchedStatus(Orders order, String status) {
+        if (status == null || status.isBlank()) {
+            return true;
+        }
+        return order.getPaymentStatus().name().equalsIgnoreCase(status);
+    }
+
+    private boolean isMatchedKeyword(Orders order, String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return true;
+        }
+
+        return containsIgnoreCase(order.getOrdererName(), keyword)
+                || containsIgnoreCase(order.getProductNameSummary(), keyword);
+    }
+
+    private boolean containsIgnoreCase(String source, String keyword) {
+        if (source == null || keyword == null) {
+            return false;
+        }
+        return source.toLowerCase().contains(keyword.toLowerCase());
     }
 }

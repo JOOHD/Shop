@@ -22,7 +22,7 @@ public class AdminMemberResponse {
     /**
      * Member 엔티티 → AdminMemberResponse DTO 변환
      */
-    public static AdminMemberResponse toDto(Member member) {
+    public static AdminMemberResponse from(Member member) {
         return new AdminMemberResponse(
                 member.getId(),
                 member.getEmail(),

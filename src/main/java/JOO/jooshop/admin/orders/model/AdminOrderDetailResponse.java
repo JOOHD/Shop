@@ -1,22 +1,27 @@
 package JOO.jooshop.admin.orders.model;
 
-import JOO.jooshop.order.entity.OrderProduct;
 import JOO.jooshop.order.entity.Orders;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
-@Data
-@AllArgsConstructor
+@Getter
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class AdminOrderResponseDto {
+public class AdminOrderDetailResponse {
+
+    /**
+     * 주소
+     * 상세주소
+     * 우편번호
+     * 상품 목록 전체
+     */
 
     private Long orderId;
     private String ordererName;
@@ -27,15 +32,14 @@ public class AdminOrderResponseDto {
     private BigDecimal totalPrice;
     private String status;
     private LocalDateTime orderDate;
-    private List<AdminOrderProductDto> products;
+    private String productSummary;
+    private List<AdminOrderProductResponse> products;
 
-    /* DTO -> Entity */
-    public static AdminOrderResponseDto toEntity(Orders order) {
-        List<AdminOrderProductDto> productDtos = order.getOrderProducts().stream()
-                .map(AdminOrderProductDto::toEntity)
-                .collect(Collectors.toList());
-
-        return AdminOrderResponseDto.builder()
+    /**
+     * Orders 엔티티 → 관리자 주문 상세 응답 DTO
+     */
+    public static AdminOrderDetailResponse from(Orders order) {
+        return AdminOrderDetailResponse.builder()
                 .orderId(order.getOrderId())
                 .ordererName(order.getOrdererName())
                 .phoneNumber(order.getPhoneNumber())
@@ -45,7 +49,10 @@ public class AdminOrderResponseDto {
                 .totalPrice(order.getTotalPrice())
                 .status(order.getPaymentStatus().name())
                 .orderDate(order.getOrderDay())
-                .products(productDtos)
+                .productSummary(order.getProductNameSummary())
+                .products(order.getOrderProducts().stream()
+                        .map(AdminOrderProductResponse::from)
+                        .toList())
                 .build();
     }
 }

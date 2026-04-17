@@ -3,16 +3,16 @@ package JOO.jooshop.admin.orders.model;
 import JOO.jooshop.order.entity.OrderProduct;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-@Data
-@AllArgsConstructor
+@Getter
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class AdminOrderProductDto {
+public class AdminOrderProductResponse {
 
     private String productName;
     private String productSize;
@@ -20,9 +20,11 @@ public class AdminOrderProductDto {
     private int quantity;
     private BigDecimal priceAtOrder;
 
-    /* DTO -> Entity */
-    public static AdminOrderProductDto toEntity(OrderProduct product) {
-        return AdminOrderProductDto.builder()
+    /**
+     * OrderProduct 엔티티 → 관리자 주문 상품 응답 DTO
+     */
+    public static AdminOrderProductResponse from(OrderProduct product) {
+        return AdminOrderProductResponse.builder()
                 .productName(product.getProductName())
                 .productSize(product.getProductSize())
                 .productImg(product.getProductImg())

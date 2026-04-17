@@ -18,12 +18,11 @@ public class AdminMemberDetailResponse {
     private String memberRole;
     private boolean certifiedByEmail;
     private boolean active;
+    private boolean banned;
+    private boolean accountExpired;
+    private boolean passwordExpired;
 
-    /**
-     * Member 엔티티 → 상세 DTO 변환
-     */
-    public static AdminMemberDetailResponse toDto(Member member) {
-
+    public static AdminMemberDetailResponse from(Member member) {
         return new AdminMemberDetailResponse(
                 member.getId(),
                 member.getEmail(),
@@ -32,7 +31,10 @@ public class AdminMemberDetailResponse {
                 member.getPhoneNumber(),
                 member.getMemberRole().name(),
                 member.isCertifiedByEmail(),
-                member.isActive()
-         );
+                member.isActive(),
+                member.isBanned(),
+                member.isAccountExpired(),
+                member.isPasswordExpired()
+        );
     }
 }
